@@ -27,9 +27,10 @@ main(void)
     khttp_body(&r);
     kjson_open(&req, &r);
     kjson_obj_open(&req);
-    kjson_objp_open(&req,"foo");
-    kjson_putstringp(&req, "greeting", "hello, world");
-    kjson_putstringp(&req, "foobaring", "Foo bar");
+    kjson_objp_open(&req,"me_fr");
+    kjson_putstringp(&req, "gate", "keeping");
+    kjson_putstringp(&req, "gas", "lighting");
+    kjson_putstringp(&req, "girl", "bossing");
     kjson_obj_close(&req);
     kjson_obj_close(&req);
     kjson_close(&req);
