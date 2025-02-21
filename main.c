@@ -29,10 +29,8 @@ main(void)
     kjson_obj_open(&req);
     kjson_objp_open(&req,"me_fr");
     kjson_putstringp(&req, "gate", "keeping");
-    kjson_array_open(&req);
     kjson_putstringp(&req, "gas", "lighting");
     kjson_putstringp(&req, "girl", "bossing");
-    kjson_array_close(&req);
     kjson_obj_close(&req);
     kjson_obj_close(&req);
     kjson_close(&req);
