@@ -145,4 +145,5 @@ CTestTestfile.cmake
 _deps
 CMakeUserPresets.json
 
+CMakeLists.txt
 .idea/*
