@@ -16,7 +16,7 @@ enum apis {
 };
 
 static const char *pages[PG__MAX] = {
-    "query",
+    "index",
     "create",
     "set"
 };
@@ -30,22 +30,20 @@ main(void) {
 
     if (pledge("stdio", NULL) == -1)
         err(EXIT_FAILURE, "pledge");
-    if (r.mime == KMIME_APP_JSON) {
-        khttp_head(&r, kresps[KRESP_STATUS],
-                   "%s", khttps[KHTTP_200]);
-        khttp_head(&r, kresps[KRESP_CONTENT_TYPE],
-                   "%s", kmimetypes[KMIME_APP_JSON]);
-        khttp_body(&r);
-        kjson_open(&req, &r);
-        kjson_obj_open(&req);
-        kjson_objp_open(&req, "me_fr");
-        kjson_putstringp(&req, "gate", "keeping");
-        kjson_putstringp(&req, "gas", "lighting");
-        kjson_putstringp(&req, "girl", "bossing");
-        kjson_obj_close(&req);
-        kjson_obj_close(&req);
-        kjson_close(&req);
-        khttp_free(&r);
-    }
+    khttp_head(&r, kresps[KRESP_STATUS],
+               "%s", khttps[KHTTP_200]);
+    khttp_head(&r, kresps[KRESP_CONTENT_TYPE],
+               "%s", kmimetypes[KMIME_APP_JSON]);
+    khttp_body(&r);
+    kjson_open(&req, &r);
+    kjson_obj_open(&req);
+    kjson_objp_open(&req, "me_fr");
+    kjson_putstringp(&req, "gate", "keeping");
+    kjson_putstringp(&req, "gas", "lighting");
+    kjson_putstringp(&req, "girl", "bossing");
+    kjson_obj_close(&req);
+    kjson_obj_close(&req);
+    kjson_close(&req);
+    khttp_free(&r);
     return EXIT_SUCCESS;
 }
