@@ -36,10 +36,9 @@ main(void) {
     khttp_body(&r);
     kjson_open(&req, &r);
     kjson_obj_open(&req);
-    kjson_objp_open(&req, "me_fr");
+    kjson_objp_open(&req, "informations");
     kjson_putstringp(&req, "mime", kmimetypes[r.mime]);
-    kjson_putstringp(&req, "gas", "lighting");
-    kjson_putstringp(&req, "girl", "bossing");
+    kjson_putstringp(&req, "method", kmethods[r.method]);
     kjson_obj_close(&req);
     kjson_obj_close(&req);
     kjson_close(&req);
