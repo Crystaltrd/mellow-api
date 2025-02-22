@@ -32,10 +32,24 @@ main(void) {
         err(EXIT_FAILURE, "pledge");
     if (r.method != KMETHOD_GET && r.method != KMETHOD_HEAD) {
         khttp_head(&r,kresps[KRESP_STATUS], "%s",khttps[KHTTP_405]);
+        khttp_head(&r, kresps[KRESP_CONTENT_TYPE],
+                   "%s", kmimetypes[KMIME_APP_JSON]);
+        kjson_open(&req, &r);
+        kjson_obj_open(&req);
+        kjson_putstringp(&req, "status", khttps[KHTTP_405]);
+        kjson_obj_close(&req);
+        kjson_close(&req);
         khttp_free(&r);
     }
     else if (r.page == PG__MAX) {
         khttp_head(&r,kresps[KRESP_STATUS], "%s",khttps[KHTTP_404]);
+        khttp_head(&r, kresps[KRESP_CONTENT_TYPE],
+                   "%s", kmimetypes[KMIME_APP_JSON]);
+        kjson_open(&req, &r);
+        kjson_obj_open(&req);
+        kjson_putstringp(&req, "status", khttps[KHTTP_404]);
+        kjson_obj_close(&req);
+        kjson_close(&req);
         khttp_free(&r);
     }
     else {
