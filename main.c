@@ -8,6 +8,7 @@
 #include <kcgijson.h>
 #include <sqlbox.h>
 #include <stdio.h>
+#include <string.h>
 
 enum apis {
     PG_QUERY,
@@ -98,10 +99,10 @@ main(void) {
         kjson_obj_open(&req);
         kjson_putintp(&req, "code", 200);
         kjson_putstringp(&req, "details", khttps[KHTTP_200]);
-        kjson_putstringp(&req,"subpath", r.path);
         switch (r.page) {
             case PG_QUERY:
-                handle_book_query(&req);
+                if (strcmp(r.path, "books") == 0)
+                    handle_book_query(&req);
                 break;
             default:
                 break;
