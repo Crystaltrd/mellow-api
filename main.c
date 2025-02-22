@@ -41,7 +41,7 @@ main(void) {
     kjson_putstringp(&req, "mime", kmimetypes[r.mime]);
     kjson_putstringp(&req, "method", kmethods[r.method]);
     char buf[20];
-    sprintf(buf,"%lld",r.page);
+    sprintf(buf,"%zu",r.page);
     kjson_putstringp(&req,"page", buf);
     kjson_obj_close(&req);
     kjson_obj_close(&req);
