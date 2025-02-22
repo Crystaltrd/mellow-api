@@ -30,22 +30,28 @@ main(void) {
         return EXIT_FAILURE;
     if (pledge("stdio", NULL) == -1)
         err(EXIT_FAILURE, "pledge");
-    khttp_head(&r, kresps[KRESP_STATUS],
-               "%s", khttps[KHTTP_200]);
-    khttp_head(&r, kresps[KRESP_CONTENT_TYPE],
-               "%s", kmimetypes[KMIME_APP_JSON]);
-    khttp_body(&r);
-    kjson_open(&req, &r);
-    kjson_obj_open(&req);
-    kjson_objp_open(&req, "informations");
-    kjson_putstringp(&req, "mime", kmimetypes[r.mime]);
-    kjson_putstringp(&req, "method", kmethods[r.method]);
-    char buf[20];
-    sprintf(buf,"%zu",r.page);
-    kjson_putstringp(&req,"page", buf);
-    kjson_obj_close(&req);
-    kjson_obj_close(&req);
-    kjson_close(&req);
-    khttp_free(&r);
+    if (r.method != KMETHOD_GET && r.method != KMETHOD_HEAD) {
+        khttp_head(&r,kresps[KRESP_STATUS], "%s",khttps[KHTTP_405]);
+    }
+    else if (r.page == PG__MAX) {
+        khttp_head(&r,kresps[KRESP_STATUS], "%s",khttps[KHTTP_404]);
+    }
+    else {
+        khttp_head(&r, kresps[KRESP_STATUS],
+                   "%s", khttps[KHTTP_200]);
+        khttp_head(&r, kresps[KRESP_CONTENT_TYPE],
+                   "%s", kmimetypes[KMIME_APP_JSON]);
+        khttp_body(&r);
+        kjson_open(&req, &r);
+        kjson_obj_open(&req);
+        kjson_objp_open(&req, "informations");
+        kjson_putstringp(&req, "mime", kmimetypes[r.mime]);
+        kjson_putstringp(&req, "method", kmethods[r.method]);
+        kjson_putstringp(&req, "page", kmethods[r.page]);
+        kjson_obj_close(&req);
+        kjson_obj_close(&req);
+        kjson_close(&req);
+        khttp_free(&r);
+    }
     return EXIT_SUCCESS;
 }
