@@ -27,7 +27,7 @@ main(void) {
     struct kjsonreq req;
     if (khttp_parse(&r, NULL, 0, pages, PG__MAX, PG_QUERY) != KCGI_OK)
         return EXIT_FAILURE;
-
+    size_t mime = r.mime;
     if (pledge("stdio", NULL) == -1)
         err(EXIT_FAILURE, "pledge");
     khttp_head(&r, kresps[KRESP_STATUS],
@@ -38,7 +38,7 @@ main(void) {
     kjson_open(&req, &r);
     kjson_obj_open(&req);
     kjson_objp_open(&req, "me_fr");
-    kjson_putstringp(&req, "gate", "keeping");
+    kjson_putstringp(&req, "mime", kmimetypes[mime]);
     kjson_putstringp(&req, "gas", "lighting");
     kjson_putstringp(&req, "girl", "bossing");
     kjson_obj_close(&req);
