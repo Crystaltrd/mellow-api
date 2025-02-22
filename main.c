@@ -44,13 +44,15 @@ static const char *Authors[5] = {
 };
 
 int handle_book_query(struct kjsonreq *req) {
+    kjson_arrayp_open(req, "books");
     for (int i = 0; i < 5; ++i) {
         kjson_obj_open(req);
-        kjson_putintp(req,"SerialNumber",SerialNumbers[i]);
-        kjson_putstringp(req,"Title",Titles[i]);
-        kjson_putstringp(req,"Authors",Authors[i]);
+        kjson_putintp(req, "SerialNumber", SerialNumbers[i]);
+        kjson_putstringp(req, "Title", Titles[i]);
+        kjson_putstringp(req, "Authors", Authors[i]);
         kjson_obj_close(req);
     }
+    kjson_array_close(req);
     return 0;
 }
 
@@ -96,9 +98,13 @@ main(void) {
         kjson_obj_open(&req);
         kjson_putintp(&req, "code", 200);
         kjson_putstringp(&req, "details", khttps[KHTTP_200]);
-        kjson_arrayp_open(&req, "books");
-        handle_book_query(&req);
-        kjson_array_close(&req);
+        switch (r.page) {
+            case PG_QUERY:
+                handle_book_query(&req);
+                break;
+            default:
+                break;
+        }
         kjson_obj_close(&req);
         kjson_close(&req);
         khttp_free(&r);
