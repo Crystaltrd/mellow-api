@@ -34,9 +34,11 @@ main(void) {
         khttp_head(&r,kresps[KRESP_STATUS], "%s",khttps[KHTTP_405]);
         khttp_head(&r, kresps[KRESP_CONTENT_TYPE],
                    "%s", kmimetypes[KMIME_APP_JSON]);
+        khttp_body(&r);
         kjson_open(&req, &r);
         kjson_obj_open(&req);
-        kjson_putstringp(&req, "status", khttps[KHTTP_405]);
+        kjson_putintp(&req, "code", 405);
+        kjson_putstringp(&req, "details", khttps[KHTTP_405]);
         kjson_obj_close(&req);
         kjson_close(&req);
         khttp_free(&r);
@@ -45,9 +47,11 @@ main(void) {
         khttp_head(&r,kresps[KRESP_STATUS], "%s",khttps[KHTTP_404]);
         khttp_head(&r, kresps[KRESP_CONTENT_TYPE],
                    "%s", kmimetypes[KMIME_APP_JSON]);
+        khttp_body(&r);
         kjson_open(&req, &r);
         kjson_obj_open(&req);
-        kjson_putstringp(&req, "status", khttps[KHTTP_404]);
+        kjson_putintp(&req, "code", 404);
+        kjson_putstringp(&req, "details", khttps[KHTTP_405]);
         kjson_obj_close(&req);
         kjson_close(&req);
         khttp_free(&r);
