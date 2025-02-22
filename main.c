@@ -47,7 +47,7 @@ main(void) {
         kjson_objp_open(&req, "informations");
         kjson_putstringp(&req, "mime", kmimetypes[r.mime]);
         kjson_putstringp(&req, "method", kmethods[r.method]);
-        kjson_putstringp(&req, "page", kmethods[r.page]);
+        kjson_putstringp(&req, "page", pages[r.page]);
         kjson_obj_close(&req);
         kjson_obj_close(&req);
         kjson_close(&req);
