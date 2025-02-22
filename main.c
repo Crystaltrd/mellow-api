@@ -58,9 +58,28 @@ main(void) {
         kjson_obj_open(&req);
         kjson_putintp(&req, "code", 200);
         kjson_putstringp(&req, "details", khttps[KHTTP_200]);
-        kjson_putstringp(&req, "pname", r.pname);
-        kjson_putstringp(&req, "path", r.path);
-        kjson_putstringp(&req, "pagename", r.pagename);
+        switch (r.page) {
+            case PG_QUERY:
+                if (strcmp(r.path, "books") != 0) {
+                    kjson_putstringp(&req, "querying", "books");
+                } else if (strcmp(r.path, "librarians") != 0) {
+                    kjson_putstringp(&req, "querying", "librarians");
+                } else if (strcmp(r.path, "campuses") != 0) {
+                    kjson_putstringp(&req, "querying", "campuses");
+                } else if (strcmp(r.path, "rentees") != 0) {
+                    kjson_putstringp(&req, "querying", "rentees");
+                } else {
+                    kjson_putstringp(&req, "querying", "Error");
+                }
+                break;
+            case PG_SET:
+                break;
+            case PG_CREATE:
+                break;
+            default:
+                break;
+        }
+
         kjson_obj_close(&req);
         kjson_close(&req);
         khttp_free(&r);
