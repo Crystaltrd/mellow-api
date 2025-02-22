@@ -64,11 +64,11 @@ main(void) {
         khttp_body(&r);
         kjson_open(&req, &r);
         kjson_obj_open(&req);
-        kjson_objp_open(&req, "informations");
-        kjson_putstringp(&req, "mime", kmimetypes[r.mime]);
-        kjson_putstringp(&req, "method", kmethods[r.method]);
-        kjson_putstringp(&req, "page", pages[r.page]);
-        kjson_obj_close(&req);
+        kjson_array_open(&req);
+        kjson_putstring(&req, kmimetypes[r.mime]);
+        kjson_putstring(&req, kmethods[r.method]);
+        kjson_putstring(&req, pages[r.page]);
+        kjson_array_close(&req);
         kjson_obj_close(&req);
         kjson_close(&req);
         khttp_free(&r);
