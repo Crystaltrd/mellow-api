@@ -21,6 +21,38 @@ static const char *pages[PG__MAX] = {
     "create",
     "set"
 };
+static const int SerialNumbers[5] = {
+    12345,
+    56753,
+    9999,
+    23434,
+    345,
+};
+static const char *Titles[5] = {
+    "Livre A",
+    "Livre B",
+    "Bim's sins",
+    "50 ways to torture Bim",
+    "The Anti Bim manifesto"
+};
+static const char *Authors[5] = {
+    "Author A",
+    "Author B",
+    "Anti-Bim United",
+    "Anti-Bim United",
+    "Anti-Bim United"
+};
+
+int handle_book_query(struct kjsonreq *req) {
+    for (int i = 0; i < 5; ++i) {
+        kjson_obj_open(req);
+        kjson_putintp(req,"SerialNumber",SerialNumbers[i]);
+        kjson_putstringp(req,"Title",Titles[i]);
+        kjson_putstringp(req,"Authors",Authors[i]);
+        kjson_obj_close(req);
+    }
+    return 0;
+}
 
 int
 main(void) {
@@ -31,7 +63,7 @@ main(void) {
     if (pledge("stdio", NULL) == -1)
         err(EXIT_FAILURE, "pledge");
     if (r.method != KMETHOD_GET && r.method != KMETHOD_HEAD) {
-        khttp_head(&r,kresps[KRESP_STATUS], "%s",khttps[KHTTP_405]);
+        khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_405]);
         khttp_head(&r, kresps[KRESP_CONTENT_TYPE],
                    "%s", kmimetypes[KMIME_APP_JSON]);
         khttp_body(&r);
@@ -42,9 +74,8 @@ main(void) {
         kjson_obj_close(&req);
         kjson_close(&req);
         khttp_free(&r);
-    }
-    else if (r.page == PG__MAX) {
-        khttp_head(&r,kresps[KRESP_STATUS], "%s",khttps[KHTTP_404]);
+    } else if (r.page == PG__MAX) {
+        khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_404]);
         khttp_head(&r, kresps[KRESP_CONTENT_TYPE],
                    "%s", kmimetypes[KMIME_APP_JSON]);
         khttp_body(&r);
@@ -55,8 +86,7 @@ main(void) {
         kjson_obj_close(&req);
         kjson_close(&req);
         khttp_free(&r);
-    }
-    else {
+    } else {
         khttp_head(&r, kresps[KRESP_STATUS],
                    "%s", khttps[KHTTP_200]);
         khttp_head(&r, kresps[KRESP_CONTENT_TYPE],
@@ -66,10 +96,9 @@ main(void) {
         kjson_obj_open(&req);
         kjson_putintp(&req, "code", 200);
         kjson_putstringp(&req, "details", khttps[KHTTP_200]);
-        kjson_arrayp_open(&req,"books");
-        kjson_objp_open(&req,"B1");
-        kjson_obj_close(&req);
-        kjson_obj_close(&req);
+        kjson_arrayp_open(&req, "books");
+        handle_book_query(&req);
+        kjson_array_close(&req);
         kjson_obj_close(&req);
         kjson_close(&req);
         khttp_free(&r);
