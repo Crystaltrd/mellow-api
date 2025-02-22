@@ -22,18 +22,20 @@ static const char *pages[PG__MAX] = {
     "create",
     "set"
 };
+
 void handle_err(struct kreq *r, struct kjsonreq *req, enum khttp status) {
-         khttp_head(r, kresps[KRESP_STATUS], "%s", khttps[status]);
-        khttp_head(r, kresps[KRESP_CONTENT_TYPE],
-                   "%s", kmimetypes[KMIME_APP_JSON]);
-        khttp_body(r);
-        kjson_open(req, r);
-        kjson_obj_open(req);
-        kjson_putstringp(req, "details", khttps[status]);
-        kjson_obj_close(req);
-        kjson_close(req);
-        khttp_free(r);
+    khttp_head(r, kresps[KRESP_STATUS], "%s", khttps[status]);
+    khttp_head(r, kresps[KRESP_CONTENT_TYPE],
+               "%s", kmimetypes[KMIME_APP_JSON]);
+    khttp_body(r);
+    kjson_open(req, r);
+    kjson_obj_open(req);
+    kjson_putstringp(req, "details", khttps[status]);
+    kjson_obj_close(req);
+    kjson_close(req);
+    khttp_free(r);
 }
+
 int
 main(void) {
     struct kreq r;
@@ -43,9 +45,9 @@ main(void) {
     if (pledge("stdio", NULL) == -1)
         err(EXIT_FAILURE, "pledge");
     if (r.method != KMETHOD_GET && r.method != KMETHOD_HEAD) {
-        handle_err(&r,&req,KHTTP_405);
+        handle_err(&r, &req, KHTTP_405);
     } else if (r.page == PG__MAX) {
-        handle_err(&r,&req,KHTTP_403);
+        handle_err(&r, &req, KHTTP_403);
     } else {
         khttp_head(&r, kresps[KRESP_STATUS],
                    "%s", khttps[KHTTP_200]);
@@ -56,6 +58,9 @@ main(void) {
         kjson_obj_open(&req);
         kjson_putintp(&req, "code", 200);
         kjson_putstringp(&req, "details", khttps[KHTTP_200]);
+        kjson_putstringp(&req, "pname", r.pname);
+        kjson_putstringp(&req, "path", r.path);
+        kjson_putstringp(&req, "pagename", r.pagename);
         kjson_obj_close(&req);
         kjson_close(&req);
         khttp_free(&r);
