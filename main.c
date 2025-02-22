@@ -32,9 +32,11 @@ main(void) {
         err(EXIT_FAILURE, "pledge");
     if (r.method != KMETHOD_GET && r.method != KMETHOD_HEAD) {
         khttp_head(&r,kresps[KRESP_STATUS], "%s",khttps[KHTTP_405]);
+        khttp_free(&r);
     }
     else if (r.page == PG__MAX) {
         khttp_head(&r,kresps[KRESP_STATUS], "%s",khttps[KHTTP_404]);
+        khttp_free(&r);
     }
     else {
         khttp_head(&r, kresps[KRESP_STATUS],
