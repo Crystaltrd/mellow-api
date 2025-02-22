@@ -7,6 +7,7 @@
 #include <kcgi.h>
 #include <kcgijson.h>
 #include <sqlbox.h>
+#include <stdio.h>
 
 enum apis {
     PG_QUERY,
@@ -39,6 +40,9 @@ main(void) {
     kjson_objp_open(&req, "informations");
     kjson_putstringp(&req, "mime", kmimetypes[r.mime]);
     kjson_putstringp(&req, "method", kmethods[r.method]);
+    char buf[20];
+    sprintf(buf,"%lld",r.page);
+    kjson_putstringp(&req,"page", buf);
     kjson_obj_close(&req);
     kjson_obj_close(&req);
     kjson_close(&req);
