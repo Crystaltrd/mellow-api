@@ -60,13 +60,13 @@ main(void) {
         kjson_putstringp(&req, "details", khttps[KHTTP_200]);
         switch (r.page) {
             case PG_QUERY:
-                if (strcmp(r.path, "books") != 0) {
+                if (strcmp(r.path, "books") == 0) {
                     kjson_putstringp(&req, "querying", "books");
-                } else if (strcmp(r.path, "librarians") != 0) {
+                } else if (strcmp(r.path, "librarians") == 0) {
                     kjson_putstringp(&req, "querying", "librarians");
-                } else if (strcmp(r.path, "campuses") != 0) {
+                } else if (strcmp(r.path, "campuses") == 0) {
                     kjson_putstringp(&req, "querying", "campuses");
-                } else if (strcmp(r.path, "rentees") != 0) {
+                } else if (strcmp(r.path, "rentees") == 0) {
                     kjson_putstringp(&req, "querying", "rentees");
                 } else {
                     kjson_putstringp(&req, "querying", "Error");
