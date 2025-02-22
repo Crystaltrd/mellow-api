@@ -16,7 +16,7 @@ enum apis {
 };
 
 static const char *pages[PG__MAX] = {
-    "index",
+    "query",
     "create",
     "set"
 };
