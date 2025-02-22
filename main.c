@@ -66,10 +66,9 @@ main(void) {
         kjson_obj_open(&req);
         kjson_putintp(&req, "code", 200);
         kjson_putstringp(&req, "details", khttps[KHTTP_200]);
-        kjson_objp_open(&req,"details");
-        kjson_putstringp(&req,"mime", kmimetypes[r.mime]);
-        kjson_putstringp(&req,"method", kmethods[r.method]);
-        kjson_putstringp(&req,"page", pages[r.page]);
+        kjson_arrayp_open(&req,"books");
+        kjson_objp_open(&req,"B1");
+        kjson_obj_close(&req);
         kjson_obj_close(&req);
         kjson_obj_close(&req);
         kjson_close(&req);
