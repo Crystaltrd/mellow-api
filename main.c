@@ -30,6 +30,12 @@ void handle_err(struct kreq *r, struct kjsonreq *req, enum khttp status) {
     khttp_body(r);
     kjson_open(req, r);
     kjson_obj_open(req);
+    int err = 400;
+    if (status == KHTTP_403)
+        err = 403;
+    if (status == KHTTP_405)
+        err = 405;
+    kjson_putintp(req,"code",err);
     kjson_putstringp(req, "details", khttps[status]);
     kjson_obj_close(req);
     kjson_close(req);
