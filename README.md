@@ -20,12 +20,3 @@ Return usage
 ### query/rentees (auth req)
 - Args: Matricule
 - Returns: Rentee Attributes
-### query/librarians (auth req)
-- Args: UUID
-- Returns: Librarian Attributes
-### query/inventory (auth req)
-- Args(optional): rentee,book
-- Returns: Books that rentee has. Or Returns the rentee of a book
-### query/admins (auth req)
-- Args: UUID
-- Returns: Admin Attributes
