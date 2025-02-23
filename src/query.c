@@ -30,7 +30,6 @@ void handle_err(struct kreq *r, struct kjsonreq *req, enum khttp status, int err
     kjson_open(req, r);
     kjson_obj_open(req);
     kjson_putintp(req, "status", err);
-
     kjson_obj_close(req);
     kjson_close(req);
     khttp_free(r);
@@ -69,7 +68,6 @@ void handle_campuses(struct kreq *r, struct kjsonreq *req) {
     khttp_body(r);
     kjson_open(req, r);
     kjson_obj_open(req);
-    kjson_putintp(req, "status", 200);
     kjson_arrayp_open(req, "campus");
     while ((res = sqlbox_step(p2, stmtid)) != NULL && res->code == SQLBOX_CODE_OK && res->psz != 0) {
         kjson_obj_open(req);
@@ -81,6 +79,7 @@ void handle_campuses(struct kreq *r, struct kjsonreq *req) {
         errx(EXIT_FAILURE, "sqlbox_finalise");
     sqlbox_free(p2);
     kjson_obj_close(req);
+    kjson_putintp(req, "status", 200);
     kjson_close(req);
     khttp_free(r);
 }
