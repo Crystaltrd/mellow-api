@@ -1,5 +1,5 @@
 #! /bin/sh
-[ -d bins ] || doas mkdir bins
+[ -d bins ] || mkdir bins
 cc `pkg-config --static --cflags kcgi-html kcgi-json sqlbox` -c -o query.o src/query.c
 cc -static -o bins/query query.o `pkg-config --static --libs kcgi-html kcgi-json sqlbox`
 [ -d /var/www/cgi-bin/mellow ] || doas mkdir /var/www/cgi-bin/mellow
