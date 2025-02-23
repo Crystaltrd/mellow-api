@@ -13,3 +13,4 @@ doas rcctl enable slowcgi
 doas rcctl start slowcgi
 doas rcctl check slowcgi
 doas rcctl restart httpd
+rm -rfv *.o
