@@ -21,14 +21,14 @@ static const char *pages[PG__MAX] = {
     "campus",
 };
 
-void handle_err(struct kreq *r, struct kjsonreq *req, enum khttp status) {
+void handle_err(struct kreq *r, struct kjsonreq *req, enum khttp status,int err) {
     khttp_head(r, kresps[KRESP_STATUS], "%s", khttps[status]);
     khttp_head(r, kresps[KRESP_CONTENT_TYPE],
                "%s", kmimetypes[KMIME_APP_JSON]);
     khttp_body(r);
     kjson_open(req, r);
     kjson_obj_open(req);
-    kjson_putstringp(req, "error", khttps[status]);
+    kjson_putintp(req, "status", err);
     kjson_obj_close(req);
     kjson_close(req);
     khttp_free(r);
@@ -41,6 +41,7 @@ void handle_campuses(struct kreq *r, struct kjsonreq *req) {
     khttp_body(r);
     kjson_open(req, r);
     kjson_obj_open(req);
+    kjson_putintp(req, "status", 200);
     kjson_putstringp(req,"answer","campus");
     kjson_obj_close(req);
     kjson_close(req);
@@ -52,14 +53,14 @@ int main(void) {
     if (khttp_parse(&r, NULL, 0, pages, PG__MAX, PG_BOOKS) != KCGI_OK)
         return EXIT_FAILURE;
     if (r.method != KMETHOD_GET && r.method != KMETHOD_HEAD) {
-        handle_err(&r, &req, KHTTP_405);
+        handle_err(&r, &req, KHTTP_405,405);
     } else {
         switch (r.page) {
             case PG_CAMPUSES:
                 handle_campuses(&r,&req);
                 break;
             default:
-                handle_err(&r, &req, KHTTP_403);
+                handle_err(&r, &req, KHTTP_403,403);
                 break;
         }
     }
