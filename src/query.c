@@ -75,6 +75,7 @@ void handle_campuses(struct kreq *r, struct kjsonreq *req) {
         kjson_putstringp(req, "campus", res->ps[1].sparm);
         kjson_obj_close(req);
     }
+    kjson_array_close(req);
     if (!sqlbox_finalise(p2, stmtid))
         errx(EXIT_FAILURE, "sqlbox_finalise");
     sqlbox_free(p2);
