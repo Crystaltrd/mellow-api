@@ -34,7 +34,6 @@ void handle_err(struct kreq *r, struct kjsonreq *req, enum khttp status, int err
     kjson_close(req);
     khttp_free(r);
 }
-// hello world
 void handle_campuses(struct kreq *r, struct kjsonreq *req) {
     size_t dbid, stmtid;
     struct sqlbox *p2;
@@ -90,7 +89,7 @@ int main(void) {
     struct kjsonreq req;
     if (khttp_parse(&r, NULL, 0, pages, PG__MAX, PG_BOOKS) != KCGI_OK)
         return EXIT_FAILURE;
-    if (r.method != KMETHOD_GET && r.method != KMETHOD_HEAD) {
+    if (r.method != KMETHOD_GET) {
         handle_err(&r, &req, KHTTP_405, 405);
     } else {
         switch (r.page) {
