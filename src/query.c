@@ -41,7 +41,7 @@ void handle_campuses(struct kreq *r, struct kjsonreq *req) {
     struct sqlbox_src srcs[] = {
         {
             .fname = (char *) "db/database.db",
-            .mode = SQLBOX_SRC_RWC
+            .mode = SQLBOX_SRC_RO
         }
     };
     struct sqlbox_pstmt pstmts[] = {
@@ -61,6 +61,7 @@ void handle_campuses(struct kreq *r, struct kjsonreq *req) {
         errx(EXIT_FAILURE, "sqlbox_open");
     if (!(stmtid = sqlbox_prepare_bind(p2, dbid, 0, 0, 0, 0)))
         errx(EXIT_FAILURE, "sqlbox_prepare_bind");
+
     khttp_head(r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
     khttp_head(r, kresps[KRESP_CONTENT_TYPE],
                "%s", kmimetypes[KMIME_APP_JSON]);
@@ -92,6 +93,7 @@ int main(void) {
     if (r.method != KMETHOD_GET) {
         handle_err(&r, &req, KHTTP_405, 405);
     } else {
+
         switch (r.page) {
             case PG_CAMPUSES:
                 handle_campuses(&r, &req);
