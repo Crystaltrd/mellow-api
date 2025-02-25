@@ -33,6 +33,8 @@ void handle_err(struct kreq *r, struct kjsonreq *req, enum khttp status, int err
     khttp_head(r, kresps[KRESP_STATUS], "%s", khttps[status]);
     khttp_head(r, kresps[KRESP_CONTENT_TYPE],
                "%s", kmimetypes[KMIME_APP_JSON]);
+    khttp_head(r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
+    khttp_head(r, kresps[KRESP_VARY], "%s", "Origin");
     khttp_body(r);
     kjson_open(req, r);
     kjson_obj_open(req);
@@ -104,6 +106,8 @@ void handle_campuses(struct kreq *r, struct kjsonreq *req, const int rowid) {
         if (res->psz != 0) {
             khttp_head(r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
             khttp_head(r, kresps[KRESP_CONTENT_TYPE], "%s", kmimetypes[KMIME_APP_JSON]);
+            khttp_head(r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
+            khttp_head(r, kresps[KRESP_VARY], "%s", "Origin");
             khttp_body(r);
             kjson_open(req, r);
             kjson_obj_open(req);
@@ -114,6 +118,8 @@ void handle_campuses(struct kreq *r, struct kjsonreq *req, const int rowid) {
             khttp_head(r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_404]);
             khttp_head(r, kresps[KRESP_CONTENT_TYPE],
                        "%s", kmimetypes[KMIME_APP_JSON]);
+            khttp_head(r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
+            khttp_head(r, kresps[KRESP_VARY], "%s", "Origin");
             khttp_body(r);
             kjson_open(req, r);
             kjson_obj_open(req);
@@ -134,20 +140,15 @@ int main(void) {
     struct kpair *rowid;
     if (khttp_parse(&r, keys, KEY__MAX, pages, PG__MAX, PG_BOOKS) != KCGI_OK)
         return EXIT_FAILURE;
-    if (r.method == KMETHOD_OPTIONS &&
-        r.reqmap[KREQU_ORIGIN] != NULL) {
+    if (r.method == KMETHOD_OPTIONS && r.reqmap[KREQU_ORIGIN] != NULL) {
         /* This is a CORS pre-flight request. */
-        khttp_head(&r,
-                   kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN],
-                   "%s", "*");
-        khttp_head(&r, kresps[KRESP_VARY],
-                   "%s", "Origin");
         khttp_head(&r, kresps[KRESP_STATUS],
                    "%s", khttps[KHTTP_204]);
+        khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
+        khttp_head(&r, kresps[KRESP_VARY], "%s", "Origin");
         khttp_body(&r);
         khttp_free(&r);
-    }
-    else {
+    } else {
         if (r.method != KMETHOD_GET) {
             handle_err(&r, &req, KHTTP_405, 405);
         } else {
@@ -159,10 +160,10 @@ int main(void) {
                         handle_err(&r, &req, KHTTP_400, 400);
                     else
                         handle_campuses(&r, &req, -1);
-                break;
+                    break;
                 default:
                     handle_err(&r, &req, KHTTP_403, 403);
-                break;
+                    break;
             }
         }
     }
