@@ -33,6 +33,9 @@ void handle_err(struct kreq *r, struct kjsonreq *req, enum khttp status, int err
     khttp_head(r, kresps[KRESP_STATUS], "%s", khttps[status]);
     khttp_head(r, kresps[KRESP_CONTENT_TYPE],
                "%s", kmimetypes[KMIME_APP_JSON]);
+
+    khttp_head(r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
+    khttp_head(r, kresps[KRESP_VARY], "%s", "Origin");
     khttp_body(r);
     kjson_open(req, r);
     kjson_obj_open(req);
@@ -86,6 +89,8 @@ void handle_campuses(struct kreq *r, struct kjsonreq *req, const int rowid) {
         khttp_head(r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
         khttp_head(r, kresps[KRESP_CONTENT_TYPE],
                    "%s", kmimetypes[KMIME_APP_JSON]);
+        khttp_head(r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
+        khttp_head(r, kresps[KRESP_VARY], "%s", "Origin");
         khttp_body(r);
         kjson_open(req, r);
         kjson_obj_open(req);
@@ -103,8 +108,9 @@ void handle_campuses(struct kreq *r, struct kjsonreq *req, const int rowid) {
             errx(EXIT_FAILURE, "sqlbox_step");
         if (res->psz != 0) {
             khttp_head(r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
-            khttp_head(r, kresps[KRESP_CONTENT_TYPE],
-                       "%s", kmimetypes[KMIME_APP_JSON]);
+            khttp_head(r, kresps[KRESP_CONTENT_TYPE], "%s", kmimetypes[KMIME_APP_JSON]);
+            khttp_head(r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
+            khttp_head(r, kresps[KRESP_VARY], "%s", "Origin");
             khttp_body(r);
             kjson_open(req, r);
             kjson_obj_open(req);
