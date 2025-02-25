@@ -106,7 +106,7 @@ int main(void) {
     } else {
         switch (r.page) {
             case PG_CAMPUSES:
-                handle_campuses(&r, &req);
+                handle_campuses(&r, &req,1);
                 break;
             default:
                 handle_err(&r, &req, KHTTP_403, 403);
