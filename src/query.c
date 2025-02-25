@@ -22,7 +22,6 @@ static const char *pages[PG__MAX] = {
 };
 
 void handle_err(struct kreq *r, struct kjsonreq *req, enum khttp status, int err) {
-
     khttp_head(r, kresps[KRESP_STATUS], "%s", khttps[status]);
     khttp_head(r, kresps[KRESP_CONTENT_TYPE],
                "%s", kmimetypes[KMIME_APP_JSON]);
@@ -34,7 +33,8 @@ void handle_err(struct kreq *r, struct kjsonreq *req, enum khttp status, int err
     kjson_close(req);
     khttp_free(r);
 }
-void handle_campuses(struct kreq *r, struct kjsonreq *req) {
+
+void handle_campuses(struct kreq *r, struct kjsonreq *req, const int rowid) {
     size_t dbid, stmtid;
     struct sqlbox *p2;
     struct sqlbox_cfg cfg;
@@ -45,7 +45,14 @@ void handle_campuses(struct kreq *r, struct kjsonreq *req) {
         }
     };
     struct sqlbox_pstmt pstmts[] = {
-        {.stmt = (char *) "SELECT ROWID,* FROM CAMPUSES"},
+        {.stmt = (char *) "SELECT ROWID,* FROM CAMPUSES WHERE ROWID = ?"},
+        {.stmt = (char *) "SELECT ROWID,* FROM CAMPUSES "},
+    };
+    struct sqlbox_parm parms[] = {
+        {
+            .iparm = rowid,
+            .type = SQLBOX_PARM_INT
+        },
     };
     const struct sqlbox_parmset *res;
 
@@ -59,9 +66,13 @@ void handle_campuses(struct kreq *r, struct kjsonreq *req) {
         errx(EXIT_FAILURE, "sqlbox_alloc");
     if (!(dbid = sqlbox_open(p2, 0)))
         errx(EXIT_FAILURE, "sqlbox_open");
-    if (!(stmtid = sqlbox_prepare_bind(p2, dbid, 0, 0, 0, 0)))
-        errx(EXIT_FAILURE, "sqlbox_prepare_bind");
-
+    if (rowid <= 0) {
+        if (!(stmtid = sqlbox_prepare_bind(p2, dbid, 0, 0, 0, 0)))
+            errx(EXIT_FAILURE, "sqlbox_prepare_bind");
+    }else {
+        if (!(stmtid = sqlbox_prepare_bind(p2, dbid,1, 1, parms, 0)))
+            errx(EXIT_FAILURE, "sqlbox_prepare_bind");
+    }
     khttp_head(r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
     khttp_head(r, kresps[KRESP_CONTENT_TYPE],
                "%s", kmimetypes[KMIME_APP_JSON]);
@@ -93,7 +104,6 @@ int main(void) {
     if (r.method != KMETHOD_GET) {
         handle_err(&r, &req, KHTTP_405, 405);
     } else {
-
         switch (r.page) {
             case PG_CAMPUSES:
                 handle_campuses(&r, &req);
