@@ -16,9 +16,17 @@ enum pg {
     PG__MAX
 };
 
+enum key {
+    KEY_ROWID,
+    KEY__MAX
+};
+
 static const char *pages[PG__MAX] = {
     "book",
     "campus",
+};
+static const struct kvalid keys[KEY__MAX] = {
+    {kvalid_int, "rowid"},
 };
 
 void handle_err(struct kreq *r, struct kjsonreq *req, enum khttp status, int err) {
@@ -124,14 +132,20 @@ void handle_campuses(struct kreq *r, struct kjsonreq *req, const int rowid) {
 int main(void) {
     struct kreq r;
     struct kjsonreq req;
-    if (khttp_parse(&r, NULL, 0, pages, PG__MAX, PG_BOOKS) != KCGI_OK)
+    if (khttp_parse(&r, keys, KEY__MAX, pages, PG__MAX, PG_BOOKS) != KCGI_OK)
         return EXIT_FAILURE;
     if (r.method != KMETHOD_GET) {
         handle_err(&r, &req, KHTTP_405, 405);
     } else {
         switch (r.page) {
             case PG_CAMPUSES:
-                handle_campuses(&r, &req, 1);
+                struct kpair *rowid;
+                if ((rowid = r.fieldmap[KEY_ROWID]))
+                    handle_campuses(&r, &req, (int) rowid->parsed.i);
+                else if (r.fieldnmap[KEY_ROWID])
+                    handle_err(&r, &req, KHTTP_400, 400);
+                else
+                    handle_campuses(&r, &req, -1);
                 break;
             default:
                 handle_err(&r, &req, KHTTP_403, 403);
