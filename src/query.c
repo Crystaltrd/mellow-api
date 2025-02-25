@@ -60,17 +60,17 @@ void handle_campuses(struct kreq *r, struct kjsonreq *req, const int rowid) {
     cfg.msg.func_short = warnx;
     cfg.srcs.srcsz = 1;
     cfg.srcs.srcs = srcs;
-    cfg.stmts.stmtsz = 1;
+    cfg.stmts.stmtsz = 2;
     cfg.stmts.stmts = pstmts;
     if ((p2 = sqlbox_alloc(&cfg)) == NULL)
         errx(EXIT_FAILURE, "sqlbox_alloc");
     if (!(dbid = sqlbox_open(p2, 0)))
         errx(EXIT_FAILURE, "sqlbox_open");
-    if (rowid <= 0) {
-        if (!(stmtid = sqlbox_prepare_bind(p2, dbid, 0, 0, 0, 0)))
+    if (rowid > 0) {
+        if (!(stmtid = sqlbox_prepare_bind(p2, dbid, 0, 1, parms, 0)))
             errx(EXIT_FAILURE, "sqlbox_prepare_bind");
     }else {
-        if (!(stmtid = sqlbox_prepare_bind(p2, dbid,1, 1, parms, 0)))
+        if (!(stmtid = sqlbox_prepare_bind(p2, dbid,1, 0, 0, 0)))
             errx(EXIT_FAILURE, "sqlbox_prepare_bind");
     }
     khttp_head(r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
