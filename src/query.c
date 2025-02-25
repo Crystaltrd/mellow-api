@@ -69,28 +69,53 @@ void handle_campuses(struct kreq *r, struct kjsonreq *req, const int rowid) {
     if (rowid > 0) {
         if (!(stmtid = sqlbox_prepare_bind(p2, dbid, 0, 1, parms, 0)))
             errx(EXIT_FAILURE, "sqlbox_prepare_bind");
-    }else {
-        if (!(stmtid = sqlbox_prepare_bind(p2, dbid,1, 0, 0, 0)))
+    } else {
+        if (!(stmtid = sqlbox_prepare_bind(p2, dbid, 1, 0, 0, 0)))
             errx(EXIT_FAILURE, "sqlbox_prepare_bind");
     }
-    khttp_head(r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
-    khttp_head(r, kresps[KRESP_CONTENT_TYPE],
-               "%s", kmimetypes[KMIME_APP_JSON]);
-    khttp_body(r);
-    kjson_open(req, r);
-    kjson_obj_open(req);
-    kjson_arrayp_open(req, "campus");
-    while ((res = sqlbox_step(p2, stmtid)) != NULL && res->code == SQLBOX_CODE_OK && res->psz != 0) {
+
+    if (rowid <= 0) {
+        khttp_head(r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
+        khttp_head(r, kresps[KRESP_CONTENT_TYPE],
+                   "%s", kmimetypes[KMIME_APP_JSON]);
+        khttp_body(r);
+        kjson_open(req, r);
         kjson_obj_open(req);
-        kjson_putintp(req, "rowid", res->ps[0].iparm);
-        kjson_putstringp(req, "campus", res->ps[1].sparm);
-        kjson_obj_close(req);
+        kjson_arrayp_open(req, "campus");
+        while ((res = sqlbox_step(p2, stmtid)) != NULL && res->code == SQLBOX_CODE_OK && res->psz != 0) {
+            kjson_obj_open(req);
+            kjson_putintp(req, "rowid", res->ps[0].iparm);
+            kjson_putstringp(req, "campus", res->ps[1].sparm);
+            kjson_obj_close(req);
+        }
+        kjson_array_close(req);
+        kjson_putintp(req, "status", 200);
+    } else {
+        if ((res = sqlbox_step(p2, stmtid)) == NULL)
+            errx(EXIT_FAILURE, "sqlbox_step");
+        if (res->psz != 0) {
+            khttp_head(r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
+            khttp_head(r, kresps[KRESP_CONTENT_TYPE],
+                       "%s", kmimetypes[KMIME_APP_JSON]);
+            khttp_body(r);
+            kjson_open(req, r);
+            kjson_obj_open(req);
+            kjson_putintp(req, "rowid", res->ps[0].iparm);
+            kjson_putstringp(req, "campus", res->ps[1].sparm);
+            kjson_putintp(req, "status", 200);
+        } else {
+            khttp_head(r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_404]);
+            khttp_head(r, kresps[KRESP_CONTENT_TYPE],
+                       "%s", kmimetypes[KMIME_APP_JSON]);
+            khttp_body(r);
+            kjson_open(req, r);
+            kjson_obj_open(req);
+            kjson_putintp(req, "status", 404);
+        }
     }
-    kjson_array_close(req);
     if (!sqlbox_finalise(p2, stmtid))
         errx(EXIT_FAILURE, "sqlbox_finalise");
     sqlbox_free(p2);
-    kjson_putintp(req, "status", 200);
     kjson_obj_close(req);
     kjson_close(req);
     khttp_free(r);
@@ -106,7 +131,7 @@ int main(void) {
     } else {
         switch (r.page) {
             case PG_CAMPUSES:
-                handle_campuses(&r, &req,1);
+                handle_campuses(&r, &req, 1);
                 break;
             default:
                 handle_err(&r, &req, KHTTP_403, 403);
