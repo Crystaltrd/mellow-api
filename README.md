@@ -7,7 +7,7 @@
 * [X]  action
 * [X]  lang
 * [X]  doctype
-* [ ]  category
+* [X]  category
 * [X]  campus
 * [X]  role
 * [ ]  account
