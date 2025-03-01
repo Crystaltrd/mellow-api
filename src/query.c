@@ -299,9 +299,8 @@ void handle_category(struct kreq *r, struct kjsonreq *req, const int rowid) {
         }
     };
     struct sqlbox_pstmt pstmts[] = {
-        {.stmt = (char *) "SELECT categoryName,categoryDesc FROM CATEGORY WHERE ROWID = (?)"},
-        {.stmt = (char *) "SELECT ROWID,categoryName,categoryDesc,parentCategoryID FROM CATEGORY"},
         {.stmt = (char *) "SELECT ROWID,* FROM CATEGORY WHERE ROWID = (?)"},
+        {.stmt = (char *) "SELECT ROWID,categoryName,categoryDesc,parentCategoryID FROM CATEGORY"},
     };
 
     struct sqlbox_parm parms[] = {
@@ -361,13 +360,13 @@ void handle_category(struct kreq *r, struct kjsonreq *req, const int rowid) {
             khttp_body(r);
             kjson_open(req, r);
             kjson_obj_open(req);
-            kjson_putstringp(req, "categoryName", res->ps[0].sparm);
-            kjson_putstringp(req, "categoryDesc", res->ps[1].sparm);
+            kjson_putstringp(req, "categoryName", res->ps[1].sparm);
+            kjson_putstringp(req, "categoryDesc", res->ps[2].sparm);
 
             if (!sqlbox_finalise(p2, stmtid))
                 errx(EXIT_FAILURE, "sqlbox_finalise");
 
-            if (!(stmtid = sqlbox_prepare_bind(p2, dbid, 2, 1, parms, 0)))
+            if (!(stmtid = sqlbox_prepare_bind(p2, dbid, 0, 1, parms, 0)))
                 errx(EXIT_FAILURE, "sqlbox_prepare_bind");
 
             if ((res = sqlbox_step(p2, stmtid)) == NULL)
