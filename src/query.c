@@ -403,11 +403,11 @@ int main(void) {
                 break;
             case PG_CATEGORY:
                 if ((rowid = r.fieldmap[KEY_ROWID]))
-                    handle_simple(&r, &req, (int) rowid->parsed.i);
+                    handle_category(&r, &req, (int) rowid->parsed.i);
                 else if (r.fieldnmap[KEY_ROWID])
                     handle_err(&r, &req, KHTTP_400, 400);
                 else
-                    handle_simple(&r, &req, -1);
+                    handle_category(&r, &req, -1);
                 break;
             default:
                 handle_err(&r, &req, KHTTP_403, 403);
