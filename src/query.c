@@ -300,7 +300,7 @@ void handle_category(struct kreq *r, struct kjsonreq *req, const int rowid) {
     };
     struct sqlbox_pstmt pstmts[] = {
         {.stmt = (char *) "SELECT categoryName,categoryDesc FROM CATEGORY WHERE ROWID = (?)"},
-        {.stmt = (char *) "SELECT ROWID,categoryName,categoryDesc FROM CATEGORY"},
+        {.stmt = (char *) "SELECT ROWID,categoryName,categoryDesc,parentCategoryID FROM CATEGORY"},
     };
 
     struct sqlbox_parm parms[] = {
@@ -361,6 +361,7 @@ void handle_category(struct kreq *r, struct kjsonreq *req, const int rowid) {
             kjson_obj_open(req);
             kjson_putstringp(req, "categoryName", res->ps[0].sparm);
             kjson_putstringp(req, "categoryDesc", res->ps[1].sparm);
+            kjson_putintp(req, "parentCategoryID", res->ps[2].iparm);
             kjson_putintp(req, "status", 200);
         } else {
             khttp_head(r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_404]);
