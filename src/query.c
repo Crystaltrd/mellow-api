@@ -122,7 +122,7 @@ void handle_err(struct kreq *r, struct kjsonreq *req, enum khttp status, int err
     khttp_free(r);
 }
 
-void handle_simple(struct kreq *r, struct kjsonreq *req, const int rowid, enum pg page) {
+void handle_simple(struct kreq *r, struct kjsonreq *req, const int rowid) {
     size_t dbid, stmtid;
     struct sqlbox *p2;
     struct sqlbox_cfg cfg;
@@ -133,7 +133,7 @@ void handle_simple(struct kreq *r, struct kjsonreq *req, const int rowid, enum p
         }
     };
     struct sqlbox_pstmt pstmts[2];
-    switch (page) {
+    switch (r->page) {
         case PG_PUBLISHER:
             pstmts[0].stmt = (char *) "SELECT * FROM PUBLISHER WHERE ROWID = ?";
             pstmts[1].stmt = (char *) "SELECT ROWID,* FROM PUBLISHER";
@@ -204,7 +204,7 @@ void handle_simple(struct kreq *r, struct kjsonreq *req, const int rowid, enum p
         kjson_arrayp_open(req, pages[r->page]);
         while ((res = sqlbox_step(p2, stmtid)) != NULL && res->code == SQLBOX_CODE_OK && res->psz != 0) {
             kjson_obj_open(req);
-            switch (page) {
+            switch (r->page) {
                 case PG_PUBLISHER:
                     format_publisher(res, req,true);
                     break;
@@ -244,7 +244,7 @@ void handle_simple(struct kreq *r, struct kjsonreq *req, const int rowid, enum p
             khttp_body(r);
             kjson_open(req, r);
             kjson_obj_open(req);
-            switch (page) {
+            switch (r->page) {
                 case PG_PUBLISHER:
                     format_publisher(res, req,false);
                     break;
@@ -305,11 +305,11 @@ int main(void) {
             case PG_CAMPUS:
             case PG_ROLE:
                 if ((rowid = r.fieldmap[KEY_ROWID]))
-                    handle_simple(&r, &req, (int) rowid->parsed.i,r.page);
+                    handle_simple(&r, &req, (int) rowid->parsed.i);
                 else if (r.fieldnmap[KEY_ROWID])
                     handle_err(&r, &req, KHTTP_400, 400);
                 else
-                    handle_simple(&r, &req, -1,r.page);
+                    handle_simple(&r, &req, -1);
                 break;
             default:
                 handle_err(&r, &req, KHTTP_403, 403);
