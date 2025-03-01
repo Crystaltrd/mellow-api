@@ -95,5 +95,4 @@ CREATE TABLE HISTORY
     FOREIGN KEY (serialnum) REFERENCES BOOK (serialnum),
     FOREIGN KEY (actionID) REFERENCES ACTION (ROWID)
 );
-
-INSERT INTO CAMPUS VALUES('El kseur'),('Targa'),('Aboudaw')
+INSERT INTO CAMPUS VALUES('El kseur'),('Targa'),('Aboudaw');

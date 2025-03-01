@@ -11,8 +11,19 @@
 #include <sqlbox.h>
 
 enum pg {
-    PG_BOOKS,
-    PG_CAMPUSES,
+    PG_PUBLISHER,
+    PG_AUTHOR,
+    PG_ACTION,
+    PG_LANG,
+    PG_DOCTYPE,
+    PG_CATEGORY,
+    PG_CAMPUS,
+    PG_ROLE,
+    PG_ACCOUNT,
+    PG_BOOK,
+    PG_STOCK,
+    PG_INVENTORY,
+    PG_HISTORY,
     PG__MAX
 };
 
@@ -22,8 +33,8 @@ enum key {
 };
 
 static const char *pages[PG__MAX] = {
-    "book",
-    "campus",
+    "publisher", "author", "action", "lang", "doctype", "category", "campus", "role", "account", "book", "stock",
+    "inventory", "history"
 };
 static const struct kvalid keys[KEY__MAX] = {
     {kvalid_int, "rowid"},
@@ -45,7 +56,7 @@ void handle_err(struct kreq *r, struct kjsonreq *req, enum khttp status, int err
     khttp_free(r);
 }
 
-void handle_campuses(struct kreq *r, struct kjsonreq *req, const int rowid) {
+void handle_simple(struct kreq *r, struct kjsonreq *req, const int rowid) {
     size_t dbid, stmtid;
     struct sqlbox *p2;
     struct sqlbox_cfg cfg;
@@ -138,19 +149,24 @@ int main(void) {
     struct kreq r;
     struct kjsonreq req;
     struct kpair *rowid;
-    if (khttp_parse(&r, keys, KEY__MAX, pages, PG__MAX, PG_BOOKS) != KCGI_OK)
+    if (khttp_parse(&r, keys, KEY__MAX, pages, PG__MAX, PG_BOOK) != KCGI_OK)
         return EXIT_FAILURE;
     if (r.method != KMETHOD_GET) {
         handle_err(&r, &req, KHTTP_405, 405);
     } else {
         switch (r.page) {
-            case PG_CAMPUSES:
+            case PG_PUBLISHER:
+            case PG_AUTHOR:
+            case PG_LANG:
+            case PG_DOCTYPE:
+            case PG_CAMPUS:
+            case PG_ROLE:
                 if ((rowid = r.fieldmap[KEY_ROWID]))
-                    handle_campuses(&r, &req, (int) rowid->parsed.i);
+                    handle_simple(&r, &req, (int) rowid->parsed.i);
                 else if (r.fieldnmap[KEY_ROWID])
                     handle_err(&r, &req, KHTTP_400, 400);
                 else
-                    handle_campuses(&r, &req, -1);
+                    handle_simple(&r, &req, -1);
                 break;
             default:
                 handle_err(&r, &req, KHTTP_403, 403);
