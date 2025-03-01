@@ -287,7 +287,8 @@ void handle_simple(struct kreq *r, struct kjsonreq *req, const int rowid) {
     kjson_close(req);
     khttp_free(r);
 }
-void handle_category(struct kreq *r,struct kjsonreq *req,const int rowid) {
+
+void handle_category(struct kreq *r, struct kjsonreq *req, const int rowid) {
     size_t dbid, stmtid;
     struct sqlbox *p2;
     struct sqlbox_cfg cfg;
@@ -297,9 +298,9 @@ void handle_category(struct kreq *r,struct kjsonreq *req,const int rowid) {
             .mode = SQLBOX_SRC_RO
         }
     };
-    struct sqlbox_pstmt pstmts[]={
-        {.stmt = (char *) "SELECT ROWID,categoryName,categoryDesc FROM CATEGORY"},
+    struct sqlbox_pstmt pstmts[] = {
         {.stmt = (char *) "SELECT categoryName,categoryDesc FROM CATEGORY WHERE ROWID = (?)"},
+        {.stmt = (char *) "SELECT ROWID,categoryName,categoryDesc FROM CATEGORY"},
     };
 
     struct sqlbox_parm parms[] = {
@@ -340,9 +341,9 @@ void handle_category(struct kreq *r,struct kjsonreq *req,const int rowid) {
         kjson_arrayp_open(req, "category");
         while ((res = sqlbox_step(p2, stmtid)) != NULL && res->code == SQLBOX_CODE_OK && res->psz != 0) {
             kjson_obj_open(req);
-            kjson_putintp(req,"rowid",res->ps[0].iparm);
-            kjson_putstringp(req,"categoryName",res->ps[1].sparm);
-            kjson_putstringp(req,"categoryDesc",res->ps[2].sparm);
+            kjson_putintp(req, "rowid", res->ps[0].iparm);
+            kjson_putstringp(req, "categoryName", res->ps[1].sparm);
+            kjson_putstringp(req, "categoryDesc", res->ps[2].sparm);
             kjson_obj_close(req);
         }
         kjson_array_close(req);
@@ -358,8 +359,8 @@ void handle_category(struct kreq *r,struct kjsonreq *req,const int rowid) {
             khttp_body(r);
             kjson_open(req, r);
             kjson_obj_open(req);
-            kjson_putstringp(req,"categoryName",res->ps[0].sparm);
-            kjson_putstringp(req,"categoryDesc",res->ps[1].sparm);
+            kjson_putstringp(req, "categoryName", res->ps[0].sparm);
+            kjson_putstringp(req, "categoryDesc", res->ps[1].sparm);
             kjson_putintp(req, "status", 200);
         } else {
             khttp_head(r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_404]);
@@ -378,6 +379,7 @@ void handle_category(struct kreq *r,struct kjsonreq *req,const int rowid) {
     kjson_close(req);
     khttp_free(r);
 }
+
 int main(void) {
     struct kreq r;
     struct kjsonreq req;
