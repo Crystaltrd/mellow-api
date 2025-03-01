@@ -386,7 +386,8 @@ void handle_category(struct kreq *r, struct kjsonreq *req, const int rowid) {
                 kjson_obj_close(req);
             }
 
-
+            if (!sqlbox_finalise(p2, stmtid))
+                errx(EXIT_FAILURE, "sqlbox_finalise");
             if (!(stmtid = sqlbox_prepare_bind(p2, dbid, 0, 2, parms, 0)))
                 errx(EXIT_FAILURE, "sqlbox_prepare_bind");
 
