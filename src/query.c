@@ -400,6 +400,9 @@ void handle_category(struct kreq *r, struct kjsonreq *req, const int rowid) {
                 kjson_putintp(req, "parentCategoryID", res->ps[3].iparm);
                 kjson_obj_close(req);
             }
+            kjson_obj_open(req);
+            kjson_putintp(req, "test", 5);
+            kjson_obj_close(req);
             kjson_array_close(req);
             kjson_putintp(req, "status", 200);
         } else {
