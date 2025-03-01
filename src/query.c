@@ -56,8 +56,8 @@ void handle_campuses(struct kreq *r, struct kjsonreq *req, const int rowid) {
         }
     };
     struct sqlbox_pstmt pstmts[] = {
-        {.stmt = (char *) "SELECT ROWID,* FROM CAMPUSES WHERE ROWID = ?"},
-        {.stmt = (char *) "SELECT ROWID,* FROM CAMPUSES "},
+        {.stmt = (char *) "SELECT * FROM CAMPUS WHERE ROWID = ?"},
+        {.stmt = (char *) "SELECT ROWID,* FROM CAMPUS"},
     };
     struct sqlbox_parm parms[] = {
         {
@@ -114,7 +114,6 @@ void handle_campuses(struct kreq *r, struct kjsonreq *req, const int rowid) {
             khttp_body(r);
             kjson_open(req, r);
             kjson_obj_open(req);
-            kjson_putintp(req, "rowid", res->ps[0].iparm);
             kjson_putstringp(req, "campus", res->ps[1].sparm);
             kjson_putintp(req, "status", 200);
         } else {
