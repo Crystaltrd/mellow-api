@@ -147,3 +147,4 @@ CMakeUserPresets.json
 
 CMakeLists.txt
 .idea/*
+database.db
