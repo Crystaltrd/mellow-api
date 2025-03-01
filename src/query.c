@@ -316,7 +316,7 @@ void handle_category(struct kreq *r, struct kjsonreq *req, const int rowid) {
     cfg.msg.func_short = warnx;
     cfg.srcs.srcsz = 1;
     cfg.srcs.srcs = srcs;
-    cfg.stmts.stmtsz = 2;
+    cfg.stmts.stmtsz = 3;
     cfg.stmts.stmts = pstmts;
     if ((p2 = sqlbox_alloc(&cfg)) == NULL)
         errx(EXIT_FAILURE, "sqlbox_alloc");
