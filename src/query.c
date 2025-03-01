@@ -114,7 +114,7 @@ void handle_campuses(struct kreq *r, struct kjsonreq *req, const int rowid) {
             khttp_body(r);
             kjson_open(req, r);
             kjson_obj_open(req);
-            kjson_putstringp(req, "campus", res->ps[1].sparm);
+            kjson_putstringp(req, "campus", res->ps[0].sparm);
             kjson_putintp(req, "status", 200);
         } else {
             khttp_head(r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_404]);
