@@ -391,8 +391,6 @@ void handle_category(struct kreq *r, struct kjsonreq *req, const int rowid) {
             if (!(stmtid = sqlbox_prepare_bind(p2, dbid, 2, 0, parms, 0)))
                 errx(EXIT_FAILURE, "sqlbox_prepare_bind");
 
-            if ((res = sqlbox_step(p2, stmtid)) == NULL)
-                errx(EXIT_FAILURE, "sqlbox_step");
             kjson_arrayp_open(req, "category2");
             while ((res = sqlbox_step(p2, stmtid)) != NULL && res->code == SQLBOX_CODE_OK && res->psz != 0) {
                 kjson_obj_open(req);
