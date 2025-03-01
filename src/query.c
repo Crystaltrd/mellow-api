@@ -301,6 +301,7 @@ void handle_category(struct kreq *r, struct kjsonreq *req, const int rowid) {
     struct sqlbox_pstmt pstmts[] = {
         {.stmt = (char *) "SELECT ROWID,* FROM CATEGORY WHERE ROWID = (?)"},
         {.stmt = (char *) "SELECT ROWID,categoryName,categoryDesc,parentCategoryID FROM CATEGORY"},
+        {.stmt = (char *) "SELECT ROWID,* FROM CATEGORY WHERE parentCategoryID = (?)"},
     };
 
     struct sqlbox_parm parms[] = {
@@ -378,6 +379,21 @@ void handle_category(struct kreq *r, struct kjsonreq *req, const int rowid) {
                 errx(EXIT_FAILURE, "sqlbox_step");
             if (res->psz != 0) {
                 kjson_objp_open(req, "parent");
+                kjson_putintp(req, "rowid", res->ps[0].iparm);
+                kjson_putstringp(req, "categoryName", res->ps[1].sparm);
+                kjson_putstringp(req, "categoryDesc", res->ps[2].sparm);
+                kjson_putintp(req, "parentCategoryID", res->ps[3].iparm);
+                kjson_obj_close(req);
+            }
+
+
+            if (!(stmtid = sqlbox_prepare_bind(p2, dbid, 0, 2, parms, 0)))
+                errx(EXIT_FAILURE, "sqlbox_prepare_bind");
+
+            if ((res = sqlbox_step(p2, stmtid)) == NULL)
+                errx(EXIT_FAILURE, "sqlbox_step");
+            if (res->psz != 0) {
+                kjson_objp_open(req, "chidren");
                 kjson_putintp(req, "rowid", res->ps[0].iparm);
                 kjson_putstringp(req, "categoryName", res->ps[1].sparm);
                 kjson_putstringp(req, "categoryDesc", res->ps[2].sparm);
