@@ -344,6 +344,7 @@ void handle_category(struct kreq *r, struct kjsonreq *req, const int rowid) {
             kjson_putintp(req, "rowid", res->ps[0].iparm);
             kjson_putstringp(req, "categoryName", res->ps[1].sparm);
             kjson_putstringp(req, "categoryDesc", res->ps[2].sparm);
+            kjson_putintp(req, "parentCategoryID", res->ps[3].iparm);
             kjson_obj_close(req);
         }
         kjson_array_close(req);
@@ -361,7 +362,6 @@ void handle_category(struct kreq *r, struct kjsonreq *req, const int rowid) {
             kjson_obj_open(req);
             kjson_putstringp(req, "categoryName", res->ps[0].sparm);
             kjson_putstringp(req, "categoryDesc", res->ps[1].sparm);
-            kjson_putintp(req, "parentCategoryID", res->ps[2].iparm);
             kjson_putintp(req, "status", 200);
         } else {
             khttp_head(r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_404]);
