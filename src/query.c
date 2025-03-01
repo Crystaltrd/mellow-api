@@ -362,11 +362,16 @@ void handle_category(struct kreq *r, struct kjsonreq *req, const int rowid) {
             kjson_obj_open(req);
             kjson_putstringp(req, "categoryName", res->ps[1].sparm);
             kjson_putstringp(req, "categoryDesc", res->ps[2].sparm);
-
+            const int parentID = (int) res->ps[3].iparm;
             if (!sqlbox_finalise(p2, stmtid))
                 errx(EXIT_FAILURE, "sqlbox_finalise");
-
-            if (!(stmtid = sqlbox_prepare_bind(p2, dbid, 0, 1, parms, 0)))
+            struct sqlbox_parm parms2[] = {
+                {
+                    .iparm = parentID,
+                    .type = SQLBOX_PARM_INT
+                },
+            };
+            if (!(stmtid = sqlbox_prepare_bind(p2, dbid, 0, 1, parms2, 0)))
                 errx(EXIT_FAILURE, "sqlbox_prepare_bind");
 
             if ((res = sqlbox_step(p2, stmtid)) == NULL)
