@@ -99,14 +99,13 @@ INSERT INTO CAMPUS
 VALUES ('El kseur'),
        ('Targa'),
        ('Aboudaw');
-INSERT INTO CATEGORY VALUES ('Sciences','Something Scientificy',null);
-INSERT INTO CATEGORY VALUES ('Fiction','Because why not',null);
-INSERT INTO CATEGORY VALUES ('Manga','Manga is literature',2);
-INSERT INTO CATEGORY VALUES ('Math',':(',1);
-INSERT INTO CATEGORY VALUES ('Analysis',':((',4);
-
-/* Gets children of 4*/
--- SELECT * FROM CATEGORY WHERE parentCategoryID=4;
-
-/* Gets parent of 4 */
--- SELECT * FROM CATEGORY WHERE ROWID = (SELECT parentCategoryID FROM CATEGORY WHERE ROWID = 1)
+INSERT INTO CATEGORY
+VALUES ('Sciences', 'Something Scientificy', null);
+INSERT INTO CATEGORY
+VALUES ('Fiction', 'Because why not', null);
+INSERT INTO CATEGORY
+VALUES ('Manga', 'Manga is literature', 2);
+INSERT INTO CATEGORY
+VALUES ('Math', ':(', 1);
+INSERT INTO CATEGORY
+VALUES ('Analysis', ':((', 4);
