@@ -30,6 +30,7 @@ enum pg {
 
 enum key {
     KEY_ROWID,
+    KEY_F2,
     KEY__MAX
 };
 
@@ -39,6 +40,7 @@ static const char *pages[PG__MAX] = {
 };
 static const struct kvalid keys[KEY__MAX] = {
     {kvalid_int, "rowid"},
+    {kvalid_stringne, "campus"},
 };
 
 void format_publisher(const struct sqlbox_parmset *res, struct kjsonreq *req, bool showrowid) {
@@ -452,7 +454,11 @@ int main(void) {
                     handle_category(&r, &req, -1);
                 break;
             default:
-                handle_err(&r, &req, KHTTP_403, 403);
+                if (r.fieldmap[KEY_F2])
+                    handle_err(&r, &req, KHTTP_403, 403);
+                else
+
+                    handle_err(&r, &req, KHTTP_404, 404);
                 break;
         }
     }
