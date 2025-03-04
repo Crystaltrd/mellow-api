@@ -47,7 +47,7 @@ enum key {
 };
 
 static const char *pages[PG__MAX] = {
-    "publisher", "author", "action", "lang", "doctype", "campus", "role","category","account", "book", "stock",
+    "publisher", "author", "action", "lang", "doctype", "campus", "role", "category", "account", "book", "stock",
     "inventory", "history"
 };
 static const struct kvalid keys[KEY__MAX] = {
@@ -467,7 +467,7 @@ int main(void) {
                 else if (r.fieldnmap[KEY_ROWID])
                     handle_err(&r, &req, KHTTP_400, 400);
                 else
-                    handle_simple(&r, &req, -1,r.page);
+                    handle_simple(&r, &req, -1, r.page);
                 break;
             case PG_CATEGORY:
                 if ((rowid = r.fieldmap[KEY_ROWID]))
@@ -488,11 +488,24 @@ int main(void) {
                         handle_err(&r, &req, KHTTP_400, 400);
                     else
                         handle_category(&r, &req, -1);
-                } else
-                    handle_err(&r, &req, KHTTP_403, 403);
+                } else {
+                    enum key i = KEY_PAGE_PUBLISHER;
+                    for (i = KEY_PAGE_PUBLISHER; i < KEY_PAGE_CATEGORY && !(r.fieldmap[i]); i++) {
+                    }
+                    if (i == KEY_PAGE_CATEGORY)
+                        handle_err(&r, &req, KHTTP_403, 403);
+                    else {
+                        if ((rowid = r.fieldmap[KEY_ROWID]))
+                            handle_simple(&r, &req, (int) rowid->parsed.i, i-1);
+                        else if (r.fieldnmap[KEY_ROWID])
+                            handle_err(&r, &req, KHTTP_400, 400);
+                        else
+                            handle_simple(&r, &req, -1, i-1);
+                        break;
+                    }
+                }
                 break;
         }
     }
     return EXIT_SUCCESS;
 }
-
