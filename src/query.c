@@ -457,7 +457,6 @@ int main(void) {
                 if (r.fieldmap[KEY_F2])
                     handle_err(&r, &req, KHTTP_403, 403);
                 else
-
                     handle_err(&r, &req, KHTTP_404, 404);
                 break;
         }
