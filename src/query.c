@@ -143,6 +143,7 @@ void handle_err(struct kreq *r, struct kjsonreq *req, enum khttp status, int err
     kjson_open(req, r);
     kjson_obj_open(req);
     kjson_putintp(req, "status", err);
+    kjson_putstringp(req, "field", r->fieldmap[PG_CAMPUS]->parsed.s);
     kjson_obj_close(req);
     kjson_close(req);
     khttp_free(r);
