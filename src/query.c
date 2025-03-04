@@ -227,10 +227,10 @@ void handle_simple(struct kreq *r, struct kjsonreq *req, const int rowid, enum p
         khttp_body(r);
         kjson_open(req, r);
         kjson_obj_open(req);
-        kjson_arrayp_open(req, pages[r->page]);
+        kjson_arrayp_open(req, pages[page]);
         while ((res = sqlbox_step(p2, stmtid)) != NULL && res->code == SQLBOX_CODE_OK && res->psz != 0) {
             kjson_obj_open(req);
-            switch (r->page) {
+            switch (page) {
                 case PG_PUBLISHER:
                     format_publisher(res, req,true);
                     break;
