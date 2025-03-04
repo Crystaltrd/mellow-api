@@ -30,6 +30,19 @@ enum pg {
 
 enum key {
     KEY_ROWID,
+    KEY_PAGE_PUBLISHER,
+    KEY_PAGE_AUTHOR,
+    KEY_PAGE_ACTION,
+    KEY_PAGE_LANG,
+    KEY_PAGE_DOCTYPE,
+    KEY_PAGE_CATEGORY,
+    KEY_PAGE_CAMPUS,
+    KEY_PAGE_ROLE,
+    KEY_PAGE_ACCOUNT,
+    KEY_PAGE_BOOK,
+    KEY_PAGE_STOCK,
+    KEY_PAGE_INVENTORY,
+    KEY_PAGE_HISTORY,
     KEY__MAX
 };
 
@@ -39,6 +52,19 @@ static const char *pages[PG__MAX] = {
 };
 static const struct kvalid keys[KEY__MAX] = {
     {kvalid_int, "rowid"},
+    {NULL, "publisher"},
+    {NULL, "author"},
+    {NULL, "action"},
+    {NULL, "lang"},
+    {NULL, "doctype"},
+    {NULL, "category"},
+    {NULL, "campus"},
+    {NULL, "role"},
+    {NULL, "account"},
+    {NULL, "book"},
+    {NULL, "stock"},
+    {NULL, "inventory"},
+    {NULL, "history"},
 };
 
 void format_publisher(const struct sqlbox_parmset *res, struct kjsonreq *req, bool showrowid) {
@@ -452,9 +478,27 @@ int main(void) {
                     handle_category(&r, &req, -1);
                 break;
             default:
-                handle_err(&r, &req, KHTTP_403, 403);
+                // For httpd configurations that don't treat .cgi files well, and consider them folders
+                if (r.fieldmap[KEY_PAGE_PUBLISHER] || r.fieldmap[KEY_PAGE_AUTHOR] || r.fieldmap[KEY_PAGE_LANG] || r.
+                    fieldmap[KEY_PAGE_DOCTYPE] || r.fieldmap[KEY_PAGE_CAMPUS] || r.fieldmap[KEY_PAGE_ROLE]) {
+                    if ((rowid = r.fieldmap[KEY_ROWID]))
+                        handle_simple(&r, &req, (int) rowid->parsed.i);
+                    else if (r.fieldnmap[KEY_ROWID])
+                        handle_err(&r, &req, KHTTP_400, 400);
+                    else
+                        handle_simple(&r, &req, -1);
+                } else if (r.fieldmap[KEY_PAGE_CATEGORY]) {
+                    if ((rowid = r.fieldmap[KEY_ROWID]))
+                        handle_category(&r, &req, (int) rowid->parsed.i);
+                    else if (r.fieldnmap[KEY_ROWID])
+                        handle_err(&r, &req, KHTTP_400, 400);
+                    else
+                        handle_category(&r, &req, -1);
+                } else
+                    handle_err(&r, &req, KHTTP_403, 403);
                 break;
         }
     }
     return EXIT_SUCCESS;
 }
+
