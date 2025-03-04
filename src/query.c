@@ -17,9 +17,9 @@ enum pg {
     PG_ACTION,
     PG_LANG,
     PG_DOCTYPE,
-    PG_CATEGORY,
     PG_CAMPUS,
     PG_ROLE,
+    PG_CATEGORY,
     PG_ACCOUNT,
     PG_BOOK,
     PG_STOCK,
@@ -35,9 +35,9 @@ enum key {
     KEY_PAGE_ACTION,
     KEY_PAGE_LANG,
     KEY_PAGE_DOCTYPE,
-    KEY_PAGE_CATEGORY,
     KEY_PAGE_CAMPUS,
     KEY_PAGE_ROLE,
+    KEY_PAGE_CATEGORY,
     KEY_PAGE_ACCOUNT,
     KEY_PAGE_BOOK,
     KEY_PAGE_STOCK,
@@ -47,7 +47,7 @@ enum key {
 };
 
 static const char *pages[PG__MAX] = {
-    "publisher", "author", "action", "lang", "doctype", "category", "campus", "role", "account", "book", "stock",
+    "publisher", "author", "action", "lang", "doctype", "campus", "role","category","account", "book", "stock",
     "inventory", "history"
 };
 static const struct kvalid keys[KEY__MAX] = {
@@ -57,9 +57,9 @@ static const struct kvalid keys[KEY__MAX] = {
     {NULL, "action"},
     {NULL, "lang"},
     {NULL, "doctype"},
-    {NULL, "category"},
     {NULL, "campus"},
     {NULL, "role"},
+    {NULL, "category"},
     {NULL, "account"},
     {NULL, "book"},
     {NULL, "stock"},
@@ -143,13 +143,12 @@ void handle_err(struct kreq *r, struct kjsonreq *req, enum khttp status, int err
     kjson_open(req, r);
     kjson_obj_open(req);
     kjson_putintp(req, "status", err);
-    kjson_putstringp(req, "field", r->fieldmap[PG_CAMPUS]->parsed.s);
     kjson_obj_close(req);
     kjson_close(req);
     khttp_free(r);
 }
 
-void handle_simple(struct kreq *r, struct kjsonreq *req, const int rowid) {
+void handle_simple(struct kreq *r, struct kjsonreq *req, const int rowid, enum pg page) {
     size_t dbid, stmtid;
     struct sqlbox *p2;
     struct sqlbox_cfg cfg;
@@ -160,7 +159,7 @@ void handle_simple(struct kreq *r, struct kjsonreq *req, const int rowid) {
         }
     };
     struct sqlbox_pstmt pstmts[2];
-    switch (r->page) {
+    switch (page) {
         case PG_PUBLISHER:
             pstmts[0].stmt = (char *) "SELECT * FROM PUBLISHER WHERE ROWID = ?";
             pstmts[1].stmt = (char *) "SELECT ROWID,* FROM PUBLISHER";
@@ -464,11 +463,11 @@ int main(void) {
             case PG_CAMPUS:
             case PG_ROLE:
                 if ((rowid = r.fieldmap[KEY_ROWID]))
-                    handle_simple(&r, &req, (int) rowid->parsed.i);
+                    handle_simple(&r, &req, (int) rowid->parsed.i, r.page);
                 else if (r.fieldnmap[KEY_ROWID])
                     handle_err(&r, &req, KHTTP_400, 400);
                 else
-                    handle_simple(&r, &req, -1);
+                    handle_simple(&r, &req, -1,r.page);
                 break;
             case PG_CATEGORY:
                 if ((rowid = r.fieldmap[KEY_ROWID]))
@@ -480,15 +479,9 @@ int main(void) {
                 break;
             default:
                 // For httpd configurations that don't treat .cgi files well, and consider them folders
-                if (r.fieldmap[KEY_PAGE_PUBLISHER] || r.fieldmap[KEY_PAGE_AUTHOR] || r.fieldmap[KEY_PAGE_LANG] || r.
-                    fieldmap[KEY_PAGE_DOCTYPE] || r.fieldmap[KEY_PAGE_CAMPUS] || r.fieldmap[KEY_PAGE_ROLE]) {
-                    if ((rowid = r.fieldmap[KEY_ROWID]))
-                        handle_simple(&r, &req, (int) rowid->parsed.i);
-                    else if (r.fieldnmap[KEY_ROWID])
-                        handle_err(&r, &req, KHTTP_400, 400);
-                    else
-                        handle_simple(&r, &req, -1);
-                } else if (r.fieldmap[KEY_PAGE_CATEGORY]) {
+
+
+                if (r.fieldmap[KEY_PAGE_CATEGORY]) {
                     if ((rowid = r.fieldmap[KEY_ROWID]))
                         handle_category(&r, &req, (int) rowid->parsed.i);
                     else if (r.fieldnmap[KEY_ROWID])
