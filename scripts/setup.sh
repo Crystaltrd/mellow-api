@@ -8,3 +8,4 @@ install -m 0755 bins/query.cgi ~/public_html/mellow
 rm -rfv database.db
 sqlite3 database.db < misc/database-scheme.sql
 install -m 0666 database.db ~/public_html/mellow/db
+rm -rfv *.o
