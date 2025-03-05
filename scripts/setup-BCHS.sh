@@ -8,7 +8,7 @@ doas chown www:www /var/www/cgi-bin/mellow/db
 doas chmod 0700 /var/www/cgi-bin/mellow/db
 doas install -o www -g www -m 0500 bins/query /var/www/cgi-bin/mellow
 rm -rfv database.db
-sqlite3 database.db < database-scheme.sql
+sqlite3 database.db < misc/database-scheme.sql
 doas install -o www -g www -m 0600 database.db /var/www/cgi-bin/mellow/db
 doas rcctl enable slowcgi
 doas rcctl start slowcgi
