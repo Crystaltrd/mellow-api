@@ -29,7 +29,6 @@ enum pg {
 };
 
 enum key {
-    KEY_ROWID,
     KEY_PAGE_PUBLISHER,
     KEY_PAGE_AUTHOR,
     KEY_PAGE_ACTION,
@@ -43,6 +42,7 @@ enum key {
     KEY_PAGE_STOCK,
     KEY_PAGE_INVENTORY,
     KEY_PAGE_HISTORY,
+    KEY_ROWID,
     KEY__MAX
 };
 
@@ -521,18 +521,18 @@ int main(void) {
                     else
                         handle_category(&r, &req, -1);
                 } else {
-                    enum key i = KEY_PAGE_PUBLISHER;
+                    enum key i;
                     for (i = KEY_PAGE_PUBLISHER; i < KEY_PAGE_CATEGORY && !(r.fieldmap[i]); i++) {
                     }
                     if (i == KEY_PAGE_CATEGORY)
                         handle_err(&r, &req, KHTTP_403, 403);
                     else {
                         if ((rowid = r.fieldmap[KEY_ROWID]))
-                            handle_simple(&r, &req, (int) rowid->parsed.i, i - 1);
+                            handle_simple(&r, &req, (int) rowid->parsed.i, i);
                         else if (r.fieldnmap[KEY_ROWID])
                             handle_err(&r, &req, KHTTP_400, 400);
                         else
-                            handle_simple(&r, &req, -1, i - 1);
+                            handle_simple(&r, &req, -1, i);
                         break;
                     }
                 }
