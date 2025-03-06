@@ -117,5 +117,5 @@ VALUES ('ADMIN', 64),
        ('PROFESSOR', 1),
        ('STUDENT', 1);
 INSERT INTO ACCOUNT
-VALUES (0, 'Alice', 'ABCDE', 1, 1),
+VALUES (1, 'Alice', 'ABCDE', 1, 1),
        (40211, 'Bob', '99dd', 3, 5);
