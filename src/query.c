@@ -126,12 +126,24 @@ void format_role(const struct sqlbox_parmset *res, struct kjsonreq *req, bool sh
         kjson_putintp(req, "rowid", res->ps[0].iparm);
         kjson_putstringp(req, "roleName", res->ps[1].sparm);
         kjson_objp_open(req, "perms");
-        kjson_putintp(req, "perms", res->ps[2].iparm);
+        kjson_putboolp(req, "admin", ((int) res->ps[2].iparm & (1 << 6)));
+        kjson_putboolp(req, "staff", ((int) res->ps[2].iparm & (1 << 5)));
+        kjson_putboolp(req, "manage_books", ((int) res->ps[2].iparm & (1 << 4)));
+        kjson_putboolp(req, "manage_stock", ((int) res->ps[2].iparm & (1 << 3)));
+        kjson_putboolp(req, "return_book", ((int) res->ps[2].iparm & (1 << 2)));
+        kjson_putboolp(req, "rent_book", ((int) res->ps[2].iparm & (1 << 1)));
+        kjson_putboolp(req, "inventory", ((int) res->ps[2].iparm & (1 << 0)));
         kjson_obj_close(req);
     } else {
         kjson_putstringp(req, "roleName", res->ps[1].sparm);
         kjson_objp_open(req, "perms");
-        kjson_putintp(req, "perms", res->ps[2].iparm);
+        kjson_putboolp(req, "admin", ((int) res->ps[2].iparm & (1 << 6)));
+        kjson_putboolp(req, "staff", ((int) res->ps[2].iparm & (1 << 5)));
+        kjson_putboolp(req, "manage_books", ((int) res->ps[2].iparm & (1 << 4)));
+        kjson_putboolp(req, "manage_stock", ((int) res->ps[2].iparm & (1 << 3)));
+        kjson_putboolp(req, "return_book", ((int) res->ps[2].iparm & (1 << 2)));
+        kjson_putboolp(req, "rent_book", ((int) res->ps[2].iparm & (1 << 1)));
+        kjson_putboolp(req, "inventory", ((int) res->ps[2].iparm & (1 << 0)));
         kjson_obj_close(req);
     }
 }
