@@ -161,31 +161,31 @@ void handle_simple(struct kreq *r, struct kjsonreq *req, const int rowid, enum p
     struct sqlbox_pstmt pstmts[2];
     switch (page) {
         case PG_PUBLISHER:
-            pstmts[0].stmt = (char *) "SELECT * FROM PUBLISHER WHERE ROWID = ?";
+            pstmts[0].stmt = (char *) "SELECT * FROM PUBLISHER WHERE ROWID = (?)";
             pstmts[1].stmt = (char *) "SELECT ROWID,* FROM PUBLISHER";
             break;
         case PG_AUTHOR:
-            pstmts[0].stmt = (char *) "SELECT * FROM AUTHOR WHERE ROWID = ?";
+            pstmts[0].stmt = (char *) "SELECT * FROM AUTHOR WHERE ROWID = (?)";
             pstmts[1].stmt = (char *) "SELECT ROWID,* FROM AUTHOR";
             break;
         case PG_ACTION:
-            pstmts[0].stmt = (char *) "SELECT * FROM ACTION WHERE ROWID = ?";
+            pstmts[0].stmt = (char *) "SELECT * FROM ACTION WHERE ROWID = (?)";
             pstmts[1].stmt = (char *) "SELECT ROWID,* FROM ACTION";
             break;
         case PG_LANG:
-            pstmts[0].stmt = (char *) "SELECT * FROM LANG WHERE ROWID = ?";
+            pstmts[0].stmt = (char *) "SELECT * FROM LANG WHERE ROWID = (?)";
             pstmts[1].stmt = (char *) "SELECT ROWID,* FROM LANG";
             break;
         case PG_DOCTYPE:
-            pstmts[0].stmt = (char *) "SELECT * FROM DOCTYPE WHERE ROWID = ?";
+            pstmts[0].stmt = (char *) "SELECT * FROM DOCTYPE WHERE ROWID = (?)";
             pstmts[1].stmt = (char *) "SELECT ROWID,* FROM DOCTYPE";
             break;
         case PG_CAMPUS:
-            pstmts[0].stmt = (char *) "SELECT * FROM CAMPUS WHERE ROWID = ?";
+            pstmts[0].stmt = (char *) "SELECT * FROM CAMPUS WHERE ROWID = (?)";
             pstmts[1].stmt = (char *) "SELECT ROWID,* FROM CAMPUS";
             break;
         case PG_ROLE:
-            pstmts[0].stmt = (char *) "SELECT * FROM ROLE WHERE ROWID = ?";
+            pstmts[0].stmt = (char *) "SELECT * FROM ROLE WHERE ROWID = (?)";
             pstmts[1].stmt = (char *) "SELECT ROWID,* FROM ROLE";
             break;
         default:
@@ -270,7 +270,7 @@ void handle_simple(struct kreq *r, struct kjsonreq *req, const int rowid, enum p
             khttp_body(r);
             kjson_open(req, r);
             kjson_obj_open(req);
-            switch (r->page) {
+            switch (page) {
                 case PG_PUBLISHER:
                     format_publisher(res, req,false);
                     break;
