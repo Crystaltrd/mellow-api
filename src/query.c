@@ -51,7 +51,6 @@ static const char *pages[PG__MAX] = {
     "inventory", "history"
 };
 static const struct kvalid keys[KEY__MAX] = {
-    {kvalid_int, "rowid"},
     {NULL, "publisher"},
     {NULL, "author"},
     {NULL, "action"},
@@ -65,6 +64,7 @@ static const struct kvalid keys[KEY__MAX] = {
     {NULL, "stock"},
     {NULL, "inventory"},
     {NULL, "history"},
+    {kvalid_int, "rowid"},
 };
 
 void format_publisher(const struct sqlbox_parmset *res, struct kjsonreq *req, bool showrowid) {
