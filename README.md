@@ -15,3 +15,4 @@
 * [ ]  stock
 * [ ]  inventory
 * [ ]  history
+* [ ]  Anything
