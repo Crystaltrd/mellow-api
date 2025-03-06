@@ -528,11 +528,11 @@ int main(void) {
                         handle_err(&r, &req, KHTTP_403, 403);
                     else {
                         if ((rowid = r.fieldmap[KEY_ROWID]))
-                            handle_simple(&r, &req, (int) rowid->parsed.i, i);
+                            handle_simple(&r, &req, (int) rowid->parsed.i, (enum pg) i);
                         else if (r.fieldnmap[KEY_ROWID])
                             handle_err(&r, &req, KHTTP_400, 400);
                         else
-                            handle_simple(&r, &req, -1, i);
+                            handle_simple(&r, &req, -1, (enum pg) i);
                         break;
                     }
                 }
