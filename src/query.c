@@ -29,8 +29,8 @@ enum pg {
     PG_DOCTYPE,
     PG_CAMPUS,
     PG_ROLE,
-    PG_CATEGORY,
     PG_ACCOUNT,
+    PG_CATEGORY,
     PG_BOOK,
     PG_STOCK,
     PG_INVENTORY,
@@ -250,7 +250,7 @@ void handle_simple(struct kreq *r, struct kjsonreq *req, const int rowid, enum p
                     "SELECT * FROM ACCOUNT,CAMPUS,ROLE WHERE roleID = ROLE.ROWID AND campusID = CAMPUS.ROWID";
             break;
         default:
-            handle_err(r, req, KHTTP_400, page);
+            handle_err(r, req, KHTTP_400, 400);
             break;
     }
     struct sqlbox_parm parms[] = {
