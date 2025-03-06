@@ -171,6 +171,22 @@ void format_role(const struct sqlbox_parmset *res, struct kjsonreq *req, bool sh
     }
 }
 
+void format_account(const struct sqlbox_parmset *res, struct kjsonreq *req) {
+    kjson_putintp(req, "UUID", res->ps[0].iparm);
+    kjson_putstringp(req, "displayname", res->ps[1].sparm);
+    kjson_putstringp(req, "passhash", res->ps[2].sparm); // TODO:REMOVE LATER
+    kjson_objp_open(req, "campus");
+    kjson_putintp(req, "campusID", res->ps[3].iparm);
+    kjson_putstringp(req, "campusName", res->ps[5].sparm);
+    kjson_obj_close(req);
+    kjson_objp_open(req, "role");
+    kjson_putintp(req, "roleID", res->ps[4].iparm);
+    kjson_putstringp(req, "roleName", res->ps[6].sparm);
+    const struct accperms perms = int_to_accperms((int) res->ps[2].iparm);
+    format_accperms(&perms, req);
+    kjson_obj_close(req);
+}
+
 void handle_err(struct kreq *r, struct kjsonreq *req, enum khttp status, int err) {
     khttp_head(r, kresps[KRESP_STATUS], "%s", khttps[status]);
     khttp_head(r, kresps[KRESP_CONTENT_TYPE],
@@ -228,8 +244,10 @@ void handle_simple(struct kreq *r, struct kjsonreq *req, const int rowid, enum p
             pstmts[1].stmt = (char *) "SELECT ROWID,* FROM ROLE";
             break;
         case PG_ACCOUNT:
-            pstmts[0].stmt = (char *) "SELECT * FROM ACCOUNT WHERE UUID = (?)";
-            pstmts[1].stmt = (char *) "SELECT * FROM ACCOUNT";
+            pstmts[0].stmt = (char *)
+                    "SELECT * FROM ACCOUNT,CAMPUS,ROLE WHERE roleID = ROLE.ROWID AND campusID = CAMPUS.ROWID AND UUID = (?)";
+            pstmts[1].stmt = (char *)
+                    "SELECT * FROM ACCOUNT,CAMPUS,ROLE WHERE roleID = ROLE.ROWID AND campusID = CAMPUS.ROWID";
             break;
         default:
             handle_err(r, req, KHTTP_400, 400);
@@ -296,6 +314,7 @@ void handle_simple(struct kreq *r, struct kjsonreq *req, const int rowid, enum p
                     format_role(res, req,true);
                     break;
                 case PG_ACCOUNT:
+                    format_account(res, req);
                     break;
                 default:
                     errx(EXIT_FAILURE, "format");
@@ -336,6 +355,9 @@ void handle_simple(struct kreq *r, struct kjsonreq *req, const int rowid, enum p
                     break;
                 case PG_ROLE:
                     format_role(res, req,false);
+                    break;
+                case PG_ACCOUNT:
+                    format_account(res, req);
                     break;
                 default:
                     errx(EXIT_FAILURE, "format");
