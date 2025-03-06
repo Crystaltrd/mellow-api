@@ -125,10 +125,14 @@ void format_role(const struct sqlbox_parmset *res, struct kjsonreq *req, bool sh
     if (showrowid) {
         kjson_putintp(req, "rowid", res->ps[0].iparm);
         kjson_putstringp(req, "roleName", res->ps[1].sparm);
+        kjson_objp_open(req, "perms");
         kjson_putintp(req, "perms", res->ps[2].iparm);
+        kjson_obj_close(req);
     } else {
         kjson_putstringp(req, "roleName", res->ps[1].sparm);
+        kjson_objp_open(req, "perms");
         kjson_putintp(req, "perms", res->ps[2].iparm);
+        kjson_obj_close(req);
     }
 }
 
