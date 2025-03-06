@@ -10,7 +10,7 @@
 * [X]  category
 * [X]  campus
 * [X]  role
-* [ ]  account
+* [X]  account
 * [ ]  book
 * [ ]  stock
 * [ ]  inventory
