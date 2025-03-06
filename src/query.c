@@ -493,11 +493,27 @@ int main(void) {
                 else
                     handle_category(&r, &req, -1);
                 break;
+
+            case PG_ACCOUNT:
+                if ((rowid = r.fieldmap[KEY_ROWID]))
+                    handle_category(&r, &req, (int) rowid->parsed.i);
+                else if (r.fieldnmap[KEY_ROWID])
+                    handle_err(&r, &req, KHTTP_400, 400);
+                else
+                    handle_category(&r, &req, -1);
+                break;
             default:
                 // For httpd configurations that don't treat .cgi files well, and consider them folders
 
 
                 if (r.fieldmap[KEY_PAGE_CATEGORY]) {
+                    if ((rowid = r.fieldmap[KEY_ROWID]))
+                        handle_category(&r, &req, (int) rowid->parsed.i);
+                    else if (r.fieldnmap[KEY_ROWID])
+                        handle_err(&r, &req, KHTTP_400, 400);
+                    else
+                        handle_category(&r, &req, -1);
+                } else if (r.fieldmap[KEY_PAGE_ACCOUNT]) {
                     if ((rowid = r.fieldmap[KEY_ROWID]))
                         handle_category(&r, &req, (int) rowid->parsed.i);
                     else if (r.fieldnmap[KEY_ROWID])
@@ -512,11 +528,11 @@ int main(void) {
                         handle_err(&r, &req, KHTTP_403, 403);
                     else {
                         if ((rowid = r.fieldmap[KEY_ROWID]))
-                            handle_simple(&r, &req, (int) rowid->parsed.i, i-1);
+                            handle_simple(&r, &req, (int) rowid->parsed.i, i - 1);
                         else if (r.fieldnmap[KEY_ROWID])
                             handle_err(&r, &req, KHTTP_400, 400);
                         else
-                            handle_simple(&r, &req, -1, i-1);
+                            handle_simple(&r, &req, -1, i - 1);
                         break;
                     }
                 }

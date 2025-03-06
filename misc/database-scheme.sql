@@ -115,4 +115,7 @@ VALUES ('ADMIN', 64),
        ('SHELF MANAGER', 56),
        ('LIBRARIAN', 6),
        ('PROFESSOR', 1),
-       ('STUDENT', 1)
+       ('STUDENT', 1);
+INSERT INTO ACCOUNT
+VALUES (0, 'Alice', 'ABCDE', 1, 1),
+       (40211, 'Bob', '99dd', 3, 5);
