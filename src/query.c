@@ -515,7 +515,7 @@ int main(void) {
                         handle_err(&r, &req, KHTTP_403, 403);
                     else {
                         if ((rowid = r.fieldmap[(i == KEY_PAGE_ACCOUNT) ? KEY_UUID : KEY_ROWID]))
-                            handle_simple(&r, &req, (int) rowid->parsed.i, i);
+                            handle_simple(&r, &req, (int) rowid->parsed.i, (enum pg) i);
                         else if (r.fieldnmap[(i == KEY_PAGE_ACCOUNT) ? KEY_UUID : KEY_ROWID])
                             handle_err(&r, &req, KHTTP_400, 400);
                         else
