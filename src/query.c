@@ -11,6 +11,16 @@
 #include <sqlbox.h>
 #include <stdbool.h>
 
+struct accperms {
+    bool admin;
+    bool staff;
+    bool manage_books;
+    bool manage_stock;
+    bool return_book;
+    bool rent_book;
+    bool inventory;
+};
+
 enum pg {
     PG_PUBLISHER,
     PG_AUTHOR,
@@ -68,6 +78,31 @@ static const struct kvalid keys[KEY__MAX] = {
     {kvalid_int, "rowid"},
     {kvalid_int, "UUID"},
 };
+
+struct accperms int_to_accperms(int perm) {
+    struct accperms perms = {
+        .admin = (perm & (1 << 6)),
+        .staff = (perm & (1 << 5)),
+        .manage_books = (perm & (1 << 4)),
+        .manage_stock = (perm & (1 << 3)),
+        .return_book = (perm & (1 << 2)),
+        .rent_book = (perm & (1 << 1)),
+        .inventory = (perm & 1)
+    };
+    return perms;
+}
+
+void format_accperms(const struct accperms *perms, struct kjsonreq *req) {
+    kjson_objp_open(req, "perms");
+    kjson_putboolp(req, "admin", perms->admin);
+    kjson_putboolp(req, "staff", perms->staff);
+    kjson_putboolp(req, "manage_books", perms->manage_books);
+    kjson_putboolp(req, "manage_stock", perms->manage_stock);
+    kjson_putboolp(req, "return_book", perms->return_book);
+    kjson_putboolp(req, "rent_book", perms->rent_book);
+    kjson_putboolp(req, "inventory", perms->inventory);
+    kjson_obj_close(req);
+}
 
 void format_publisher(const struct sqlbox_parmset *res, struct kjsonreq *req, bool showrowid) {
     if (showrowid) {
@@ -127,26 +162,12 @@ void format_role(const struct sqlbox_parmset *res, struct kjsonreq *req, bool sh
     if (showrowid) {
         kjson_putintp(req, "rowid", res->ps[0].iparm);
         kjson_putstringp(req, "roleName", res->ps[1].sparm);
-        kjson_objp_open(req, "perms");
-        kjson_putboolp(req, "admin", ((int) res->ps[2].iparm & (1 << 6)));
-        kjson_putboolp(req, "staff", ((int) res->ps[2].iparm & (1 << 5)));
-        kjson_putboolp(req, "manage_books", ((int) res->ps[2].iparm & (1 << 4)));
-        kjson_putboolp(req, "manage_stock", ((int) res->ps[2].iparm & (1 << 3)));
-        kjson_putboolp(req, "return_book", ((int) res->ps[2].iparm & (1 << 2)));
-        kjson_putboolp(req, "rent_book", ((int) res->ps[2].iparm & (1 << 1)));
-        kjson_putboolp(req, "inventory", ((int) res->ps[2].iparm & (1 << 0)));
-        kjson_obj_close(req);
+        const struct accperms perms = int_to_accperms((int) res->ps[2].iparm);
+        format_accperms(&perms, req);
     } else {
         kjson_putstringp(req, "roleName", res->ps[1].sparm);
-        kjson_objp_open(req, "perms");
-        kjson_putboolp(req, "admin", ((int) res->ps[2].iparm & (1 << 6)));
-        kjson_putboolp(req, "staff", ((int) res->ps[2].iparm & (1 << 5)));
-        kjson_putboolp(req, "manage_books", ((int) res->ps[2].iparm & (1 << 4)));
-        kjson_putboolp(req, "manage_stock", ((int) res->ps[2].iparm & (1 << 3)));
-        kjson_putboolp(req, "return_book", ((int) res->ps[2].iparm & (1 << 2)));
-        kjson_putboolp(req, "rent_book", ((int) res->ps[2].iparm & (1 << 1)));
-        kjson_putboolp(req, "inventory", ((int) res->ps[2].iparm & (1 << 0)));
-        kjson_obj_close(req);
+        const struct accperms perms = int_to_accperms((int) res->ps[2].iparm);
+        format_accperms(&perms, req);
     }
 }
 
@@ -205,6 +226,10 @@ void handle_simple(struct kreq *r, struct kjsonreq *req, const int rowid, enum p
         case PG_ROLE:
             pstmts[0].stmt = (char *) "SELECT * FROM ROLE WHERE ROWID = (?)";
             pstmts[1].stmt = (char *) "SELECT ROWID,* FROM ROLE";
+            break;
+        case PG_ACCOUNT:
+            pstmts[0].stmt = (char *) "SELECT * FROM ACCOUNT WHERE UUID = (?)";
+            pstmts[1].stmt = (char *) "SELECT * FROM ACCOUNT";
             break;
         default:
             handle_err(r, req, KHTTP_400, 400);
@@ -269,6 +294,8 @@ void handle_simple(struct kreq *r, struct kjsonreq *req, const int rowid, enum p
                     break;
                 case PG_ROLE:
                     format_role(res, req,true);
+                    break;
+                case PG_ACCOUNT:
                     break;
                 default:
                     errx(EXIT_FAILURE, "format");
