@@ -111,7 +111,7 @@ INSERT INTO CATEGORY
 VALUES ('Analysis', ':((', 4);
 INSERT INTO ROLE
 VALUES ('ADMIN', 64),
-       ('STAFF', 63),
+       ('STAFF', 62),
        ('SHELF MANAGER', 56),
        ('LIBRARIAN', 6),
        ('PROFESSOR', 1),
