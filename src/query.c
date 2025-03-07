@@ -441,13 +441,14 @@ void get_tree_category(struct kjsonreq *req, struct sqlbox *p2, size_t dbid, con
     }
     while ((res = sqlbox_step(p2, stmtid)) != NULL && res->code == SQLBOX_CODE_OK && res->psz != 0) {
         kjson_obj_open(req);
+        int parentID = (int) res->ps[0].iparm;
         kjson_putintp(req, "rowid", res->ps[0].iparm);
         kjson_putstringp(req, "categoryName", res->ps[1].sparm);
         kjson_putstringp(req, "categoryDesc", res->ps[2].sparm);
         kjson_arrayp_open(req, "children");
         if (!sqlbox_finalise(p2, stmtid))
             errx(EXIT_FAILURE, "sqlbox_finalise");
-        get_tree_category(req, p2, dbid, res->ps[0].iparm);
+        get_tree_category(req, p2, dbid, parentID);
         kjson_array_close(req);
         kjson_obj_close(req);
     }
