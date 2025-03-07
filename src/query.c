@@ -455,7 +455,7 @@ void get_tree_category(struct kjsonreq *req, struct sqlbox *p2, size_t dbid, con
         errx(EXIT_FAILURE, "sqlbox_finalise");
 }
 
-void get_single_category(struct kreq *r,struct kjsonreq *req, struct sqlbox *p2, size_t dbid, const int64_t rowid) {
+void get_single_category(struct kreq *r, struct kjsonreq *req, struct sqlbox *p2, size_t dbid, const int64_t rowid) {
     size_t stmtid;
     const struct sqlbox_parmset *res;
     struct sqlbox_parm parms[] = {
@@ -481,8 +481,6 @@ void get_single_category(struct kreq *r,struct kjsonreq *req, struct sqlbox *p2,
         kjson_putstringp(req, "categoryDesc", res->ps[1].sparm);
         kjson_putintp(req, "parentcategoryID", res->ps[2].iparm);
     }
-    if (!sqlbox_finalise(p2, stmtid))
-        errx(EXIT_FAILURE, "sqlbox_finalise");
     kjson_putintp(req, "status", 200);
     if (!sqlbox_finalise(p2, stmtid))
         errx(EXIT_FAILURE, "sqlbox_finalise");
@@ -545,7 +543,7 @@ void handle_category(struct kreq *r, struct kjsonreq *req, const int rowid) {
             khttp_free(r);
             break;
         default:
-            get_single_category(r,req,p2,dbid,rowid);
+            get_single_category(r, req, p2, dbid, rowid);
             break;
     }
 }
