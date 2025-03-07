@@ -110,7 +110,6 @@ void format_category(const struct sqlbox_parmset *res, struct kjsonreq *req) {
     kjson_obj_open(req);
     kjson_putintp(req, "rowid", res->ps[0].iparm);
     kjson_putstringp(req, "categoryName", res->ps[1].sparm);
-    kjson_putstringp(req, "UDCClass", res->ps[2].sparm);
     kjson_obj_close(req);
 }
 
@@ -409,8 +408,7 @@ void get_flat_category(struct kreq *r, struct kjsonreq *req, struct sqlbox *p2, 
         kjson_obj_open(req);
         kjson_putintp(req, "rowid", res->ps[0].iparm);
         kjson_putstringp(req, "categoryName", res->ps[1].sparm);
-        kjson_putstringp(req, "UDCClass", res->ps[2].sparm);
-        kjson_putintp(req, "parentCategoryID", res->ps[3].iparm);
+        kjson_putintp(req, "parentCategoryID", res->ps[2].iparm);
         kjson_obj_close(req);
     }
     kjson_array_close(req);
@@ -444,7 +442,6 @@ void get_tree_category(struct kjsonreq *req, struct sqlbox *p2, size_t dbid, con
         int parentID = (int) res->ps[0].iparm;
         kjson_putintp(req, "rowid", parentID);
         kjson_putstringp(req, "categoryName", res->ps[1].sparm);
-        kjson_putstringp(req, "UDCClass", res->ps[2].sparm);
         kjson_arrayp_open(req, "children");
         get_tree_category(req, p2, dbid, parentID);
         kjson_array_close(req);
@@ -478,8 +475,7 @@ void get_single_category(struct kreq *r, struct kjsonreq *req, struct sqlbox *p2
     kjson_obj_open(req);
     if (res->psz != 0) {
         kjson_putstringp(req, "categoryName", res->ps[0].sparm);
-        kjson_putstringp(req, "UDCClass", res->ps[1].sparm);
-        kjson_putintp(req, "parentcategoryID", res->ps[2].iparm);
+        kjson_putintp(req, "parentcategoryID", res->ps[1].iparm);
     }
     kjson_putintp(req, "status", 200);
     if (!sqlbox_finalise(p2, stmtid))
