@@ -447,7 +447,7 @@ void get_tree_category(struct kjsonreq *req, struct sqlbox *p2, size_t dbid, con
         kjson_arrayp_open(req, "children");
         if (!sqlbox_finalise(p2, stmtid))
             errx(EXIT_FAILURE, "sqlbox_finalise");
-        get_tree_category(req, p2, dbid, res->ps[0].iparm);
+        //get_tree_category(req, p2, dbid, res->ps[0].iparm);
         kjson_array_close(req);
         kjson_obj_close(req);
     }
@@ -497,7 +497,7 @@ void handle_category(struct kreq *r, struct kjsonreq *req, const int rowid) {
             kjson_open(req, r);
             kjson_obj_open(req);
             kjson_arrayp_open(req, "categories");
-        //get_tree_category(req, p2, dbid, 0);
+            get_tree_category(req, p2, dbid, 0);
             kjson_array_close(req);
             kjson_putintp(req, "status", 200);
             sqlbox_free(p2);
