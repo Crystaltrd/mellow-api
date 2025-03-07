@@ -497,7 +497,7 @@ void handle_category(struct kreq *r, struct kjsonreq *req, const int rowid) {
             kjson_open(req, r);
             kjson_obj_open(req);
             kjson_arrayp_open(req, "categories");
-            get_tree_category(req, p2, dbid, 0);
+        //get_tree_category(req, p2, dbid, 0);
             kjson_array_close(req);
             kjson_putintp(req, "status", 200);
             sqlbox_free(p2);
