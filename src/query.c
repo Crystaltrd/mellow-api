@@ -54,6 +54,7 @@ enum key {
     KEY_PAGE_HISTORY,
     KEY_ROWID,
     KEY_UUID,
+    KEY_TREE,
     KEY__MAX
 };
 
@@ -77,6 +78,7 @@ static const struct kvalid keys[KEY__MAX] = {
     {NULL, "history"},
     {kvalid_int, "rowid"},
     {kvalid_int, "UUID"},
+    {NULL, "tree"},
 };
 
 struct accperms int_to_accperms(int perm) {
@@ -101,6 +103,14 @@ void format_accperms(const struct accperms *perms, struct kjsonreq *req) {
     kjson_putboolp(req, "return_book", perms->return_book);
     kjson_putboolp(req, "rent_book", perms->rent_book);
     kjson_putboolp(req, "inventory", perms->inventory);
+    kjson_obj_close(req);
+}
+
+void format_category(const struct sqlbox_parmset *res, struct kjsonreq *req) {
+    kjson_obj_open(req);
+    kjson_putintp(req, "rowid", res->ps[0].iparm);
+    kjson_putstringp(req, "categoryName", res->ps[1].sparm);
+    kjson_putstringp(req, "categoryDesc", res->ps[2].sparm);
     kjson_obj_close(req);
 }
 
@@ -381,8 +391,40 @@ void handle_simple(struct kreq *r, struct kjsonreq *req, const int rowid, enum p
     khttp_free(r);
 }
 
+void get_flat_category(struct kreq *r,struct kjsonreq *req,struct sqlbox *p2, size_t dbid) {
+    size_t stmtid;
+    const struct sqlbox_parmset *res;
+    if (!(stmtid = sqlbox_prepare_bind(p2, dbid, 0, 0, 0, 0)))
+        errx(EXIT_FAILURE, "sqlbox_prepare_bind");
+    khttp_head(r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
+    khttp_head(r, kresps[KRESP_CONTENT_TYPE],
+               "%s", kmimetypes[KMIME_APP_JSON]);
+    khttp_head(r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
+    khttp_head(r, kresps[KRESP_VARY], "%s", "Origin");
+    khttp_body(r);
+    kjson_open(req, r);
+    kjson_obj_open(req);
+    kjson_arrayp_open(req, "categories");
+    while ((res = sqlbox_step(p2, stmtid)) != NULL && res->code == SQLBOX_CODE_OK && res->psz != 0) {
+        kjson_obj_open(req);
+        kjson_putintp(req,"rowid",res->ps[0].iparm);
+        kjson_putstringp(req,"categoryName",res->ps[1].sparm);
+        kjson_putstringp(req,"categoryDesc",res->ps[2].sparm);
+        kjson_putintp(req,"parentCategoryID",res->ps[3].iparm);
+        kjson_obj_close(req);
+    }
+    kjson_array_close(req);
+    kjson_putintp(req, "status", 200);
+    if (!sqlbox_finalise(p2, stmtid))
+        errx(EXIT_FAILURE, "sqlbox_finalise");
+    sqlbox_free(p2);
+    kjson_obj_close(req);
+    kjson_close(req);
+    khttp_free(r);
+}
+
 void handle_category(struct kreq *r, struct kjsonreq *req, const int rowid) {
-    size_t dbid, stmtid;
+    size_t dbid;
     struct sqlbox *p2;
     struct sqlbox_cfg cfg;
     struct sqlbox_src srcs[] = {
@@ -391,126 +433,30 @@ void handle_category(struct kreq *r, struct kjsonreq *req, const int rowid) {
             .mode = SQLBOX_SRC_RO
         }
     };
-    struct sqlbox_pstmt pstmts[] = {
-        {.stmt = (char *) "SELECT ROWID,* FROM CATEGORY WHERE ROWID = (?)"},
-        {.stmt = (char *) "SELECT ROWID,categoryName,categoryDesc,parentCategoryID FROM CATEGORY"},
-        {.stmt = (char *) "SELECT ROWID,* FROM CATEGORY WHERE parentCategoryID = (?)"},
+
+    struct sqlbox_pstmt pstmts[4] = {
+        {.stmt = (char *) "SELECT ROWID,* FROM CATEGORY"}, // Flat format
+        {.stmt = (char *) "SELECT ROWID,* FROM CATEGORY WHERE parentCategoryID IS NULL "}, // Tree format
+        {.stmt = (char *) "SELECT * FROM CATEGORY WHERE ROWID = (?)"},
+        {.stmt = (char *) "SELECT ROWID,* FROM CATEGORY WHERE parentCategoryID = (?)"}
     };
 
-    struct sqlbox_parm parms[] = {
-        {
-            .iparm = rowid,
-            .type = SQLBOX_PARM_INT
-        },
-    };
-    const struct sqlbox_parmset *res;
 
     memset(&cfg, 0, sizeof(struct sqlbox_cfg));
     cfg.msg.func_short = warnx;
     cfg.srcs.srcsz = 1;
     cfg.srcs.srcs = srcs;
-    cfg.stmts.stmtsz = 3;
+    cfg.stmts.stmtsz = 4;
     cfg.stmts.stmts = pstmts;
     if ((p2 = sqlbox_alloc(&cfg)) == NULL)
         errx(EXIT_FAILURE, "sqlbox_alloc");
     if (!(dbid = sqlbox_open(p2, 0)))
         errx(EXIT_FAILURE, "sqlbox_open");
-    if (rowid > 0) {
-        if (!(stmtid = sqlbox_prepare_bind(p2, dbid, 0, 1, parms, 0)))
-            errx(EXIT_FAILURE, "sqlbox_prepare_bind");
-    } else {
-        if (!(stmtid = sqlbox_prepare_bind(p2, dbid, 1, 0, 0, 0)))
-            errx(EXIT_FAILURE, "sqlbox_prepare_bind");
-    }
 
-    if (rowid <= 0) {
-        khttp_head(r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
-        khttp_head(r, kresps[KRESP_CONTENT_TYPE],
-                   "%s", kmimetypes[KMIME_APP_JSON]);
-        khttp_head(r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
-        khttp_head(r, kresps[KRESP_VARY], "%s", "Origin");
-        khttp_body(r);
-        kjson_open(req, r);
-        kjson_obj_open(req);
-        kjson_arrayp_open(req, "category");
-        while ((res = sqlbox_step(p2, stmtid)) != NULL && res->code == SQLBOX_CODE_OK && res->psz != 0) {
-            kjson_obj_open(req);
-            kjson_putintp(req, "rowid", res->ps[0].iparm);
-            kjson_putstringp(req, "categoryName", res->ps[1].sparm);
-            kjson_putstringp(req, "categoryDesc", res->ps[2].sparm);
-            kjson_putintp(req, "parentCategoryID", res->ps[3].iparm);
-            kjson_obj_close(req);
-        }
-        kjson_array_close(req);
-        kjson_putintp(req, "status", 200);
-    } else {
-        if ((res = sqlbox_step(p2, stmtid)) == NULL)
-            errx(EXIT_FAILURE, "sqlbox_step");
-        if (res->psz != 0) {
-            khttp_head(r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
-            khttp_head(r, kresps[KRESP_CONTENT_TYPE], "%s", kmimetypes[KMIME_APP_JSON]);
-            khttp_head(r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
-            khttp_head(r, kresps[KRESP_VARY], "%s", "Origin");
-            khttp_body(r);
-            kjson_open(req, r);
-            kjson_obj_open(req);
-            kjson_putstringp(req, "categoryName", res->ps[1].sparm);
-            kjson_putstringp(req, "categoryDesc", res->ps[2].sparm);
-            const int parentID = (int) res->ps[3].iparm;
-            if (!sqlbox_finalise(p2, stmtid))
-                errx(EXIT_FAILURE, "sqlbox_finalise");
-            struct sqlbox_parm parms2[] = {
-                {
-                    .iparm = parentID,
-                    .type = SQLBOX_PARM_INT
-                },
-            };
-            if (!(stmtid = sqlbox_prepare_bind(p2, dbid, 0, 1, parms2, 0)))
-                errx(EXIT_FAILURE, "sqlbox_prepare_bind");
+    if (rowid == -1)
+        get_flat_category(r,req,p2, dbid);
 
-            if ((res = sqlbox_step(p2, stmtid)) == NULL)
-                errx(EXIT_FAILURE, "sqlbox_step");
-            if (res->psz != 0) {
-                kjson_objp_open(req, "parent");
-                kjson_putintp(req, "rowid", res->ps[0].iparm);
-                kjson_putstringp(req, "categoryName", res->ps[1].sparm);
-                kjson_putstringp(req, "categoryDesc", res->ps[2].sparm);
-                kjson_putintp(req, "parentCategoryID", res->ps[3].iparm);
-                kjson_obj_close(req);
-            }
 
-            if (!sqlbox_finalise(p2, stmtid))
-                errx(EXIT_FAILURE, "sqlbox_finalise");
-            if (!(stmtid = sqlbox_prepare_bind(p2, dbid, 2, 1, parms, 0)))
-                errx(EXIT_FAILURE, "sqlbox_prepare_bind");
-
-            kjson_arrayp_open(req, "children");
-            while ((res = sqlbox_step(p2, stmtid)) != NULL && res->code == SQLBOX_CODE_OK && res->psz != 0) {
-                kjson_obj_open(req);
-                kjson_putintp(req, "rowid", res->ps[0].iparm);
-                kjson_putstringp(req, "categoryName", res->ps[1].sparm);
-                kjson_putstringp(req, "categoryDesc", res->ps[2].sparm);
-                kjson_putintp(req, "parentCategoryID", res->ps[3].iparm);
-                kjson_obj_close(req);
-            }
-            kjson_array_close(req);
-            kjson_putintp(req, "status", 200);
-        } else {
-            khttp_head(r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_404]);
-            khttp_head(r, kresps[KRESP_CONTENT_TYPE],
-                       "%s", kmimetypes[KMIME_APP_JSON]);
-            khttp_body(r);
-            kjson_open(req, r);
-            kjson_obj_open(req);
-            kjson_putintp(req, "status", 404);
-        }
-    }
-    if (!sqlbox_finalise(p2, stmtid))
-        errx(EXIT_FAILURE, "sqlbox_finalise");
-    sqlbox_free(p2);
-    kjson_obj_close(req);
-    kjson_close(req);
-    khttp_free(r);
 }
 
 int main(void) {
@@ -542,20 +488,18 @@ int main(void) {
                 else if (r.fieldnmap[KEY_ROWID])
                     handle_err(&r, &req, KHTTP_400, 400);
                 else
-                    handle_category(&r, &req, -1);
+                    handle_category(&r, &req, (r.fieldmap[KEY_TREE]) ? -2 : -1);
                 break;
 
             default:
                 // For httpd configurations that don't treat .cgi files well, and consider them folders
-
-
                 if (r.fieldmap[KEY_PAGE_CATEGORY]) {
                     if ((rowid = r.fieldmap[KEY_ROWID]))
                         handle_category(&r, &req, (int) rowid->parsed.i);
                     else if (r.fieldnmap[KEY_ROWID])
                         handle_err(&r, &req, KHTTP_400, 400);
                     else
-                        handle_category(&r, &req, -1);
+                        handle_category(&r, &req, (r.fieldmap[KEY_TREE]) ? -2 : -1);
                 } else {
                     enum key i;
                     for (i = KEY_PAGE_PUBLISHER; i < KEY_PAGE_CATEGORY && !(r.fieldmap[i]); i++) {
