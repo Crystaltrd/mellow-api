@@ -391,7 +391,7 @@ void handle_simple(struct kreq *r, struct kjsonreq *req, const int rowid, enum p
     khttp_free(r);
 }
 
-void get_flat_category(struct kreq *r,struct kjsonreq *req,struct sqlbox *p2, size_t dbid) {
+void get_flat_category(struct kreq *r, struct kjsonreq *req, struct sqlbox *p2, size_t dbid) {
     size_t stmtid;
     const struct sqlbox_parmset *res;
     if (!(stmtid = sqlbox_prepare_bind(p2, dbid, 0, 0, 0, 0)))
@@ -407,10 +407,10 @@ void get_flat_category(struct kreq *r,struct kjsonreq *req,struct sqlbox *p2, si
     kjson_arrayp_open(req, "categories");
     while ((res = sqlbox_step(p2, stmtid)) != NULL && res->code == SQLBOX_CODE_OK && res->psz != 0) {
         kjson_obj_open(req);
-        kjson_putintp(req,"rowid",res->ps[0].iparm);
-        kjson_putstringp(req,"categoryName",res->ps[1].sparm);
-        kjson_putstringp(req,"categoryDesc",res->ps[2].sparm);
-        kjson_putintp(req,"parentCategoryID",res->ps[3].iparm);
+        kjson_putintp(req, "rowid", res->ps[0].iparm);
+        kjson_putstringp(req, "categoryName", res->ps[1].sparm);
+        kjson_putstringp(req, "categoryDesc", res->ps[2].sparm);
+        kjson_putintp(req, "parentCategoryID", res->ps[3].iparm);
         kjson_obj_close(req);
     }
     kjson_array_close(req);
@@ -421,6 +421,36 @@ void get_flat_category(struct kreq *r,struct kjsonreq *req,struct sqlbox *p2, si
     kjson_obj_close(req);
     kjson_close(req);
     khttp_free(r);
+}
+
+void get_tree_category(struct kjsonreq *req, struct sqlbox *p2, size_t dbid, const int64_t rowid) {
+    size_t stmtid;
+    const struct sqlbox_parmset *res;
+    if (rowid == 0) {
+        if (!(stmtid = sqlbox_prepare_bind(p2, dbid, 1, 0, 0, 0)))
+            errx(EXIT_FAILURE, "sqlbox_prepare_bind");
+    } else {
+        struct sqlbox_parm parms[] = {
+            {
+                .iparm = rowid,
+                .type = SQLBOX_PARM_INT
+            },
+        };
+        if (!(stmtid = sqlbox_prepare_bind(p2, dbid, 4, 1, parms, 0)))
+            errx(EXIT_FAILURE, "sqlbox_prepare_bind");
+    }
+    while ((res = sqlbox_step(p2, stmtid)) != NULL && res->code == SQLBOX_CODE_OK && res->psz != 0) {
+        kjson_obj_open(req);
+        kjson_putintp(req, "rowid", res->ps[0].iparm);
+        kjson_putstringp(req, "categoryName", res->ps[1].sparm);
+        kjson_putstringp(req, "categoryDesc", res->ps[2].sparm);
+        kjson_arrayp_open(req, "children");
+        get_tree_category(req, p2, dbid, res->ps[0].iparm);
+        kjson_array_close(req);
+        kjson_obj_close(req);
+    }
+    if (!sqlbox_finalise(p2, stmtid))
+        errx(EXIT_FAILURE, "sqlbox_finalise");
 }
 
 void handle_category(struct kreq *r, struct kjsonreq *req, const int rowid) {
@@ -453,10 +483,31 @@ void handle_category(struct kreq *r, struct kjsonreq *req, const int rowid) {
     if (!(dbid = sqlbox_open(p2, 0)))
         errx(EXIT_FAILURE, "sqlbox_open");
 
-    if (rowid == -1)
-        get_flat_category(r,req,p2, dbid);
-
-
+    switch (rowid) {
+        case -1:
+            get_flat_category(r, req, p2, dbid);
+            break;
+        case -2:
+            khttp_head(r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
+            khttp_head(r, kresps[KRESP_CONTENT_TYPE],
+                       "%s", kmimetypes[KMIME_APP_JSON]);
+            khttp_head(r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
+            khttp_head(r, kresps[KRESP_VARY], "%s", "Origin");
+            khttp_body(r);
+            kjson_open(req, r);
+            kjson_obj_open(req);
+            kjson_arrayp_open(req, "categories");
+            get_tree_category(req, p2, dbid, 0);
+            kjson_array_close(req);
+            kjson_putintp(req, "status", 200);
+            sqlbox_free(p2);
+            kjson_obj_close(req);
+            kjson_close(req);
+            khttp_free(r);
+            break;
+        default:
+            break;
+    }
 }
 
 int main(void) {
