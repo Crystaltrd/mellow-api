@@ -451,8 +451,45 @@ void get_tree_category(struct kjsonreq *req, struct sqlbox *p2, size_t dbid, con
         kjson_obj_close(req);
     }
 
-        if (!sqlbox_finalise(p2, stmtid))
-            errx(EXIT_FAILURE, "sqlbox_finalise");
+    if (!sqlbox_finalise(p2, stmtid))
+        errx(EXIT_FAILURE, "sqlbox_finalise");
+}
+
+void get_single_category(struct kreq *r,struct kjsonreq *req, struct sqlbox *p2, size_t dbid, const int64_t rowid) {
+    size_t stmtid;
+    const struct sqlbox_parmset *res;
+    struct sqlbox_parm parms[] = {
+        {
+            .iparm = rowid,
+            .type = SQLBOX_PARM_INT
+        },
+    };
+    if (!(stmtid = sqlbox_prepare_bind(p2, dbid, 2, 1, parms, 0)))
+        errx(EXIT_FAILURE, "sqlbox_prepare_bind");
+    if ((res = sqlbox_step(p2, stmtid)) == NULL)
+        errx(EXIT_FAILURE, "sqlbox_step");
+    khttp_head(r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
+    khttp_head(r, kresps[KRESP_CONTENT_TYPE],
+               "%s", kmimetypes[KMIME_APP_JSON]);
+    khttp_head(r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
+    khttp_head(r, kresps[KRESP_VARY], "%s", "Origin");
+    khttp_body(r);
+    kjson_open(req, r);
+    kjson_obj_open(req);
+    if (res->psz != 0) {
+        kjson_putstringp(req, "categoryName", res->ps[0].sparm);
+        kjson_putstringp(req, "categoryDesc", res->ps[1].sparm);
+        kjson_putintp(req, "parentcategoryID", res->ps[2].iparm);
+    }
+    if (!sqlbox_finalise(p2, stmtid))
+        errx(EXIT_FAILURE, "sqlbox_finalise");
+    kjson_putintp(req, "status", 200);
+    if (!sqlbox_finalise(p2, stmtid))
+        errx(EXIT_FAILURE, "sqlbox_finalise");
+    sqlbox_free(p2);
+    kjson_obj_close(req);
+    kjson_close(req);
+    khttp_free(r);
 }
 
 void handle_category(struct kreq *r, struct kjsonreq *req, const int rowid) {
@@ -508,6 +545,7 @@ void handle_category(struct kreq *r, struct kjsonreq *req, const int rowid) {
             khttp_free(r);
             break;
         default:
+            get_single_category(r,req,p2,dbid,rowid);
             break;
     }
 }
