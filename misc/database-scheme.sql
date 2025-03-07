@@ -21,7 +21,7 @@ CREATE TABLE DOCTYPE
 CREATE TABLE CATEGORY
 (
     categoryName     TEXT UNIQUE NOT NULL,
-    categoryDesc     TEXT UNIQUE,
+    UDCClass TEXT UNIQUE,
     parentCategoryID INTEGER,
     FOREIGN KEY (parentCategoryID) REFERENCES CATEGORY (ROWID)
 );
@@ -96,19 +96,10 @@ CREATE TABLE HISTORY
     FOREIGN KEY (actionID) REFERENCES ACTION (ROWID)
 );
 INSERT INTO CAMPUS
-VALUES ('El kseur'),
-       ('Targa'),
-       ('Aboudaw');
-INSERT INTO CATEGORY
-VALUES ('Sciences', 'Something Scientificy', null);
-INSERT INTO CATEGORY
-VALUES ('Fiction', 'Because why not', null);
-INSERT INTO CATEGORY
-VALUES ('Manga', 'Manga is literature', 2);
-INSERT INTO CATEGORY
-VALUES ('Math', ':(', 1);
-INSERT INTO CATEGORY
-VALUES ('Analysis', ':((', 4);
+VALUES ('Campus El Kseur'),
+       ('Campus Targa Ouzemmour'),
+       ('Campus Aboudaou');
+
 INSERT INTO ROLE
 VALUES ('ADMIN', 64),
        ('STAFF', 62),
@@ -116,6 +107,53 @@ VALUES ('ADMIN', 64),
        ('LIBRARIAN', 6),
        ('PROFESSOR', 1),
        ('STUDENT', 1);
-INSERT INTO ACCOUNT
-VALUES (1, 'Alice', 'ABCDE', 1, 1),
-       (40211, 'Bob', '99dd', 3, 5);
+
+INSERT INTO CATEGORY
+VALUES ('Science and knowledge. Organization. Computer science. Information. Documentation. Librarianship. Institution. Publications',
+        'UDC 0', null),
+       ('Philosophy. Psychology', 'UDC 1', null),
+       ('Religion. Theology', 'UDC 2', null),
+       ('Social sciences', 'UDC 3', null),
+       ('vacant', 'UDC 4', null),
+       ('Mathematics. Natural Sciences', 'UDC 5', null),
+       ('Applied Sciences. Medicine, Technology', 'UDC 6', null),
+       ('The Arts. Entertainment. Sport', 'UDC 7', null),
+       ('Linguistics. Literature', 'UDC 8', null),
+       ('Geography. History', 'UDC 9', null),
+       ('Prolegomena. Fundamentals of knowledge and culture. Propaedeutics', null, 1),
+       ('Science and knowledge in general. Organization of intellectual work', null, 11),
+       ('Documentation. Books. Writings. Authorship', null, 11),
+       ('Writing systems and scripts', null, 11),
+       ('Computer science and technology. Computing', null, 11),
+       ('Computer architecture', null, 15),
+       ('Computer hardware', null, 15),
+       ('Software', null, 15),
+       ('Human-computer interaction', null, 15),
+       ('Data', null, 15),
+       ('Computer communication', null, 15),
+       ('Artificial intelligence', null, 15),
+       ('Application-oriented computer-based techniques', null, 15),
+       ('Management', null, 11),
+       ('Management Theory', null, 24),
+       ('Management agents. Mechanisms. Measures', null, 24),
+       ('Management activities', null, 24),
+       ('Management operations. Direction', null, 24),
+       ('Quality management. Total quality management (TQM)', null, 24),
+       ('Organizational management (OM)', null, 24),
+       ('Fields of management', null, 24),
+       ('Records management', null, 31),
+       ('Plant management. Physical resources management', null, 31),
+       ('Knowledge management', null, 31),
+       ('Personnel management. Human Resources management', null, 31),
+       ('Standardization of products, operations, weights, measures and time', null, 11),
+       ('Activity and organizing. Information. Communication and control theory generally (cybernetics)', null, 11),
+       ('Civilization. Culture. Progress', null, 11),
+       ('Bibliography and bibliographies. Catalogues', null, 1),
+       ('Librarianship', null, 1),
+       ('General reference works (as subject)', null, 1),
+       ('Serial publications, periodicals (as subject)', null, 1),
+       ('Organizations of a general nature', null, 1),
+       ('Museums', null, 43),
+       ('Newspapers (as subject). The Press. Outline of journalism', null, 1),
+       ('Polygraphies. Collective works (as subject)', null, 1),
+       ('Manuscripts. Rare and remarkable works (as subject)', null, 1);
