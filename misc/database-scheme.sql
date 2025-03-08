@@ -56,13 +56,21 @@ CREATE TABLE BOOK
     booktitle       TEXT                NOT NULL,
     bookreleaseyear INTEGER             NOT NULL,
     bookcover       TEXT                NOT NULL,
+    hits INTEGER DEFAULT 0,
     FOREIGN KEY (langID) REFERENCES LANG (ROWID),
     FOREIGN KEY (typeID) REFERENCES DOCTYPE (ROWID),
     FOREIGN KEY (categoryID) REFERENCES CATEGORY (ROWID),
     FOREIGN KEY (authorID) REFERENCES AUTHOR (ROWID),
     FOREIGN KEY (publisherID) REFERENCES PUBLISHER (ROWID)
 );
-
+CREATE TABLE AUTHORED
+(
+    authorID  INTEGER NOT NULL,
+    serialnum INTEGER NOT NULL,
+    FOREIGN KEY (authorID) REFERENCES AUTHOR (ROWID),
+    FOREIGN KEY (serialnum) REFERENCES BOOK (serialnum),
+    PRIMARY KEY (serialnum, authorID)
+);
 CREATE TABLE STOCK
 (
     serialnum INTEGER NOT NULL,
@@ -218,3 +226,16 @@ VALUES ('08 Polygraphies. Collective works (as subject)', (SELECT ROWID FROM CAT
 INSERT INTO CATEGORY
 VALUES ('09 Manuscripts. Rare and remarkable works (as subject)',
         (SELECT ROWID FROM CATEGORY WHERE categoryName LIKE '0 %'));
+
+/*
+WITH RECURSIVE CategoryTree AS (SELECT ROWID, parentCategoryID
+                                FROM CATEGORY
+                                WHERE ROWID = 3
+                                UNION ALL
+                                SELECT c.ROWID, c.parentCategoryID
+                                FROM CATEGORY c
+                                         INNER JOIN CategoryTree ct ON c.parentCategoryID = ct.ROWID)
+SELECT CATEGORY.ROWID, CATEGORY.categoryName
+FROM CATEGORY,
+     CategoryTree
+WHERE CategoryTree.ROWID = CATEGORY.ROWID;*/

@@ -54,7 +54,17 @@ enum key {
     KEY_PAGE_HISTORY,
     KEY_ROWID,
     KEY_UUID,
-    KEY_TREE,
+    KEY_CASCADE,
+    KEY_SERIALNUM,
+    KEY_LANG_ID,
+    KEY_TYPE_ID,
+    KEY_CATEGORY_ID,
+    KEY_AUTHOR_ID,
+    KEY_PUBLISHER_ID,
+    KEY_BOOK_TITLE,
+    KEY_BOOK_PRECISE_DATE,
+    KEY_BOOK_FROM_DATE,
+    KEY_BOOK_TO_DATE,
     KEY__MAX
 };
 
@@ -78,7 +88,17 @@ static const struct kvalid keys[KEY__MAX] = {
     {NULL, "history"},
     {kvalid_int, "rowid"},
     {kvalid_int, "UUID"},
-    {NULL, "tree"},
+    {NULL, "cascade"},
+    {kvalid_int, "serialnum"},
+    {kvalid_int, "langid"},
+    {kvalid_int, "typeid"},
+    {kvalid_int, "categoryid"},
+    {kvalid_int, "authorid"},
+    {kvalid_int, "publisherid"},
+    {kvalid_string, "title"},
+    {kvalid_int, "date"},
+    {kvalid_int, "fromdate"},
+    {kvalid_int, "todate"},
 };
 
 struct accperms int_to_accperms(int perm) {
@@ -421,7 +441,7 @@ void get_flat_category(struct kreq *r, struct kjsonreq *req, struct sqlbox *p2, 
     khttp_free(r);
 }
 
-void get_tree_category(struct kjsonreq *req, struct sqlbox *p2, size_t dbid, const int64_t rowid) {
+void get_cascade_category(struct kjsonreq *req, struct sqlbox *p2, size_t dbid, const int64_t rowid) {
     size_t stmtid;
     const struct sqlbox_parmset *res;
     if (rowid == 0) {
@@ -443,7 +463,7 @@ void get_tree_category(struct kjsonreq *req, struct sqlbox *p2, size_t dbid, con
         kjson_putintp(req, "rowid", parentID);
         kjson_putstringp(req, "categoryName", res->ps[1].sparm);
         kjson_arrayp_open(req, "children");
-        get_tree_category(req, p2, dbid, parentID);
+        get_cascade_category(req, p2, dbid, parentID);
         kjson_array_close(req);
         kjson_obj_close(req);
     }
@@ -530,7 +550,7 @@ void handle_category(struct kreq *r, struct kjsonreq *req, const int rowid) {
             kjson_open(req, r);
             kjson_obj_open(req);
             kjson_arrayp_open(req, "categories");
-            get_tree_category(req, p2, dbid, 0);
+            get_cascade_category(req, p2, dbid, 0);
             kjson_array_close(req);
             kjson_putintp(req, "status", 200);
             sqlbox_free(p2);
@@ -573,7 +593,7 @@ int main(void) {
                 else if (r.fieldnmap[KEY_ROWID])
                     handle_err(&r, &req, KHTTP_400, 400);
                 else
-                    handle_category(&r, &req, (r.fieldmap[KEY_TREE]) ? -2 : -1);
+                    handle_category(&r, &req, (r.fieldmap[KEY_CASCADE]) ? -2 : -1);
                 break;
 
             default:
@@ -584,7 +604,7 @@ int main(void) {
                     else if (r.fieldnmap[KEY_ROWID])
                         handle_err(&r, &req, KHTTP_400, 400);
                     else
-                        handle_category(&r, &req, (r.fieldmap[KEY_TREE]) ? -2 : -1);
+                        handle_category(&r, &req, (r.fieldmap[KEY_CASCADE]) ? -2 : -1);
                 } else {
                     enum key i;
                     for (i = KEY_PAGE_PUBLISHER; i < KEY_PAGE_CATEGORY && !(r.fieldmap[i]); i++) {
