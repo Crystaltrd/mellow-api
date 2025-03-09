@@ -51,7 +51,6 @@ CREATE TABLE BOOK
     langID          INTEGER             NOT NULL,
     typeID          INTEGER             NOT NULL,
     categoryID      INTEGER             NOT NULL,
-    authorID        INTEGER             NOT NULL,
     publisherID     INTEGER             NOT NULL,
     booktitle       TEXT                NOT NULL,
     bookreleaseyear INTEGER             NOT NULL,
@@ -60,7 +59,6 @@ CREATE TABLE BOOK
     FOREIGN KEY (langID) REFERENCES LANG (ROWID),
     FOREIGN KEY (typeID) REFERENCES DOCTYPE (ROWID),
     FOREIGN KEY (categoryID) REFERENCES CATEGORY (ROWID),
-    FOREIGN KEY (authorID) REFERENCES AUTHOR (ROWID),
     FOREIGN KEY (publisherID) REFERENCES PUBLISHER (ROWID)
 );
 CREATE TABLE AUTHORED
