@@ -234,7 +234,7 @@ void handle_err(struct kreq *r, struct kjsonreq *req, enum khttp status, int err
 
 void handle_simple(struct kreq *r, struct kjsonreq *req, const int rowid, enum pg page) {
     size_t dbid, stmtid;
-    struct sqlbox *p2;
+    struct sqlbox *boxctx;
     struct sqlbox_cfg cfg;
     struct sqlbox_src srcs[] = {
         {
@@ -296,15 +296,15 @@ void handle_simple(struct kreq *r, struct kjsonreq *req, const int rowid, enum p
     cfg.srcs.srcs = srcs;
     cfg.stmts.stmtsz = 2;
     cfg.stmts.stmts = pstmts;
-    if ((p2 = sqlbox_alloc(&cfg)) == NULL)
+    if ((boxctx = sqlbox_alloc(&cfg)) == NULL)
         errx(EXIT_FAILURE, "sqlbox_alloc");
-    if (!(dbid = sqlbox_open(p2, 0)))
+    if (!(dbid = sqlbox_open(boxctx, 0)))
         errx(EXIT_FAILURE, "sqlbox_open");
     if (rowid > 0) {
-        if (!(stmtid = sqlbox_prepare_bind(p2, dbid, 0, 1, parms, 0)))
+        if (!(stmtid = sqlbox_prepare_bind(boxctx, dbid, 0, 1, parms, 0)))
             errx(EXIT_FAILURE, "sqlbox_prepare_bind");
     } else {
-        if (!(stmtid = sqlbox_prepare_bind(p2, dbid, 1, 0, 0, 0)))
+        if (!(stmtid = sqlbox_prepare_bind(boxctx, dbid, 1, 0, 0, 0)))
             errx(EXIT_FAILURE, "sqlbox_prepare_bind");
     }
 
@@ -318,7 +318,7 @@ void handle_simple(struct kreq *r, struct kjsonreq *req, const int rowid, enum p
         kjson_open(req, r);
         kjson_obj_open(req);
         kjson_arrayp_open(req, pages[page]);
-        while ((res = sqlbox_step(p2, stmtid)) != NULL && res->code == SQLBOX_CODE_OK && res->psz != 0) {
+        while ((res = sqlbox_step(boxctx, stmtid)) != NULL && res->code == SQLBOX_CODE_OK && res->psz != 0) {
             kjson_obj_open(req);
             switch (page) {
                 case PG_PUBLISHER:
@@ -353,7 +353,7 @@ void handle_simple(struct kreq *r, struct kjsonreq *req, const int rowid, enum p
         kjson_array_close(req);
         kjson_putintp(req, "status", 200);
     } else {
-        if ((res = sqlbox_step(p2, stmtid)) == NULL)
+        if ((res = sqlbox_step(boxctx, stmtid)) == NULL)
             errx(EXIT_FAILURE, "sqlbox_step");
         if (res->psz != 0) {
             khttp_head(r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
@@ -402,18 +402,18 @@ void handle_simple(struct kreq *r, struct kjsonreq *req, const int rowid, enum p
             kjson_putintp(req, "status", 404);
         }
     }
-    if (!sqlbox_finalise(p2, stmtid))
+    if (!sqlbox_finalise(boxctx, stmtid))
         errx(EXIT_FAILURE, "sqlbox_finalise");
-    sqlbox_free(p2);
+    sqlbox_free(boxctx);
     kjson_obj_close(req);
     kjson_close(req);
     khttp_free(r);
 }
 
-void get_flat_category(struct kreq *r, struct kjsonreq *req, struct sqlbox *p2, size_t dbid) {
+void get_flat_category(struct kreq *r, struct kjsonreq *req, struct sqlbox *boxctx, size_t dbid) {
     size_t stmtid;
     const struct sqlbox_parmset *res;
-    if (!(stmtid = sqlbox_prepare_bind(p2, dbid, 0, 0, 0, 0)))
+    if (!(stmtid = sqlbox_prepare_bind(boxctx, dbid, 0, 0, 0, 0)))
         errx(EXIT_FAILURE, "sqlbox_prepare_bind");
     khttp_head(r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
     khttp_head(r, kresps[KRESP_CONTENT_TYPE],
@@ -424,7 +424,7 @@ void get_flat_category(struct kreq *r, struct kjsonreq *req, struct sqlbox *p2, 
     kjson_open(req, r);
     kjson_obj_open(req);
     kjson_arrayp_open(req, "categories");
-    while ((res = sqlbox_step(p2, stmtid)) != NULL && res->code == SQLBOX_CODE_OK && res->psz != 0) {
+    while ((res = sqlbox_step(boxctx, stmtid)) != NULL && res->code == SQLBOX_CODE_OK && res->psz != 0) {
         kjson_obj_open(req);
         kjson_putintp(req, "rowid", res->ps[0].iparm);
         kjson_putstringp(req, "categoryName", res->ps[1].sparm);
@@ -433,19 +433,19 @@ void get_flat_category(struct kreq *r, struct kjsonreq *req, struct sqlbox *p2, 
     }
     kjson_array_close(req);
     kjson_putintp(req, "status", 200);
-    if (!sqlbox_finalise(p2, stmtid))
+    if (!sqlbox_finalise(boxctx, stmtid))
         errx(EXIT_FAILURE, "sqlbox_finalise");
-    sqlbox_free(p2);
+    sqlbox_free(boxctx);
     kjson_obj_close(req);
     kjson_close(req);
     khttp_free(r);
 }
 
-void get_cascade_category(struct kjsonreq *req, struct sqlbox *p2, size_t dbid, const int64_t rowid) {
+void get_cascade_category(struct kjsonreq *req, struct sqlbox *boxctx, size_t dbid, const int64_t rowid) {
     size_t stmtid;
     const struct sqlbox_parmset *res;
     if (rowid == 0) {
-        if (!(stmtid = sqlbox_prepare_bind(p2, dbid, 1, 0, 0, 0)))
+        if (!(stmtid = sqlbox_prepare_bind(boxctx, dbid, 1, 0, 0, 0)))
             errx(EXIT_FAILURE, "sqlbox_prepare_bind");
     } else {
         struct sqlbox_parm parms[] = {
@@ -454,25 +454,25 @@ void get_cascade_category(struct kjsonreq *req, struct sqlbox *p2, size_t dbid, 
                 .type = SQLBOX_PARM_INT
             },
         };
-        if (!(stmtid = sqlbox_prepare_bind(p2, dbid, 3, 1, parms, 0)))
+        if (!(stmtid = sqlbox_prepare_bind(boxctx, dbid, 3, 1, parms, 0)))
             errx(EXIT_FAILURE, "sqlbox_prepare_bind");
     }
-    while ((res = sqlbox_step(p2, stmtid)) != NULL && res->code == SQLBOX_CODE_OK && res->psz != 0) {
+    while ((res = sqlbox_step(boxctx, stmtid)) != NULL && res->code == SQLBOX_CODE_OK && res->psz != 0) {
         kjson_obj_open(req);
         int parentID = (int) res->ps[0].iparm;
         kjson_putintp(req, "rowid", parentID);
         kjson_putstringp(req, "categoryName", res->ps[1].sparm);
         kjson_arrayp_open(req, "children");
-        get_cascade_category(req, p2, dbid, parentID);
+        get_cascade_category(req, boxctx, dbid, parentID);
         kjson_array_close(req);
         kjson_obj_close(req);
     }
 
-    if (!sqlbox_finalise(p2, stmtid))
+    if (!sqlbox_finalise(boxctx, stmtid))
         errx(EXIT_FAILURE, "sqlbox_finalise");
 }
 
-void get_single_category(struct kreq *r, struct kjsonreq *req, struct sqlbox *p2, size_t dbid, const int64_t rowid) {
+void get_single_category(struct kreq *r, struct kjsonreq *req, struct sqlbox *boxctx, size_t dbid, const int64_t rowid) {
     size_t stmtid;
     const struct sqlbox_parmset *res;
     struct sqlbox_parm parms[] = {
@@ -481,9 +481,9 @@ void get_single_category(struct kreq *r, struct kjsonreq *req, struct sqlbox *p2
             .type = SQLBOX_PARM_INT
         },
     };
-    if (!(stmtid = sqlbox_prepare_bind(p2, dbid, 2, 1, parms, 0)))
+    if (!(stmtid = sqlbox_prepare_bind(boxctx, dbid, 2, 1, parms, 0)))
         errx(EXIT_FAILURE, "sqlbox_prepare_bind");
-    if ((res = sqlbox_step(p2, stmtid)) == NULL)
+    if ((res = sqlbox_step(boxctx, stmtid)) == NULL)
         errx(EXIT_FAILURE, "sqlbox_step");
     khttp_head(r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
     khttp_head(r, kresps[KRESP_CONTENT_TYPE],
@@ -498,9 +498,9 @@ void get_single_category(struct kreq *r, struct kjsonreq *req, struct sqlbox *p2
         kjson_putintp(req, "parentcategoryID", res->ps[1].iparm);
     }
     kjson_putintp(req, "status", 200);
-    if (!sqlbox_finalise(p2, stmtid))
+    if (!sqlbox_finalise(boxctx, stmtid))
         errx(EXIT_FAILURE, "sqlbox_finalise");
-    sqlbox_free(p2);
+    sqlbox_free(boxctx);
     kjson_obj_close(req);
     kjson_close(req);
     khttp_free(r);
@@ -508,7 +508,7 @@ void get_single_category(struct kreq *r, struct kjsonreq *req, struct sqlbox *p2
 
 void handle_category(struct kreq *r, struct kjsonreq *req, const int rowid) {
     size_t dbid;
-    struct sqlbox *p2;
+    struct sqlbox *boxctx;
     struct sqlbox_cfg cfg;
     struct sqlbox_src srcs[] = {
         {
@@ -531,14 +531,14 @@ void handle_category(struct kreq *r, struct kjsonreq *req, const int rowid) {
     cfg.srcs.srcs = srcs;
     cfg.stmts.stmtsz = 4;
     cfg.stmts.stmts = pstmts;
-    if ((p2 = sqlbox_alloc(&cfg)) == NULL)
+    if ((boxctx = sqlbox_alloc(&cfg)) == NULL)
         errx(EXIT_FAILURE, "sqlbox_alloc");
-    if (!(dbid = sqlbox_open(p2, 0)))
+    if (!(dbid = sqlbox_open(boxctx, 0)))
         errx(EXIT_FAILURE, "sqlbox_open");
 
     switch (rowid) {
         case -1:
-            get_flat_category(r, req, p2, dbid);
+            get_flat_category(r, req, boxctx, dbid);
             break;
         case -2:
             khttp_head(r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
@@ -550,16 +550,16 @@ void handle_category(struct kreq *r, struct kjsonreq *req, const int rowid) {
             kjson_open(req, r);
             kjson_obj_open(req);
             kjson_arrayp_open(req, "categories");
-            get_cascade_category(req, p2, dbid, 0);
+            get_cascade_category(req, boxctx, dbid, 0);
             kjson_array_close(req);
             kjson_putintp(req, "status", 200);
-            sqlbox_free(p2);
+            sqlbox_free(boxctx);
             kjson_obj_close(req);
             kjson_close(req);
             khttp_free(r);
             break;
         default:
-            get_single_category(r, req, p2, dbid, rowid);
+            get_single_category(r, req, boxctx, dbid, rowid);
             break;
     }
 }
