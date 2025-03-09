@@ -86,6 +86,7 @@ CREATE TABLE INVENTORY
     rentduration INTEGER             NOT NULL,
     rentdate     DATETIME            NOT NULL,
     extended     BOOLEAN             NOT NULL,
+    UNIQUE (UUID, serialnum),
     FOREIGN KEY (UUID) REFERENCES ACCOUNT (UUID),
     FOREIGN KEY (serialnum) REFERENCES BOOK (serialnum)
 );
