@@ -48,7 +48,6 @@ CREATE TABLE ACCOUNT
 CREATE TABLE BOOK
 (
     serialnum       INTEGER PRIMARY KEY NOT NULL,
-    langID          INTEGER             NOT NULL,
     typeID          INTEGER             NOT NULL,
     categoryID      INTEGER             NOT NULL,
     publisherID     INTEGER             NOT NULL,
@@ -56,10 +55,17 @@ CREATE TABLE BOOK
     bookreleaseyear INTEGER             NOT NULL,
     bookcover       TEXT                NOT NULL,
     hits INTEGER DEFAULT 0,
-    FOREIGN KEY (langID) REFERENCES LANG (ROWID),
     FOREIGN KEY (typeID) REFERENCES DOCTYPE (ROWID),
     FOREIGN KEY (categoryID) REFERENCES CATEGORY (ROWID),
     FOREIGN KEY (publisherID) REFERENCES PUBLISHER (ROWID)
+);
+CREATE TABLE LANGUAGES
+(
+    serialnum INTEGER NOT NULL,
+    langID    INTEGER NOT NULL,
+    FOREIGN KEY (langID) REFERENCES LANG (ROWID),
+    FOREIGN KEY (serialnum) REFERENCES BOOK (serialnum),
+    PRIMARY KEY (serialnum, langID)
 );
 CREATE TABLE AUTHORED
 (
