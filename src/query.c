@@ -472,7 +472,8 @@ void get_cascade_category(struct kjsonreq *req, struct sqlbox *boxctx, size_t db
         errx(EXIT_FAILURE, "sqlbox_finalise");
 }
 
-void get_single_category(struct kreq *r, struct kjsonreq *req, struct sqlbox *boxctx, size_t dbid, const int64_t rowid) {
+void get_single_category(struct kreq *r, struct kjsonreq *req, struct sqlbox *boxctx, size_t dbid,
+                         const int64_t rowid) {
     size_t stmtid;
     const struct sqlbox_parmset *res;
     struct sqlbox_parm parms[] = {
