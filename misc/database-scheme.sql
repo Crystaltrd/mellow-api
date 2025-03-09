@@ -81,12 +81,12 @@ CREATE TABLE STOCK
 
 CREATE TABLE INVENTORY
 (
-    UUID         INTEGER PRIMARY KEY NOT NULL,
-    serialnum    INTEGER             NOT NULL,
-    rentduration INTEGER             NOT NULL,
-    rentdate     DATETIME            NOT NULL,
-    extended     BOOLEAN             NOT NULL,
-    UNIQUE (UUID, serialnum),
+    UUID         INTEGER  NOT NULL,
+    serialnum    INTEGER  NOT NULL,
+    rentduration INTEGER  NOT NULL,
+    rentdate     DATETIME NOT NULL,
+    extended     BOOLEAN  NOT NULL,
+    PRIMARY KEY (UUID, serialnum),
     FOREIGN KEY (UUID) REFERENCES ACCOUNT (UUID),
     FOREIGN KEY (serialnum) REFERENCES BOOK (serialnum)
 );
