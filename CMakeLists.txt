@@ -5,3 +5,6 @@ set(CMAKE_C_STANDARD 17)
 
 add_executable(mellow_api main.c
         src/query.c)
+add_executable(mellow_api main.c
+        src/testing.c
+        src/testing.c)
