@@ -1,3 +1,4 @@
+pragma foreign_keys= true;
 CREATE TABLE PUBLISHER
 (
     publisherName TEXT UNIQUE NOT NULL
@@ -20,13 +21,14 @@ CREATE TABLE DOCTYPE
 );
 CREATE TABLE CATEGORY
 (
-    categoryClass INTEGER PRIMARY KEY,
+    categoryClass    TEXT PRIMARY KEY,
     categoryName     TEXT UNIQUE NOT NULL,
-    parentCategoryID INTEGER,
+    parentCategoryID TEXT,
     FOREIGN KEY (parentCategoryID) REFERENCES CATEGORY (categoryClass) ON UPDATE CASCADE ON DELETE CASCADE
 );
 CREATE TABLE CAMPUS
 (
+    campusID INTEGER PRIMARY KEY,
     campusName TEXT UNIQUE NOT NULL
 );
 CREATE TABLE ROLE
@@ -43,14 +45,14 @@ CREATE TABLE ACCOUNT
     pwhash      TEXT                NOT NULL,
     campusID    INTEGER             NOT NULL,
     roleID      INTEGER             NOT NULL,
-    FOREIGN KEY (campusID) REFERENCES CAMPUS (ROWID) ON UPDATE CASCADE ON DELETE CASCADE,
+    FOREIGN KEY (campusID) REFERENCES CAMPUS (campusID) ON UPDATE CASCADE ON DELETE CASCADE,
     FOREIGN KEY (roleID) REFERENCES ROLE (ROWID) ON UPDATE CASCADE ON DELETE CASCADE
 );
 CREATE TABLE BOOK
 (
     serialnum       INTEGER PRIMARY KEY NOT NULL,
     typeID          INTEGER             NOT NULL,
-    categoryClass INTEGER NOT NULL,
+    categoryClass TEXT NOT NULL,
     publisherID     INTEGER             NOT NULL,
     booktitle       TEXT                NOT NULL,
     bookreleaseyear INTEGER             NOT NULL,
@@ -82,7 +84,7 @@ CREATE TABLE STOCK
     campusID  INTEGER NOT NULL,
     instock   INTEGER,
     FOREIGN KEY (serialnum) REFERENCES BOOK (serialnum) ON UPDATE CASCADE ON DELETE CASCADE,
-    FOREIGN KEY (campusID) REFERENCES CAMPUS (ROWID) ON UPDATE CASCADE ON DELETE CASCADE,
+    FOREIGN KEY (campusID) REFERENCES CAMPUS (campusID) ON UPDATE CASCADE ON DELETE CASCADE,
     PRIMARY KEY (serialnum, campusID)
 );
 
@@ -109,9 +111,9 @@ CREATE TABLE HISTORY
     FOREIGN KEY (actionID) REFERENCES ACTION (ROWID) ON UPDATE CASCADE ON DELETE CASCADE
 );
 INSERT INTO CAMPUS
-VALUES ('Campus El Kseur'),
-       ('Campus Targa Ouzemmour'),
-       ('Campus Aboudaou');
+VALUES (1, 'Campus El Kseur'),
+       (2, 'Campus Targa Ouzemmour'),
+       (99, 'Campus Aboudaou');
 
 INSERT INTO ROLE
 VALUES ('ADMIN', 64),
@@ -121,16 +123,17 @@ VALUES ('ADMIN', 64),
        ('PROFESSOR', 1),
        ('STUDENT', 1);
 
-
+INSERT INTO ACCOUNT
+VALUES (1020, 'BOO', 'BAR', 1, 99)
 /*
-WITH RECURSIVE CategoryTree AS (SELECT ROWID, parentCategoryID
+WITH RECURSIVE CategoryCascade AS (SELECT ROWID, parentCategoryID
                                 FROM CATEGORY
                                 WHERE ROWID = 3
                                 UNION ALL
                                 SELECT c.ROWID, c.parentCategoryID
                                 FROM CATEGORY c
-                                         INNER JOIN CategoryTree ct ON c.parentCategoryID = ct.ROWID)
+                                         INNER JOIN CategoryCascade ct ON c.parentCategoryID = ct.ROWID)
 SELECT CATEGORY.ROWID, CATEGORY.categoryName
 FROM CATEGORY,
-     CategoryTree
-WHERE CategoryTree.ROWID = CATEGORY.ROWID;*/
+     CategoryCascade
+WHERE CategoryCascade.ROWID = CATEGORY.ROWID;*/
