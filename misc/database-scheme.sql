@@ -20,9 +20,10 @@ CREATE TABLE DOCTYPE
 );
 CREATE TABLE CATEGORY
 (
+    categoryClass INTEGER PRIMARY KEY,
     categoryName     TEXT UNIQUE NOT NULL,
     parentCategoryID INTEGER,
-    FOREIGN KEY (parentCategoryID) REFERENCES CATEGORY (ROWID)
+    FOREIGN KEY (parentCategoryID) REFERENCES CATEGORY (categoryClass) ON UPDATE CASCADE ON DELETE CASCADE
 );
 CREATE TABLE CAMPUS
 (
@@ -42,37 +43,37 @@ CREATE TABLE ACCOUNT
     pwhash      TEXT                NOT NULL,
     campusID    INTEGER             NOT NULL,
     roleID      INTEGER             NOT NULL,
-    FOREIGN KEY (campusID) REFERENCES CAMPUS (ROWID),
-    FOREIGN KEY (roleID) REFERENCES ROLE (ROWID)
+    FOREIGN KEY (campusID) REFERENCES CAMPUS (ROWID) ON UPDATE CASCADE ON DELETE CASCADE,
+    FOREIGN KEY (roleID) REFERENCES ROLE (ROWID) ON UPDATE CASCADE ON DELETE CASCADE
 );
 CREATE TABLE BOOK
 (
     serialnum       INTEGER PRIMARY KEY NOT NULL,
     typeID          INTEGER             NOT NULL,
-    categoryID      INTEGER             NOT NULL,
+    categoryClass INTEGER NOT NULL,
     publisherID     INTEGER             NOT NULL,
     booktitle       TEXT                NOT NULL,
     bookreleaseyear INTEGER             NOT NULL,
     bookcover       TEXT                NOT NULL,
-    hits INTEGER DEFAULT 0,
-    FOREIGN KEY (typeID) REFERENCES DOCTYPE (ROWID),
-    FOREIGN KEY (categoryID) REFERENCES CATEGORY (ROWID),
-    FOREIGN KEY (publisherID) REFERENCES PUBLISHER (ROWID)
+    hits          INTEGER DEFAULT 0,
+    FOREIGN KEY (typeID) REFERENCES DOCTYPE (ROWID) ON UPDATE CASCADE ON DELETE CASCADE,
+    FOREIGN KEY (categoryClass) REFERENCES CATEGORY (categoryClass) ON UPDATE CASCADE ON DELETE CASCADE,
+    FOREIGN KEY (publisherID) REFERENCES PUBLISHER (ROWID) ON UPDATE CASCADE ON DELETE CASCADE
 );
 CREATE TABLE LANGUAGES
 (
     serialnum INTEGER NOT NULL,
     langID    INTEGER NOT NULL,
-    FOREIGN KEY (langID) REFERENCES LANG (ROWID),
-    FOREIGN KEY (serialnum) REFERENCES BOOK (serialnum),
+    FOREIGN KEY (langID) REFERENCES LANG (ROWID) ON UPDATE CASCADE ON DELETE CASCADE,
+    FOREIGN KEY (serialnum) REFERENCES BOOK (serialnum) ON UPDATE CASCADE ON DELETE CASCADE,
     PRIMARY KEY (serialnum, langID)
 );
 CREATE TABLE AUTHORED
 (
     authorID  INTEGER NOT NULL,
     serialnum INTEGER NOT NULL,
-    FOREIGN KEY (authorID) REFERENCES AUTHOR (ROWID),
-    FOREIGN KEY (serialnum) REFERENCES BOOK (serialnum),
+    FOREIGN KEY (authorID) REFERENCES AUTHOR (ROWID) ON UPDATE CASCADE ON DELETE CASCADE,
+    FOREIGN KEY (serialnum) REFERENCES BOOK (serialnum) ON UPDATE CASCADE ON DELETE CASCADE,
     PRIMARY KEY (serialnum, authorID)
 );
 CREATE TABLE STOCK
@@ -80,8 +81,8 @@ CREATE TABLE STOCK
     serialnum INTEGER NOT NULL,
     campusID  INTEGER NOT NULL,
     instock   INTEGER,
-    FOREIGN KEY (serialnum) REFERENCES BOOK (serialnum),
-    FOREIGN KEY (campusID) REFERENCES CAMPUS (ROWID),
+    FOREIGN KEY (serialnum) REFERENCES BOOK (serialnum) ON UPDATE CASCADE ON DELETE CASCADE,
+    FOREIGN KEY (campusID) REFERENCES CAMPUS (ROWID) ON UPDATE CASCADE ON DELETE CASCADE,
     PRIMARY KEY (serialnum, campusID)
 );
 
@@ -93,8 +94,8 @@ CREATE TABLE INVENTORY
     rentdate     DATETIME NOT NULL,
     extended     BOOLEAN  NOT NULL,
     PRIMARY KEY (UUID, serialnum),
-    FOREIGN KEY (UUID) REFERENCES ACCOUNT (UUID),
-    FOREIGN KEY (serialnum) REFERENCES BOOK (serialnum)
+    FOREIGN KEY (UUID) REFERENCES ACCOUNT (UUID) ON UPDATE CASCADE ON DELETE CASCADE,
+    FOREIGN KEY (serialnum) REFERENCES BOOK (serialnum) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
 CREATE TABLE HISTORY
@@ -103,9 +104,9 @@ CREATE TABLE HISTORY
     serialnum  INTEGER  NOT NULL,
     actionID   INTEGER  NOT NULL,
     actiondate DATETIME NOT NULL,
-    FOREIGN KEY (UUID) REFERENCES ACCOUNT (UUID),
-    FOREIGN KEY (serialnum) REFERENCES BOOK (serialnum),
-    FOREIGN KEY (actionID) REFERENCES ACTION (ROWID)
+    FOREIGN KEY (UUID) REFERENCES ACCOUNT (UUID) ON UPDATE CASCADE ON DELETE CASCADE,
+    FOREIGN KEY (serialnum) REFERENCES BOOK (serialnum) ON UPDATE CASCADE ON DELETE CASCADE,
+    FOREIGN KEY (actionID) REFERENCES ACTION (ROWID) ON UPDATE CASCADE ON DELETE CASCADE
 );
 INSERT INTO CAMPUS
 VALUES ('Campus El Kseur'),
@@ -120,117 +121,6 @@ VALUES ('ADMIN', 64),
        ('PROFESSOR', 1),
        ('STUDENT', 1);
 
-INSERT INTO CATEGORY
-VALUES ('0 Science and knowledge. Organization. Computer science. Information. Documentation. Librarianship. Institution. Publications',
-        null);
-INSERT INTO CATEGORY
-VALUES ('1 Philosophy. Psychology', null);
-INSERT INTO CATEGORY
-VALUES ('2 Religion. Theology', null);
-INSERT INTO CATEGORY
-VALUES ('3 Social sciences', null);
-INSERT INTO CATEGORY
-VALUES ('4 vacant', null);
-INSERT INTO CATEGORY
-VALUES ('5 Mathematics. Natural Sciences', null);
-INSERT INTO CATEGORY
-VALUES ('6 Applied Sciences. Medicine, Technology', null);
-INSERT INTO CATEGORY
-VALUES ('7 The Arts. Entertainment. Sport', null);
-INSERT INTO CATEGORY
-VALUES ('8 Linguistics. Literature', null);
-INSERT INTO CATEGORY
-VALUES ('9 Geography. History', null);
-INSERT INTO CATEGORY
-VALUES ('00 Prolegomena. Fundamentals of knowledge and culture. Propaedeutics',
-        (SELECT ROWID FROM CATEGORY WHERE categoryName LIKE '0 %'));
-INSERT INTO CATEGORY
-VALUES ('001 Science and knowledge in general. Organization of intellectual work',
-        (SELECT ROWID FROM CATEGORY WHERE categoryName LIKE '00 %'));
-INSERT INTO CATEGORY
-VALUES ('002 Documentation. Books. Writings. Authorship', (SELECT ROWID FROM CATEGORY WHERE categoryName LIKE '00 %'));
-INSERT INTO CATEGORY
-VALUES ('003 Writing systems and scripts', (SELECT ROWID FROM CATEGORY WHERE categoryName LIKE '00 %'));
-INSERT INTO CATEGORY
-VALUES ('004 Computer science and technology. Computing. Data processing',
-        (SELECT ROWID FROM CATEGORY WHERE categoryName LIKE '00 %'));
-INSERT INTO CATEGORY
-VALUES ('004.2 Computer architecture', (SELECT ROWID FROM CATEGORY WHERE categoryName LIKE '004 %'));
-INSERT INTO CATEGORY
-VALUES ('004.3 Computer hardware', (SELECT ROWID FROM CATEGORY WHERE categoryName LIKE '004 %'));
-INSERT INTO CATEGORY
-VALUES ('004.4 Software', (SELECT ROWID FROM CATEGORY WHERE categoryName LIKE '004 %'));
-INSERT INTO CATEGORY
-VALUES ('004.5 Human-computer interaction. Man-machine interface. User interface. User environment',
-        (SELECT ROWID FROM CATEGORY WHERE categoryName LIKE '004 %'));
-INSERT INTO CATEGORY
-VALUES ('004.6 Data', (SELECT ROWID FROM CATEGORY WHERE categoryName LIKE '004 %'));
-INSERT INTO CATEGORY
-VALUES ('004.7 Computer communication', (SELECT ROWID FROM CATEGORY WHERE categoryName LIKE '004 %'));
-INSERT INTO CATEGORY
-VALUES ('004.8 Artificial intelligence', (SELECT ROWID FROM CATEGORY WHERE categoryName LIKE '004 %'));
-INSERT INTO CATEGORY
-VALUES ('004.9 Application-oriented computer-based techniques',
-        (SELECT ROWID FROM CATEGORY WHERE categoryName LIKE '004 %'));
-INSERT INTO CATEGORY
-VALUES ('005 Management', (SELECT ROWID FROM CATEGORY WHERE categoryName LIKE '00 %'));
-INSERT INTO CATEGORY
-VALUES ('005.1 Management Theory', (SELECT ROWID FROM CATEGORY WHERE categoryName LIKE '005 %'));
-INSERT INTO CATEGORY
-VALUES ('005.2 Management agents. Mechanisms. Measures', (SELECT ROWID FROM CATEGORY WHERE categoryName LIKE '005 %'));
-INSERT INTO CATEGORY
-VALUES ('005.3 Management activities', (SELECT ROWID FROM CATEGORY WHERE categoryName LIKE '005 %'));
-INSERT INTO CATEGORY
-VALUES ('005.4 Processes in management', (SELECT ROWID FROM CATEGORY WHERE categoryName LIKE '005 %'));
-INSERT INTO CATEGORY
-VALUES ('005.5 Management operations. Direction', (SELECT ROWID FROM CATEGORY WHERE categoryName LIKE '005 %'));
-INSERT INTO CATEGORY
-VALUES ('005.6 Quality management. Total quality management (TQM)',
-        (SELECT ROWID FROM CATEGORY WHERE categoryName LIKE '005 %'));
-INSERT INTO CATEGORY
-VALUES ('005.7 Organizational management (OM)', (SELECT ROWID FROM CATEGORY WHERE categoryName LIKE '005 %'));
-INSERT INTO CATEGORY
-VALUES ('005.9 Fields of management', (SELECT ROWID FROM CATEGORY WHERE categoryName LIKE '005 %'));
-INSERT INTO CATEGORY
-VALUES ('005.91 Administrative management. Secretariat',
-        (SELECT ROWID FROM CATEGORY WHERE categoryName LIKE '005.9 %'));
-INSERT INTO CATEGORY
-VALUES ('005.92 Records management', (SELECT ROWID FROM CATEGORY WHERE categoryName LIKE '005.9 %'));
-INSERT INTO CATEGORY
-VALUES ('005.93 Plant management. Physical resources management',
-        (SELECT ROWID FROM CATEGORY WHERE categoryName LIKE '005.9 %'));
-INSERT INTO CATEGORY
-VALUES ('005.94 Knowledge management', (SELECT ROWID FROM CATEGORY WHERE categoryName LIKE '005.9 %'));
-INSERT INTO CATEGORY
-VALUES ('005.95/96 Personnel management. Human Resources management',
-        (SELECT ROWID FROM CATEGORY WHERE categoryName LIKE '005.9 %'));
-INSERT INTO CATEGORY
-VALUES ('006 Standardization of products, operations, weights, measures and time',
-        (SELECT ROWID FROM CATEGORY WHERE categoryName LIKE '00 %'));
-INSERT INTO CATEGORY
-VALUES ('007 Activity and organizing. Information. Communication and control theory generally (cybernetics)',
-        (SELECT ROWID FROM CATEGORY WHERE categoryName LIKE '00 %'));
-INSERT INTO CATEGORY
-VALUES ('008 Civilization. Culture. Progress', (SELECT ROWID FROM CATEGORY WHERE categoryName LIKE '00 %'));
-INSERT INTO CATEGORY
-VALUES ('01 Bibliography and bibliographies. Catalogues', (SELECT ROWID FROM CATEGORY WHERE categoryName LIKE '0 %'));
-INSERT INTO CATEGORY
-VALUES ('02 Librarianship', (SELECT ROWID FROM CATEGORY WHERE categoryName LIKE '0 %'));
-INSERT INTO CATEGORY
-VALUES ('030 General reference works (as subject)', (SELECT ROWID FROM CATEGORY WHERE categoryName LIKE '0 %'));
-INSERT INTO CATEGORY
-VALUES ('050 Serial publications, periodicals (as subject)',
-        (SELECT ROWID FROM CATEGORY WHERE categoryName LIKE '0 %'));
-INSERT INTO CATEGORY
-VALUES ('06 Organizations of a general nature', (SELECT ROWID FROM CATEGORY WHERE categoryName LIKE '0 %'));
-INSERT INTO CATEGORY
-VALUES ('070 Newspapers (as subject). The Press. Outline of journalism',
-        (SELECT ROWID FROM CATEGORY WHERE categoryName LIKE '0 %'));
-INSERT INTO CATEGORY
-VALUES ('08 Polygraphies. Collective works (as subject)', (SELECT ROWID FROM CATEGORY WHERE categoryName LIKE '0 %'));
-INSERT INTO CATEGORY
-VALUES ('09 Manuscripts. Rare and remarkable works (as subject)',
-        (SELECT ROWID FROM CATEGORY WHERE categoryName LIKE '0 %'));
 
 /*
 WITH RECURSIVE CategoryTree AS (SELECT ROWID, parentCategoryID
