@@ -122,9 +122,6 @@ VALUES ('ADMIN', 64),
        ('PROFESSOR', 1),
        ('STUDENT', 1);
 
-INSERT INTO ACCOUNT
-VALUES (1020, 'BOO', 'BAR', 'El Kseur', 'ADMIN');
-
 /*
 WITH RECURSIVE CategoryCascade AS (SELECT ROWID, parentCategoryID
                                 FROM CATEGORY
