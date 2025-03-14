@@ -184,7 +184,7 @@ SELECT categoryClass,categoryName,parentCategoryID FROM CATEGORY WHERE 'RELATION
 
 #### ?by_ID
 
-*[ ] `SELECT serialnum,type,category,publisher,booktitle,bookrelease,bookcover,hits FROM BOOK WHERE serialnum = (?)`
+* [ ] `SELECT serialnum,type,category,publisher,booktitle,bookrelease,bookcover,hits FROM BOOK WHERE serialnum = (?)`
 
 #### ?filter
 
@@ -198,7 +198,7 @@ SELECT categoryClass,categoryName,parentCategoryID FROM CATEGORY WHERE 'RELATION
 - ?from_year
 - ?to_year
 
-*[ ] Done
+* [ ] Done
 
 ```sqlite
 
