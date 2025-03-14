@@ -43,21 +43,21 @@ CREATE TABLE ACCOUNT
     UUID        INTEGER PRIMARY KEY NOT NULL,
     displayname TEXT                NOT NULL,
     pwhash      TEXT                NOT NULL,
-    campus TEXT NOT NULL,
-    role   TEXT NOT NULL,
+    campus      TEXT                NOT NULL,
+    role        TEXT                NOT NULL,
     FOREIGN KEY (campus) REFERENCES CAMPUS (campusName) ON UPDATE CASCADE ON DELETE CASCADE,
     FOREIGN KEY (role) REFERENCES ROLE (roleName) ON UPDATE CASCADE ON DELETE CASCADE
 );
 CREATE TABLE BOOK
 (
     serialnum       INTEGER PRIMARY KEY NOT NULL,
-    type      TEXT NOT NULL,
-    category  TEXT NOT NULL,
-    publisher TEXT NOT NULL,
+    type            TEXT                NOT NULL,
+    category        TEXT                NOT NULL,
+    publisher       TEXT                NOT NULL,
     booktitle       TEXT                NOT NULL,
     bookreleaseyear INTEGER             NOT NULL,
-    bookcover TEXT,
-    hits      INTEGER DEFAULT 0,
+    bookcover       TEXT,
+    hits            INTEGER DEFAULT 0,
     FOREIGN KEY (type) REFERENCES DOCTYPE (typeName) ON UPDATE CASCADE ON DELETE CASCADE,
     FOREIGN KEY (category) REFERENCES CATEGORY (categoryClass) ON UPDATE CASCADE ON DELETE CASCADE,
     FOREIGN KEY (publisher) REFERENCES PUBLISHER (publisherName) ON UPDATE CASCADE ON DELETE CASCADE
@@ -65,14 +65,14 @@ CREATE TABLE BOOK
 CREATE TABLE LANGUAGES
 (
     serialnum INTEGER NOT NULL,
-    lang INTEGER NOT NULL,
+    lang      INTEGER NOT NULL,
     FOREIGN KEY (lang) REFERENCES LANG (langCode) ON UPDATE CASCADE ON DELETE CASCADE,
     FOREIGN KEY (serialnum) REFERENCES BOOK (serialnum) ON UPDATE CASCADE ON DELETE CASCADE,
     UNIQUE (serialnum, lang)
 );
 CREATE TABLE AUTHORED
 (
-    author INTEGER NOT NULL,
+    author    INTEGER NOT NULL,
     serialnum INTEGER NOT NULL,
     FOREIGN KEY (author) REFERENCES AUTHOR (authorName) ON UPDATE CASCADE ON DELETE CASCADE,
     FOREIGN KEY (serialnum) REFERENCES BOOK (serialnum) ON UPDATE CASCADE ON DELETE CASCADE,
@@ -81,7 +81,7 @@ CREATE TABLE AUTHORED
 CREATE TABLE STOCK
 (
     serialnum INTEGER NOT NULL,
-    campus INTEGER NOT NULL,
+    campus    INTEGER NOT NULL,
     instock   INTEGER,
     FOREIGN KEY (serialnum) REFERENCES BOOK (serialnum) ON UPDATE CASCADE ON DELETE CASCADE,
     FOREIGN KEY (campus) REFERENCES CAMPUS (campusName) ON UPDATE CASCADE ON DELETE CASCADE,
@@ -104,7 +104,7 @@ CREATE TABLE HISTORY
 (
     UUID       INTEGER  NOT NULL,
     serialnum  INTEGER  NOT NULL,
-    action TEXT NOT NULL,
+    action     TEXT     NOT NULL,
     actiondate DATETIME NOT NULL,
     FOREIGN KEY (UUID) REFERENCES ACCOUNT (UUID) ON UPDATE CASCADE ON DELETE CASCADE,
     FOREIGN KEY (serialnum) REFERENCES BOOK (serialnum) ON UPDATE CASCADE ON DELETE CASCADE,
