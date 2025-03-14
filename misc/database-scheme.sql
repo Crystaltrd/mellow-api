@@ -45,6 +45,7 @@ CREATE TABLE ACCOUNT
     pwhash      TEXT                NOT NULL,
     campus      TEXT                NOT NULL,
     role        TEXT                NOT NULL,
+    frozen      BOOLEAN DEFAULT FALSE,
     FOREIGN KEY (campus) REFERENCES CAMPUS (campusName) ON UPDATE CASCADE ON DELETE CASCADE,
     FOREIGN KEY (role) REFERENCES ROLE (roleName) ON UPDATE CASCADE ON DELETE CASCADE
 );

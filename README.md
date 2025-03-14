@@ -101,14 +101,15 @@
 #### ?cascade:
 
 * [ ] Done
+
 ```sqlite
 WITH RECURSIVE CategoryCascade AS (SELECT categoryClass, parentCategoryID
                             FROM CATEGORY
-                            WHERE 'CONDITION'
+                            WHERE 'INITIAL CONDITION'
                             UNION ALL
                             SELECT c.categoryClass, c.parentCategoryID
                             FROM CATEGORY c
-                                     INNER JOIN CategoryCascade ct ON c.parentCategoryID = ct.categoryClass)
+                                     INNER JOIN CategoryCascade ct ON c.parentCategoryID = ct.categoryClass 'RELATION CONDITION')
 SELECT CATEGORY.categoryClass, CATEGORY.categoryName
 FROM CATEGORY,
  CategoryCascade
@@ -120,7 +121,7 @@ WHERE CategoryCascade.categoryClass = CATEGORY.categoryClass LIMIT 10 OFFSET (? 
 * [ ] Done
 ```sqlite
 SELECT categoryClass,categoryName,parentCategoryID FROM CATEGORY WHERE 'INITIAL CONDITION'
-SELECT categoryClass,categoryName,parentCategoryID FROM CATEGORY WHERE parentCategoryID = (?)
+SELECT categoryClass,categoryName,parentCategoryID FROM CATEGORY WHERE 'RELATION CONDITION'
 ```
 
 #### ?by_name:
@@ -138,3 +139,21 @@ SELECT categoryClass,categoryName,parentCategoryID FROM CATEGORY WHERE parentCat
 #### ?by_book:
 
 * [ ] `SELECT category,categoryName,parentCategoryID FROM CATEGORY,BOOK WHERE serialnum = (?) AND categoryClass = category`
+
+### Account:
+* [ ] `SELECT UUID,displayname,pwhash,campus,role FROM ACCOUNT LIMIT 10 OFFSET (? * 10)`
+
+#### ?by_UUID
+* [ ] `SELECT UUID,displayname,pwhash,campus,role FROM ACCOUNT WHERE UUID = (?)`
+
+#### ?by_name
+* [ ] `SELECT UUID,displayname,pwhash,campus,role FROM ACCOUNT WHERE instr(displayname,(?)) > 0 LIMIT 10 OFFSET (? * 10)`
+
+#### ?by_campus
+* [ ] `SELECT UUID,displayname,pwhash,campus,role FROM ACCOUNT WHERE instr(campus,(?)) > 0 LIMIT 10 OFFSET (? * 10)`
+
+#### ?by_role
+* [ ] `SELECT UUID,displayname,pwhash,campus,role FROM ACCOUNT WHERE instr(role,(?)) > 0 LIMIT 10 OFFSET (? * 10)`
+
+#### ?frozen
+* [ ] `SELECT UUID,displayname,pwhash,campus,role FROM ACCOUNT WHERE frozen = (?) LIMIT 10 OFFSET (? * 10)`
