@@ -178,3 +178,71 @@ SELECT categoryClass,categoryName,parentCategoryID FROM CATEGORY WHERE 'RELATION
 * [ ] `SELECT UUID,displayname,pwhash,campus,role FROM ACCOUNT WHERE frozen = (?) LIMIT 10 OFFSET (? * 10)`
 
 ### Book:
+
+* [ ] 
+  `SELECT serialnum,type,category,publisher,booktitle,bookrelease,bookcover,hits FROM BOOKS LIMIT 10 OFFSET (? * 10)`
+
+#### ?by_ID
+
+*[ ] `SELECT serialnum,type,category,publisher,booktitle,bookrelease,bookcover,hits FROM BOOK WHERE serialnum = (?)`
+
+#### ?filter
+
+- ?by_category
+- ?by_name
+- ?by_lang
+- ?by_author
+- ?by_type
+- ?by_publisher
+- ?by_campus
+- ?from_year
+- ?to_year
+
+*[ ] Done
+
+```sqlite
+
+WITH RECURSIVE CategoryCascade AS (SELECT categoryClass, parentCategoryID
+                                   FROM CATEGORY
+                                   WHERE ((?) = 'RESERVED' AND parentCategoryID IS NULL)
+                                      OR categoryClass = (?)
+                                   UNION ALL
+                                   SELECT c.categoryClass, c.parentCategoryID
+                                   FROM CATEGORY c
+                                            INNER JOIN CategoryCascade ct ON c.parentCategoryID = ct.categoryClass)
+SELECT BOOK.serialnum,
+       type,
+       category,
+       publisher,
+       booktitle,
+       bookreleaseyear,
+       bookcover,
+       hits
+FROM BOOK,
+     LANGUAGES,
+     AUTHORED,
+     STOCK,
+     CategoryCascade
+WHERE category = CategoryCascade.categoryClass
+  AND instr(booktitle, (?)) > 0
+  AND BOOK.serialnum = LANGUAGES.serialnum
+  AND instr(lang, (?)) > 0
+  AND AUTHORED.serialnum = BOOK.serialnum
+  AND instr(author, (?)) > 0
+  AND instr(type, (?)) > 0
+  AND instr(publisher, (?)) > 0
+  AND STOCK.serialnum = BOOK.serialnum
+  AND STOCK.campus = (?)
+  AND STOCK.instock > 0
+  AND bookreleaseyear BETWEEN (?) AND (?) LIMIT 10 OFFSET (? * 10) ORDER BY hits DESC;
+```
+
+#### ?by_account
+
+* [ ] 
+  `SELECT serialnum,type,category,publisher,booktitle,bookrelease,bookcover,hits FROM BOOK,INVENTORY WHERE UUID = (?) AND BOOK.serialnum = INVENTORY.serialnum`
+
+#### ?by_popularity
+
+* [ ] 
+  `SELECT serialnum,type,category,publisher,booktitle,bookrelease,bookcover,hits FROM BOOK LIMIT 10 OFFSET (? * 10) ORDER BY hits DESC`

@@ -83,7 +83,7 @@ CREATE TABLE STOCK
 (
     serialnum INTEGER NOT NULL,
     campus    INTEGER NOT NULL,
-    instock   INTEGER,
+    instock   INTEGER DEFAULT 0,
     FOREIGN KEY (serialnum) REFERENCES BOOK (serialnum) ON UPDATE CASCADE ON DELETE CASCADE,
     FOREIGN KEY (campus) REFERENCES CAMPUS (campusName) ON UPDATE CASCADE ON DELETE CASCADE,
     PRIMARY KEY (serialnum, campus)
@@ -157,4 +157,41 @@ WITH RECURSIVE CategoryCascade AS (SELECT categoryClass, parentCategoryID
                             FROM CATEGORY c
                                      INNER JOIN CategoryCascade ct ON c.parentCategoryID = ct.categoryClass)
 SELECT BOOK.serialnum FROM BOOK, CategoryCascade WHERE category = CategoryCascade.categoryClass
+*/
+/*
+
+WITH RECURSIVE CategoryCascade AS (SELECT categoryClass, parentCategoryID
+                                   FROM CATEGORY
+                                   WHERE ((?) = 'RESERVED' AND parentCategoryID IS NULL)
+                                      OR categoryClass = (?)
+                                   UNION ALL
+                                   SELECT c.categoryClass, c.parentCategoryID
+                                   FROM CATEGORY c
+                                            INNER JOIN CategoryCascade ct ON c.parentCategoryID = ct.categoryClass)
+SELECT BOOK.serialnum,
+       type,
+       category,
+       publisher,
+       booktitle,
+       bookreleaseyear,
+       bookcover,
+       hits
+FROM BOOK,
+     LANGUAGES,
+     AUTHORED,
+     STOCK,
+     CategoryCascade
+WHERE category = CategoryCascade.categoryClass
+  AND instr(booktitle, (?)) > 0
+  AND BOOK.serialnum = LANGUAGES.serialnum
+  AND instr(lang, (?)) > 0
+  AND AUTHORED.serialnum = BOOK.serialnum
+  AND instr(author, (?)) > 0
+  AND instr(type, (?)) > 0
+  AND instr(publisher, (?)) > 0
+  AND STOCK.serialnum = BOOK.serialnum
+  AND STOCK.campus = (?)
+  AND STOCK.instock > 0
+  AND bookreleaseyear BETWEEN (?) AND (?);
+
 */
