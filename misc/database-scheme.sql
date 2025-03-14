@@ -147,15 +147,14 @@ VALUES ('AUTHOR1', 123),
        ('AUTHOR1', 12333),
        ('AUTHOR2', 14423);
 
+
 /*
-WITH RECURSIVE CategoryCascade AS (SELECT ROWID, parentCategoryID
+WITH RECURSIVE CategoryCascade AS (SELECT categoryClass, parentCategoryID
                             FROM CATEGORY
-                            WHERE ROWID = 3
+                            WHERE categoryClass = (?)
                             UNION ALL
-                            SELECT c.ROWID, c.parentCategoryID
+                            SELECT c.categoryClass, c.parentCategoryID
                             FROM CATEGORY c
-                                     INNER JOIN CategoryCascade ct ON c.parentCategoryID = ct.ROWID)
-SELECT CATEGORY.ROWID, CATEGORY.categoryName
-FROM CATEGORY,
- CategoryCascade
-WHERE CategoryCascade.ROWID = CATEGORY.ROWID;*/
+                                     INNER JOIN CategoryCascade ct ON c.parentCategoryID = ct.categoryClass)
+SELECT BOOK.serialnum FROM BOOK, CategoryCascade WHERE category = CategoryCascade.categoryClass
+*/

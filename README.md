@@ -36,11 +36,13 @@
 
 #### ?by_popularity:
 
-* [ ] `SELECT author,SUM(hits) AS total_hits FROM AUTHORED,BOOK WHERE BOOK.serialnum = AUTHORED.serialnum GROUP BY author ORDER BY total_hits DESC LIMIT 10 OFFSET (? * 10)`
+* [ ] 
+  `SELECT author,SUM(hits) AS total_hits FROM AUTHORED,BOOK WHERE BOOK.serialnum = AUTHORED.serialnum GROUP BY author ORDER BY total_hits DESC LIMIT 10 OFFSET (? * 10)`
 
 #### ?by_count:
 
-* [ ] `SELECT author,COUNT() AS total_count FROM AUTHORED,BOOK WHERE BOOK.serialnum = AUTHORED.serialnum GROUP BY author ORDER BY total_count DESC LIMIT 10 OFFSET (? * 10)`
+* [ ] 
+  `SELECT author,COUNT() AS total_count FROM AUTHORED,BOOK WHERE BOOK.serialnum = AUTHORED.serialnum GROUP BY author ORDER BY total_count DESC LIMIT 10 OFFSET (? * 10)`
 
 ### Doctype:
 
@@ -119,6 +121,7 @@ WHERE CategoryCascade.categoryClass = CATEGORY.categoryClass LIMIT 10 OFFSET (? 
 #### ?tree:
 
 * [ ] Done
+
 ```sqlite
 SELECT categoryClass,categoryName,parentCategoryID FROM CATEGORY WHERE 'INITIAL CONDITION'
 SELECT categoryClass,categoryName,parentCategoryID FROM CATEGORY WHERE 'RELATION CONDITION'
@@ -126,34 +129,52 @@ SELECT categoryClass,categoryName,parentCategoryID FROM CATEGORY WHERE 'RELATION
 
 #### ?by_name:
 
-* [ ] `SELECT categoryClass,categoryName,parentCategoryID FROM CATEGORY WHERE instr(categoryName,(?)) > 0 LIMIT 10 OFFSET (? * 10)`
+* [ ] 
+  `SELECT categoryClass,categoryName,parentCategoryID FROM CATEGORY WHERE instr(categoryName,(?)) > 0 LIMIT 10 OFFSET (? * 10)`
 
 #### ?by_class:
 
-* [ ] `SELECT categoryClass,categoryName,parentCategoryID FROM CATEGORY WHERE instr(categoryClass,(?)) > 0 LIMIT 10 OFFSET (? * 10)`
+* [ ] 
+  `SELECT categoryClass,categoryName,parentCategoryID FROM CATEGORY WHERE instr(categoryClass,(?)) > 0 LIMIT 10 OFFSET (? * 10)`
 
 #### ?by_parent:
 
-* [ ] `SELECT categoryClass,categoryName,parentCategoryID FROM CATEGORY WHERE instr(parentCategoryID,(?)) > 0 LIMIT 10 OFFSET (? * 10)`
+* [ ] 
+  `SELECT categoryClass,categoryName,parentCategoryID FROM CATEGORY WHERE instr(parentCategoryID,(?)) > 0 LIMIT 10 OFFSET (? * 10)`
 
 #### ?by_book:
 
-* [ ] `SELECT category,categoryName,parentCategoryID FROM CATEGORY,BOOK WHERE serialnum = (?) AND categoryClass = category`
+* [ ] 
+  `SELECT category,categoryName,parentCategoryID FROM CATEGORY,BOOK WHERE serialnum = (?) AND categoryClass = category`
 
 ### Account:
+
 * [ ] `SELECT UUID,displayname,pwhash,campus,role FROM ACCOUNT LIMIT 10 OFFSET (? * 10)`
 
-#### ?by_UUID
+#### ?by_ID
+
 * [ ] `SELECT UUID,displayname,pwhash,campus,role FROM ACCOUNT WHERE UUID = (?)`
 
 #### ?by_name
-* [ ] `SELECT UUID,displayname,pwhash,campus,role FROM ACCOUNT WHERE instr(displayname,(?)) > 0 LIMIT 10 OFFSET (? * 10)`
+
+* [ ] 
+  `SELECT UUID,displayname,pwhash,campus,role FROM ACCOUNT WHERE instr(displayname,(?)) > 0 LIMIT 10 OFFSET (? * 10)`
+
+#### ?by_book
+
+* [ ] 
+  `SELECT UUID,displayname,pwhash,campus,role FROM ACCOUNT,INVENTORY WHERE INVENTORY.UUID = ACCOUNT.UUID AND serialnum = (?) LIMIT 10 OFFSET (? * 10)`
 
 #### ?by_campus
+
 * [ ] `SELECT UUID,displayname,pwhash,campus,role FROM ACCOUNT WHERE instr(campus,(?)) > 0 LIMIT 10 OFFSET (? * 10)`
 
 #### ?by_role
+
 * [ ] `SELECT UUID,displayname,pwhash,campus,role FROM ACCOUNT WHERE instr(role,(?)) > 0 LIMIT 10 OFFSET (? * 10)`
 
 #### ?frozen
+
 * [ ] `SELECT UUID,displayname,pwhash,campus,role FROM ACCOUNT WHERE frozen = (?) LIMIT 10 OFFSET (? * 10)`
+
+### Book:
