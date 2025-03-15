@@ -209,7 +209,7 @@ WITH RECURSIVE CategoryCascade AS (SELECT categoryClass, parentCategoryID
                                    UNION ALL
                                    SELECT c.categoryClass, c.parentCategoryID
                                    FROM CATEGORY c
-                                            INNER JOIN CategoryCascade ct ON c.parentCategoryID = ct.categoryClass)
+                                          INNER JOIN CategoryCascade ct ON c.parentCategoryID = ct.categoryClass)
 SELECT BOOK.serialnum,
        type,
        category,
@@ -232,9 +232,10 @@ WHERE category = CategoryCascade.categoryClass
   AND instr(type, (?)) > 0
   AND instr(publisher, (?)) > 0
   AND STOCK.serialnum = BOOK.serialnum
-  AND STOCK.campus = (?)
+  AND instr(STOCK.campus,(?)) > 0
   AND STOCK.instock > 0
-  AND bookreleaseyear BETWEEN (?) AND (?) LIMIT 10 OFFSET (? * 10) ORDER BY hits DESC;
+  AND bookreleaseyear BETWEEN (?) AND (?) GROUP BY BOOK.serialnum,BOOK.hits ORDER BY BOOK.hits DESC LIMIT 10 OFFSET (? * 10) ;
+
 ```
 
 #### ?by_account
@@ -245,4 +246,4 @@ WHERE category = CategoryCascade.categoryClass
 #### ?by_popularity
 
 * [ ] 
-  `SELECT serialnum,type,category,publisher,booktitle,bookrelease,bookcover,hits FROM BOOK LIMIT 10 OFFSET (? * 10) ORDER BY hits DESC`
+  `SELECT serialnum,type,category,publisher,booktitle,bookrelease,bookcover,hits FROM BOOK ORDER BY hits DESC LIMIT 10 OFFSET (? * 10)`
