@@ -263,3 +263,21 @@ WHERE category = CategoryCascade.categoryClass
 * [ ] `SELECT UUID,serialnum,rentduration,rentdate,extended FROM INVENTORY WHERE UUID = (?) ORDER BY rentdate DESC LIMIT 10 OFFSET (? * 10)`
 #### ?by_book
 * [ ] `SELECT UUID,serialnum,rentduration,rentdate,extended FROM INVENTORY WHERE serialnum = (?) ORDER BY rentdate DESC LIMIT 10 OFFSET (? * 10)`
+
+### History:
+* [ ] `SELECT UUID,serialnum,action,actiondate FROM HISTORY ORDER BY actiondate DESC LIMIT 10 OFFSET (? * 10)`
+
+#### ?by_id
+* [ ] `SELECT UUID,UUID_ISSUER,serialnum,action,actiondate FROM HISTORY WHERE UUID = (?) ORDER BY actiondate DESC LIMIT 10 OFFSET (? * 10)`
+
+#### ?by_issuer
+* [ ] `SELECT UUID,UUID_ISSUER,serialnum,action,actiondate FROM HISTORY WHERE UUID_ISSUER = (?) ORDER BY actiondate DESC LIMIT 10 OFFSET (? * 10)`
+
+#### ?by_book
+* [ ] `SELECT UUID,UUID_ISSUER,serialnum,action,actiondate FROM HISTORY WHERE serialnum = (?) ORDER BY actiondate DESC LIMIT 10 OFFSET (? * 10)`
+
+#### ?from_date ?to_date
+* [ ] `SELECT UUID,UUID_ISSUER,serialnum,action,actiondate FROM HISTORY WHERE actiondate BETWEEN (?) AND (?) ORDER BY actiondate DESC LIMIT 10 OFFSET (? * 10)`
+
+#### ?by_type
+* [ ] `SELECT UUID,UUID_ISSUER,serialnum,action,actiondate FROM HISTORY WHERE instr(action,(?)) ORDER BY actiondate DESC LIMIT 10 OFFSET (? * 10)`

@@ -182,15 +182,15 @@ CREATE TABLE STOCK
 );
 
 INSERT INTO STOCK
-VALUES (1,'Aboudaou',3),
-       (2,'El Kseur',2),
-       (3,'Targa Ouzemmour',5),
-       (4,'El Kseur',6),
-       (5,'El Kseur',6),
-       (6,'Aboudaou',7),
-       (6,'El Kseur',7),
-       (7,'Targa Ouzemmour',74),
-       (8,'El Kseur',1);
+VALUES (1, 'Aboudaou', 3),
+       (2, 'El Kseur', 2),
+       (3, 'Targa Ouzemmour', 5),
+       (4, 'El Kseur', 6),
+       (5, 'El Kseur', 6),
+       (6, 'Aboudaou', 7),
+       (6, 'El Kseur', 7),
+       (7, 'Targa Ouzemmour', 74),
+       (8, 'El Kseur', 1);
 
 CREATE TABLE INVENTORY
 (
@@ -206,12 +206,16 @@ CREATE TABLE INVENTORY
 
 CREATE TABLE HISTORY
 (
-    UUID       INTEGER  NOT NULL,
-    serialnum  INTEGER  NOT NULL,
-    action     TEXT     NOT NULL,
-    actiondate DATETIME NOT NULL,
+    UUID        INTEGER  NOT NULL,
+    UUID_ISSUER INTEGER  NOT NULL,
+    serialnum   INTEGER  NOT NULL,
+    action      TEXT     NOT NULL,
+    actiondate  DATETIME NOT NULL,
     FOREIGN KEY (UUID) REFERENCES ACCOUNT (UUID) ON UPDATE CASCADE ON DELETE CASCADE,
+    FOREIGN KEY (UUID_ISSUER) REFERENCES ACCOUNT (UUID) ON UPDATE CASCADE ON DELETE CASCADE,
     FOREIGN KEY (serialnum) REFERENCES BOOK (serialnum) ON UPDATE CASCADE ON DELETE CASCADE,
     FOREIGN KEY (action) REFERENCES ACTION (actionName) ON UPDATE CASCADE ON DELETE CASCADE
 );
+
+
 
