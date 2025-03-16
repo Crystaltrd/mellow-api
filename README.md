@@ -209,10 +209,9 @@ SELECT categoryClass,categoryName,parentCategoryID FROM CATEGORY WHERE 'RELATION
 * [ ] Done
 
 ```sqlite
-
 WITH RECURSIVE CategoryCascade AS (SELECT categoryClass, parentCategoryID
                                    FROM CATEGORY
-                                   WHERE ((?) = 'RESERVED' AND parentCategoryID IS NULL)
+                                   WHERE ((?) = 'ROOT' AND parentCategoryID IS NULL)
                                       OR categoryClass = (?)
                                    UNION ALL
                                    SELECT c.categoryClass, c.parentCategoryID
@@ -242,7 +241,9 @@ WHERE category = CategoryCascade.categoryClass
   AND STOCK.serialnum = BOOK.serialnum
   AND instr(STOCK.campus,(?)) > 0
   AND STOCK.instock > 0
-  AND bookreleaseyear BETWEEN (?) AND (?) GROUP BY BOOK.serialnum,BOOK.hits ORDER BY BOOK.hits DESC LIMIT 10 OFFSET (? * 10) ;
+  AND IIF((?) = 'FILTER_LOW',bookreleaseyear >= (?),TRUE)
+  AND IIF((?) = 'FILTER_HIGH',bookreleaseyear <= (?),TRUE)
+GROUP BY BOOK.serialnum,BOOK.hits ORDER BY BOOK.hits DESC LIMIT 10 OFFSET (? * 10) ;
 
 ```
 
