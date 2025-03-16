@@ -2,7 +2,7 @@
 
 - Optional : `?page` , default `0`
 
-### publisher:
+### Publisher:
 
 * [ ]  `SELECT publisherName FROM PUBLISHER LIMIT 10 OFFSET (? * 10)`
 
@@ -43,7 +43,11 @@
 
 * [ ] 
   `SELECT author,COUNT() AS total_count FROM AUTHORED,BOOK WHERE BOOK.serialnum = AUTHORED.serialnum GROUP BY author ORDER BY total_count DESC LIMIT 10 OFFSET (? * 10)`
+### Action:
+* [ ] `SELECT actionName FROM ACTION LIMIT 10 OFFSET (? * 10)`
 
+#### ?by_name:
+* [ ] `SELECT actionName FROM ACTION WHERE instr(actionName,(?)) > 0 LIMIT 10 OFFSET (? * 10)`
 ### Doctype:
 
 * [ ] `SELECT typeName FROM DOCTYPE LIMIT 10 OFFSET (? * 10)`
@@ -96,7 +100,7 @@
 
 * [ ] `SELECT role,perms FROM ACCOUNT,ROLE WHERE UUID = (?) AND role = roleName`
 
-### Category
+### Category:
 
 * [ ] `SELECT categoryClass,categoryName,parentCategoryID FROM CATEGORY LIMIT 10 OFFSET (? * 10)`
 
@@ -280,4 +284,4 @@ WHERE category = CategoryCascade.categoryClass
 * [ ] `SELECT UUID,UUID_ISSUER,serialnum,action,actiondate FROM HISTORY WHERE actiondate BETWEEN (?) AND (?) ORDER BY actiondate DESC LIMIT 10 OFFSET (? * 10)`
 
 #### ?by_type
-* [ ] `SELECT UUID,UUID_ISSUER,serialnum,action,actiondate FROM HISTORY WHERE instr(action,(?)) ORDER BY actiondate DESC LIMIT 10 OFFSET (? * 10)`
+* [ ] `SELECT UUID,UUID_ISSUER,serialnum,action,actiondate FROM HISTORY WHERE instr(action,(?)) > 0 ORDER BY actiondate DESC LIMIT 10 OFFSET (? * 10)`
