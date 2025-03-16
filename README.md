@@ -4,89 +4,88 @@
 
 ### Publisher:
 
-* [ ]  `SELECT publisherName FROM PUBLISHER LIMIT 10 OFFSET (? * 10)`
+- ?by_name
+- ?by_book
+- ?by_popularity | ?by_count
+* [ ] Done
 
-#### ?by_name:
+```sql
+SELECT publisherName
+FROM PUBLISHER,
+     BOOK
+WHERE instr(publisherName, (?)) > 0
+  AND publisherName = publisher
+  AND instr(serialnum, (?))
+GROUP BY publisherName ORDER BY IIF((?) = 'POPULAR',SUM(hits),COUNT()) DESC
+LIMIT 10 OFFSET (? * 10)
 
-* [ ] `SELECT publisherName FROM PUBLISHER WHERE instr(publisherName,(?)) > 0 LIMIT 10 OFFSET (? * 10)`
+```
 
-#### ?by_book:
-
-* [ ] `SELECT publisher FROM BOOK WHERE serialnum = (?)`
-
-#### ?by_popularity:
-
-* [ ] `SELECT publisher FROM BOOK GROUP BY publisher ORDER BY SUM(hits) DESC LIMIT 10 OFFSET (? * 10)`
-
-#### ?by_count:
-
-* [ ] `SELECT publisher FROM BOOK GROUP BY publisher ORDER BY COUNT() DESC LIMIT 10 OFFSET (? * 10)`
 
 ### Author:
 
-* [ ] `SELECT authorName FROM AUTHOR LIMIT 10 OFFSET (? * 10)`
+- ?by_name
+- ?by_book
+- ?by_popularity | ?by_count
 
-#### ?by_name:
-
-* [ ] `SELECT authorName FROM AUTHOR WHERE instr(authorName,(?)) > 0 LIMIT 10 OFFSET (? * 10)`
-
-#### ?by_book:
-
-* [ ] `SELECT author FROM AUTHORED WHERE serialnum = (?)`
-
-#### ?by_popularity:
-
-* [ ] 
-  `SELECT author,SUM(hits) AS total_hits FROM AUTHORED,BOOK WHERE BOOK.serialnum = AUTHORED.serialnum GROUP BY author ORDER BY total_hits DESC LIMIT 10 OFFSET (? * 10)`
-
-#### ?by_count:
-
-* [ ] 
-  `SELECT author,COUNT() AS total_count FROM AUTHORED,BOOK WHERE BOOK.serialnum = AUTHORED.serialnum GROUP BY author ORDER BY total_count DESC LIMIT 10 OFFSET (? * 10)`
+* [ ] Done
+```sql
+SELECT authorName
+FROM AUTHOR,
+     AUTHORED,
+     BOOK
+WHERE instr(authorName, (?)) > 0
+  AND author = authorName
+  AND instr(AUTHORED.serialnum, (?)) > 0
+  AND AUTHORED.serialnum = BOOK.serialnum
+GROUP BY authorName
+ORDER BY IIF((?) = 'POPULAR', SUM(hits), COUNT()) DESC
+LIMIT 10 OFFSET (? * 10)
+```
 
 ### Action:
-
-* [ ] `SELECT actionName FROM ACTION LIMIT 10 OFFSET (? * 10)`
-
-#### ?by_name:
+- ?by_name
 
 * [ ] `SELECT actionName FROM ACTION WHERE instr(actionName,(?)) > 0 LIMIT 10 OFFSET (? * 10)`
 
 ### Doctype:
 
-* [ ] `SELECT typeName FROM DOCTYPE LIMIT 10 OFFSET (? * 10)`
+- ?by_name
+- ?by_book
+- ?by_popularity | ?by_count
 
-#### ?by_name:
+* [ ] Done
 
-* [ ] `SELECT typeName FROM DOCTYPE WHERE instr(typeName,(?)) > 0 LIMIT 10 OFFSET (? * 10)`
-
-#### ?by_book:
-
-* [ ] `SELECT type FROM DOCTYPE WHERE serialnum = (?)`
-
-#### ?by_popularity:
-
-* [ ] `SELECT type FROM BOOK GROUP BY type ORDER BY SUM(hits) DESC LIMIT 10 OFFSET (? * 10)`
-
-#### ?by_count:
-
-* [ ] `SELECT type FROM BOOK GROUP BY type ORDER BY COUNT() DESC LIMIT 10 OFFSET (? * 10)`
+```sql
+SELECT typeName
+FROM DOCTYPE,
+     BOOK
+WHERE instr(typeName, (?)) > 0
+  AND typeName = type
+  AND instr(serialnum, (?))
+GROUP BY typeName ORDER BY IIF((?) = 'POPULAR',SUM(hits),COUNT()) DESC
+LIMIT 10 OFFSET (? * 10)
+```
 
 ### Campus:
+- ?by_name
+- ?by_book
+- ?by_account
 
-* [ ] `SELECT campusName FROM CAMPUS LIMIT 10 OFFSET (? * 10)`
+* [ ] Done
 
-#### ?by_name:
-
-* [ ] `SELECT campusName FROM CAMPUS WHERE instr(campusName,(?)) > 0 LIMIT 10 OFFSET (? * 10)`
-
-#### ?by_book:
-
-* [ ] `SELECT campus FROM STOCK WHERE serialnum = (?)`
-
-#### ?by_account:
-
-* [ ] `SELECT campus FROM ACCOUNT WHERE UUID = (?)`
+```sql
+SELECT campusName
+FROM CAMPUS,
+     STOCK,
+     ACCOUNT
+WHERE instr(campusName, (?)) > 0
+  AND STOCK.campus = campusName
+  AND ACCOUNT.campus = campusName
+  AND instr(serialnum, (?)) > 0
+  AND instr(UUID, (?)) > 0
+LIMIT 10 OFFSET (? * 10)
+```
 
 ### Role:
 
@@ -112,7 +111,7 @@
 
 * [ ] Done
 
-```sqlite
+```sql
 WITH RECURSIVE CategoryCascade AS (SELECT categoryClass, parentCategoryID
                             FROM CATEGORY
                             WHERE 'INITIAL CONDITION'
@@ -130,7 +129,7 @@ WHERE CategoryCascade.categoryClass = CATEGORY.categoryClass LIMIT 10 OFFSET (? 
 
 * [ ] Done
 
-```sqlite
+```sql
 SELECT categoryClass,categoryName,parentCategoryID FROM CATEGORY WHERE 'INITIAL CONDITION'
 SELECT categoryClass,categoryName,parentCategoryID FROM CATEGORY WHERE 'RELATION CONDITION'
 ```
@@ -208,7 +207,7 @@ SELECT categoryClass,categoryName,parentCategoryID FROM CATEGORY WHERE 'RELATION
 
 * [ ] Done
 
-```sqlite
+```sql
 WITH RECURSIVE CategoryCascade AS (SELECT categoryClass, parentCategoryID
                                    FROM CATEGORY
                                    WHERE ((?) = 'ROOT' AND parentCategoryID IS NULL)

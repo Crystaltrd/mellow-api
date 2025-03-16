@@ -94,28 +94,28 @@ VALUES ('000', 'Sec111', '00'),
 
 CREATE TABLE ACCOUNT
 (
-    UUID        INTEGER PRIMARY KEY NOT NULL,
-    displayname TEXT                NOT NULL,
-    pwhash      TEXT                NOT NULL,
-    campus      TEXT                NOT NULL,
-    role        TEXT                NOT NULL,
+    UUID        TEXT PRIMARY KEY NOT NULL,
+    displayname TEXT             NOT NULL,
+    pwhash      TEXT             NOT NULL,
+    campus      TEXT             NOT NULL,
+    role        TEXT             NOT NULL,
     frozen      BOOLEAN DEFAULT FALSE,
     FOREIGN KEY (campus) REFERENCES CAMPUS (campusName) ON UPDATE CASCADE ON DELETE CASCADE,
     FOREIGN KEY (role) REFERENCES ROLE (roleName) ON UPDATE CASCADE ON DELETE CASCADE
 );
 INSERT INTO ACCOUNT
-VALUES (1, 'Alice', 'pwhash1', 'El Kseur', 'ADMIN', FALSE),
-       (2, 'Bob', 'pwhash2', 'El Kseur', 'LIBRARIAN', FALSE),
-       (3, 'Charlie', 'pwhash3', 'Aboudaou', 'STUDENT', FALSE);
+VALUES ('1', 'Alice', 'pwhash1', 'El Kseur', 'ADMIN', FALSE),
+       ('2', 'Bob', 'pwhash2', 'El Kseur', 'LIBRARIAN', FALSE),
+       ('3', 'Charlie', 'pwhash3', 'Aboudaou', 'STUDENT', FALSE);
 
 CREATE TABLE BOOK
 (
-    serialnum       INTEGER PRIMARY KEY NOT NULL,
-    type            TEXT                NOT NULL,
-    category        TEXT                NOT NULL,
-    publisher       TEXT                NOT NULL,
-    booktitle       TEXT                NOT NULL,
-    bookreleaseyear INTEGER             NOT NULL,
+    serialnum       TEXT PRIMARY KEY NOT NULL,
+    type            TEXT             NOT NULL,
+    category        TEXT             NOT NULL,
+    publisher       TEXT             NOT NULL,
+    booktitle       TEXT             NOT NULL,
+    bookreleaseyear INTEGER          NOT NULL,
     bookcover       TEXT,
     hits            INTEGER DEFAULT 0 CHECK (hits >= 0),
     FOREIGN KEY (type) REFERENCES DOCTYPE (typeName) ON UPDATE CASCADE ON DELETE CASCADE,
@@ -123,58 +123,58 @@ CREATE TABLE BOOK
     FOREIGN KEY (publisher) REFERENCES PUBLISHER (publisherName) ON UPDATE CASCADE ON DELETE CASCADE
 );
 INSERT INTO BOOK
-VALUES (1, 'type1', '0', 'pub1', 'Book 1', 1950, null, 0),
-       (2, 'type1', '1', 'pub2', 'Book 2', 2007, null, 9),
-       (3, 'type2', '01', 'pub2', 'Book 3', 9999, null, 7),
-       (4, 'type1', '001', 'pub2', 'Book 4', 2003, null, 15),
-       (5, 'type1', '000', 'pub1', 'Book 5', 2001, null, 94),
-       (6, 'type1', '00', 'pub2', 'Book 6', 2001, null, 95),
-       (7, 'type1', '10', 'pub1', 'Book 7', 2055, null, 93),
-       (8, 'type2', '11', 'pub1', 'Book 8', 3055, null, 19);
+VALUES ('1', 'type1', '0', 'pub1', 'Book 1', 1950, null, 0),
+       ('2', 'type1', '1', 'pub2', 'Book 2', 2007, null, 9),
+       ('3', 'type2', '01', 'pub2', 'Book 3', 9999, null, 7),
+       ('4', 'type1', '001', 'pub2', 'Book 4', 2003, null, 15),
+       ('5', 'type1', '000', 'pub1', 'Book 5', 2001, null, 94),
+       ('6', 'type1', '00', 'pub2', 'Book 6', 2001, null, 95),
+       ('7', 'type1', '10', 'pub1', 'Book 7', 2055, null, 93),
+       ('8', 'type2', '11', 'pub1', 'Book 8', 3055, null, 19);
 
 CREATE TABLE LANGUAGES
 (
-    serialnum INTEGER NOT NULL,
-    lang      TEXT    NOT NULL,
+    serialnum TEXT NOT NULL,
+    lang      TEXT NOT NULL,
     FOREIGN KEY (lang) REFERENCES LANG (langCode) ON UPDATE CASCADE ON DELETE CASCADE,
     FOREIGN KEY (serialnum) REFERENCES BOOK (serialnum) ON UPDATE CASCADE ON DELETE CASCADE,
     UNIQUE (serialnum, lang)
 );
 INSERT INTO LANGUAGES
-VALUES (1, 'lang1'),
-       (2, 'lang2'),
-       (3, 'lang3'),
-       (4, 'lang1'),
-       (4, 'lang2'),
-       (5, 'lang2'),
-       (6, 'lang1'),
-       (6, 'lang3'),
-       (7, 'lang3'),
-       (8, 'lang2');
+VALUES ('1', 'lang1'),
+       ('2', 'lang2'),
+       ('3', 'lang3'),
+       ('4', 'lang1'),
+       ('4', 'lang2'),
+       ('5', 'lang2'),
+       ('6', 'lang1'),
+       ('6', 'lang3'),
+       ('7', 'lang3'),
+       ('8', 'lang2');
 CREATE TABLE AUTHORED
 (
-    serialnum INTEGER NOT NULL,
-    author    TEXT    NOT NULL,
+    serialnum TEXT NOT NULL,
+    author    TEXT NOT NULL,
     FOREIGN KEY (author) REFERENCES AUTHOR (authorName) ON UPDATE CASCADE ON DELETE CASCADE,
     FOREIGN KEY (serialnum) REFERENCES BOOK (serialnum) ON UPDATE CASCADE ON DELETE CASCADE,
     PRIMARY KEY (serialnum, author)
 );
 
 INSERT INTO AUTHORED
-VALUES (1, 'AUTHOR1'),
-       (2, 'AUTHOR2'),
-       (3, 'AUTHOR3'),
-       (4, 'AUTHOR1'),
-       (4, 'AUTHOR2'),
-       (5, 'AUTHOR2'),
-       (6, 'AUTHOR1'),
-       (6, 'AUTHOR3'),
-       (7, 'AUTHOR3'),
-       (8, 'AUTHOR2');
+VALUES ('1', 'AUTHOR1'),
+       ('2', 'AUTHOR2'),
+       ('3', 'AUTHOR3'),
+       ('4', 'AUTHOR1'),
+       ('4', 'AUTHOR2'),
+       ('5', 'AUTHOR2'),
+       ('6', 'AUTHOR1'),
+       ('6', 'AUTHOR3'),
+       ('7', 'AUTHOR3'),
+       ('8', 'AUTHOR2');
 CREATE TABLE STOCK
 (
-    serialnum INTEGER NOT NULL,
-    campus    TEXT    NOT NULL,
+    serialnum TEXT NOT NULL,
+    campus    TEXT NOT NULL,
     instock   INTEGER DEFAULT 0 CHECK (instock >= 0),
     FOREIGN KEY (serialnum) REFERENCES BOOK (serialnum) ON UPDATE CASCADE ON DELETE CASCADE,
     FOREIGN KEY (campus) REFERENCES CAMPUS (campusName) ON UPDATE CASCADE ON DELETE CASCADE,
@@ -182,20 +182,20 @@ CREATE TABLE STOCK
 );
 
 INSERT INTO STOCK
-VALUES (1, 'Aboudaou', 3),
-       (2, 'El Kseur', 2),
-       (3, 'Targa Ouzemmour', 5),
-       (4, 'El Kseur', 6),
-       (5, 'El Kseur', 6),
-       (6, 'Aboudaou', 7),
-       (6, 'El Kseur', 7),
-       (7, 'Targa Ouzemmour', 74),
-       (8, 'El Kseur', 1);
+VALUES ('1', 'Aboudaou', 3),
+       ('2', 'El Kseur', 2),
+       ('3', 'Targa Ouzemmour', 5),
+       ('4', 'El Kseur', 6),
+       ('5', 'El Kseur', 6),
+       ('6', 'Aboudaou', 7),
+       ('6', 'El Kseur', 7),
+       ('7', 'Targa Ouzemmour', 74),
+       ('8', 'El Kseur', 1);
 
 CREATE TABLE INVENTORY
 (
-    UUID         INTEGER  NOT NULL,
-    serialnum    INTEGER  NOT NULL,
+    UUID         TEXT     NOT NULL,
+    serialnum    TEXT     NOT NULL,
     rentduration INTEGER  NOT NULL CHECK (rentduration > 0),
     rentdate     DATETIME NOT NULL,
     extended     BOOLEAN  NOT NULL,
@@ -206,9 +206,9 @@ CREATE TABLE INVENTORY
 
 CREATE TABLE HISTORY
 (
-    UUID        INTEGER  NOT NULL,
-    UUID_ISSUER INTEGER,
-    serialnum   INTEGER  NOT NULL,
+    UUID        TEXT  NOT NULL,
+    UUID_ISSUER TEXT,
+    serialnum   TEXT     NOT NULL,
     action      TEXT     NOT NULL,
     actiondate  DATETIME NOT NULL,
     FOREIGN KEY (UUID) REFERENCES ACCOUNT (UUID) ON UPDATE CASCADE ON DELETE CASCADE,
@@ -216,6 +216,5 @@ CREATE TABLE HISTORY
     FOREIGN KEY (serialnum) REFERENCES BOOK (serialnum) ON UPDATE CASCADE ON DELETE CASCADE,
     FOREIGN KEY (action) REFERENCES ACTION (actionName) ON UPDATE CASCADE ON DELETE CASCADE
 );
-
 
 
