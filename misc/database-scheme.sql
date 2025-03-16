@@ -215,37 +215,3 @@ CREATE TABLE HISTORY
     FOREIGN KEY (action) REFERENCES ACTION (actionName) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
-
-WITH RECURSIVE CategoryCascade AS (SELECT categoryClass, parentCategoryID
-                                   FROM CATEGORY
-                                   WHERE ((?) = 'RESERVED' AND parentCategoryID IS NULL)
-                                      OR categoryClass = (?)
-                                   UNION ALL
-                                   SELECT c.categoryClass, c.parentCategoryID
-                                   FROM CATEGORY c
-                                            INNER JOIN CategoryCascade ct ON c.parentCategoryID = ct.categoryClass)
-SELECT BOOK.serialnum,
-       type,
-       category,
-       publisher,
-       booktitle,
-       bookreleaseyear,
-       bookcover,
-       hits
-FROM BOOK,
-     LANGUAGES,
-     AUTHORED,
-     STOCK,
-     CategoryCascade
-WHERE category = CategoryCascade.categoryClass
-  AND instr(booktitle, (?)) > 0
-  AND BOOK.serialnum = LANGUAGES.serialnum
-  AND instr(lang, (?)) > 0
-  AND AUTHORED.serialnum = BOOK.serialnum
-  AND instr(author, (?)) > 0
-  AND instr(type, (?)) > 0
-  AND instr(publisher, (?)) > 0
-  AND STOCK.serialnum = BOOK.serialnum
-  AND instr(STOCK.campus,(?)) > 0
-  AND STOCK.instock > 0
-  AND bookreleaseyear BETWEEN (?) AND (?) GROUP BY BOOK.serialnum,BOOK.hits ORDER BY BOOK.hits DESC LIMIT 10 OFFSET (? * 10) ;

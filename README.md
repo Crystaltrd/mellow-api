@@ -151,29 +151,29 @@ SELECT categoryClass,categoryName,parentCategoryID FROM CATEGORY WHERE 'RELATION
 
 * [ ] `SELECT UUID,displayname,pwhash,campus,role FROM ACCOUNT LIMIT 10 OFFSET (? * 10)`
 
-#### ?by_ID
+#### ?by_ID:
 
 * [ ] `SELECT UUID,displayname,pwhash,campus,role FROM ACCOUNT WHERE UUID = (?)`
 
-#### ?by_name
+#### ?by_name:
 
 * [ ] 
   `SELECT UUID,displayname,pwhash,campus,role FROM ACCOUNT WHERE instr(displayname,(?)) > 0 LIMIT 10 OFFSET (? * 10)`
 
-#### ?by_book
+#### ?by_book:
 
 * [ ] 
   `SELECT UUID,displayname,pwhash,campus,role FROM ACCOUNT,INVENTORY WHERE INVENTORY.UUID = ACCOUNT.UUID AND serialnum = (?) LIMIT 10 OFFSET (? * 10)`
 
-#### ?by_campus
+#### ?by_campus:
 
 * [ ] `SELECT UUID,displayname,pwhash,campus,role FROM ACCOUNT WHERE instr(campus,(?)) > 0 LIMIT 10 OFFSET (? * 10)`
 
-#### ?by_role
+#### ?by_role:
 
 * [ ] `SELECT UUID,displayname,pwhash,campus,role FROM ACCOUNT WHERE instr(role,(?)) > 0 LIMIT 10 OFFSET (? * 10)`
 
-#### ?frozen
+#### ?frozen:
 
 * [ ] `SELECT UUID,displayname,pwhash,campus,role FROM ACCOUNT WHERE frozen = (?) LIMIT 10 OFFSET (? * 10)`
 
@@ -182,11 +182,11 @@ SELECT categoryClass,categoryName,parentCategoryID FROM CATEGORY WHERE 'RELATION
 * [ ] 
   `SELECT serialnum,type,category,publisher,booktitle,bookrelease,bookcover,hits FROM BOOKS LIMIT 10 OFFSET (? * 10)`
 
-#### ?by_ID
+#### ?by_ID:
 
 * [ ] `SELECT serialnum,type,category,publisher,booktitle,bookrelease,bookcover,hits FROM BOOK WHERE serialnum = (?)`
 
-#### ?filter
+#### ?filter:
 
 - ?by_category
 - ?by_name
@@ -238,12 +238,28 @@ WHERE category = CategoryCascade.categoryClass
 
 ```
 
-#### ?by_account
+#### ?by_account:
 
 * [ ] 
   `SELECT serialnum,type,category,publisher,booktitle,bookrelease,bookcover,hits FROM BOOK,INVENTORY WHERE UUID = (?) AND BOOK.serialnum = INVENTORY.serialnum`
 
-#### ?by_popularity
+#### ?by_popularity:
 
 * [ ] 
   `SELECT serialnum,type,category,publisher,booktitle,bookrelease,bookcover,hits FROM BOOK ORDER BY hits DESC LIMIT 10 OFFSET (? * 10)`
+### Stock:
+* [ ] `SELECT serialnum,campus,instock FROM STOCK LIMIT 10 OFFSET (? * 10)`
+
+#### ?by_book:
+* [ ] `SELECT serialnum,campus,instock FROM STOCK WHERE serialnum = (?) LIMIT 10 OFFSET (? * 10)`
+
+#### ?by_campus:
+* [ ] `SELECT serialnum,campus,instock FROM STOCK WHERE instr(campus,(?)) > 0 LIMIT 10 OFFSET (? * 10)`
+
+### Inventory:
+* [ ] `SELECT UUID,serialnum,rentduration,rentdate,extended FROM INVENTORY LIMIT 10 OFFSET (? * 10)`
+
+#### ?by_ID or ?self
+* [ ] `SELECT UUID,serialnum,rentduration,rentdate,extended FROM INVENTORY WHERE UUID = (?) ORDER BY rentdate DESC LIMIT 10 OFFSET (? * 10)`
+#### ?by_book
+* [ ] `SELECT UUID,serialnum,rentduration,rentdate,extended FROM INVENTORY WHERE serialnum = (?) ORDER BY rentdate DESC LIMIT 10 OFFSET (? * 10)`
