@@ -117,7 +117,7 @@ CREATE TABLE BOOK
     booktitle       TEXT                NOT NULL,
     bookreleaseyear INTEGER             NOT NULL,
     bookcover       TEXT,
-    hits            INTEGER DEFAULT 0,
+    hits            INTEGER DEFAULT 0 CHECK (hits >= 0),
     FOREIGN KEY (type) REFERENCES DOCTYPE (typeName) ON UPDATE CASCADE ON DELETE CASCADE,
     FOREIGN KEY (category) REFERENCES CATEGORY (categoryClass) ON UPDATE CASCADE ON DELETE CASCADE,
     FOREIGN KEY (publisher) REFERENCES PUBLISHER (publisherName) ON UPDATE CASCADE ON DELETE CASCADE
@@ -175,7 +175,7 @@ CREATE TABLE STOCK
 (
     serialnum INTEGER NOT NULL,
     campus    TEXT    NOT NULL,
-    instock   INTEGER DEFAULT 0,
+    instock   INTEGER DEFAULT 0 CHECK (instock >= 0),
     FOREIGN KEY (serialnum) REFERENCES BOOK (serialnum) ON UPDATE CASCADE ON DELETE CASCADE,
     FOREIGN KEY (campus) REFERENCES CAMPUS (campusName) ON UPDATE CASCADE ON DELETE CASCADE,
     PRIMARY KEY (serialnum, campus)
@@ -196,7 +196,7 @@ CREATE TABLE INVENTORY
 (
     UUID         INTEGER  NOT NULL,
     serialnum    INTEGER  NOT NULL,
-    rentduration INTEGER  NOT NULL,
+    rentduration INTEGER  NOT NULL CHECK (rentduration > 0),
     rentdate     DATETIME NOT NULL,
     extended     BOOLEAN  NOT NULL,
     UNIQUE (UUID, serialnum),
@@ -207,7 +207,7 @@ CREATE TABLE INVENTORY
 CREATE TABLE HISTORY
 (
     UUID        INTEGER  NOT NULL,
-    UUID_ISSUER INTEGER  NOT NULL,
+    UUID_ISSUER INTEGER,
     serialnum   INTEGER  NOT NULL,
     action      TEXT     NOT NULL,
     actiondate  DATETIME NOT NULL,
