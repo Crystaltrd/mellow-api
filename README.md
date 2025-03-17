@@ -77,14 +77,12 @@ LIMIT 10 OFFSET (? * 10)
 
 ```sql
 SELECT campusName
-FROM CAMPUS,
-     STOCK,
-     ACCOUNT
+FROM CAMPUS
+       LEFT JOIN STOCK S ON CAMPUS.campusName = S.campus
+       LEFT JOIN ACCOUNT A on CAMPUS.campusName = A.campus
 WHERE instr(campusName, (?)) > 0
-  AND STOCK.campus = campusName
-  AND ACCOUNT.campus = campusName
-  AND instr(serialnum, (?)) > 0
-  AND instr(UUID, (?)) > 0
+  AND ((?) = 'IGNORE_BOOK' OR instr(serialnum, (?)) > 0)
+  AND ((?) = 'IGNORE_ID' OR instr(UUID, (?)) > 0)
 LIMIT 10 OFFSET (? * 10)
 ```
 
@@ -97,15 +95,15 @@ LIMIT 10 OFFSET (? * 10)
 * [ ] Done
 
 ```sql
-
-SELECT campusName
-FROM CAMPUS
-       LEFT JOIN STOCK S ON CAMPUS.campusName = S.campus
-       LEFT JOIN ACCOUNT A on CAMPUS.campusName = A.campus
-WHERE instr(campusName, (?)) > 0
-  AND ((?) = 'IGNORE_BOOK' OR instr(serialnum, (?)) > 0)
+SELECT roleName, perms
+FROM ROLE
+         LEFT JOIN ACCOUNT A ON A.role = ROLE.roleName
+WHERE instr(roleName, (?)) > 0
+  AND ((?) = 'IGNORE_PERMS' OR perms = (?))
   AND ((?) = 'IGNORE_ID' OR instr(UUID, (?)) > 0)
+ORDER BY perms DESC
 LIMIT 10 OFFSET (? * 10)
+
 ```
 
 ### Category:
