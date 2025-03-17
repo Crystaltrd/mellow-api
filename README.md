@@ -269,6 +269,7 @@ LIMIT 10 OFFSET (? * 10);
 - ?ignore_empty
 - ?by_popularity
 
+* [ ] Done
 ```sql
 SELECT STOCK.serialnum, campus, instock
 FROM STOCK,
