@@ -287,6 +287,7 @@ LIMIT 10 OFFSET (? * 10)
 - ?by_account | ?self (alias to ?by_account with cookie)
 - ?by_book
 
+* [ ] Done
 ```sql
 SELECT UUID, serialnum, rentduration, rentdate, extended
 FROM INVENTORY
@@ -298,29 +299,24 @@ LIMIT 10 OFFSET (? * 10)
 
 ### History:
 
-* [ ] `SELECT UUID,serialnum,action,actiondate FROM HISTORY ORDER BY actiondate DESC LIMIT 10 OFFSET (? * 10)`
+- ?by_account
+- ?by_issuer
+- ?by_book
+- ?by_action
+- ?from_date
+- ?to_date
 
-#### ?by_id
+* [ ] Done
 
-* [ ] 
-  `SELECT UUID,UUID_ISSUER,serialnum,action,actiondate FROM HISTORY WHERE UUID = (?) ORDER BY actiondate DESC LIMIT 10 OFFSET (? * 10)`
-
-#### ?by_issuer
-
-* [ ] 
-  `SELECT UUID,UUID_ISSUER,serialnum,action,actiondate FROM HISTORY WHERE UUID_ISSUER = (?) ORDER BY actiondate DESC LIMIT 10 OFFSET (? * 10)`
-
-#### ?by_book
-
-* [ ] 
-  `SELECT UUID,UUID_ISSUER,serialnum,action,actiondate FROM HISTORY WHERE serialnum = (?) ORDER BY actiondate DESC LIMIT 10 OFFSET (? * 10)`
-
-#### ?from_date ?to_date
-
-* [ ] 
-  `SELECT UUID,UUID_ISSUER,serialnum,action,actiondate FROM HISTORY WHERE actiondate BETWEEN (?) AND (?) ORDER BY actiondate DESC LIMIT 10 OFFSET (? * 10)`
-
-#### ?by_type
-
-* [ ] 
-  `SELECT UUID,UUID_ISSUER,serialnum,action,actiondate FROM HISTORY WHERE instr(action,(?)) > 0 ORDER BY actiondate DESC LIMIT 10 OFFSET (? * 10)`
+```sql
+SELECT UUID, UUID_ISSUER, serialnum, action, actiondate
+FROM HISTORY
+WHERE instr(UUID, (?)) > 0
+  AND instr(UUID_ISSUER, (?)) > 0
+  AND instr(serialnum, (?)) > 0
+  AND instr(action, (?)) > 0
+  AND IIF((?) = 'FILTER_LOW', actiondate >= (?), TRUE)
+  AND IIF((?) = 'FILTER_HIGH', actiondate <= (?), TRUE)
+ORDER BY actiondate DESC
+LIMIT 10 OFFSET (? * 10)
+```
