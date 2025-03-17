@@ -217,3 +217,11 @@ CREATE TABLE HISTORY
     FOREIGN KEY (action) REFERENCES ACTION (actionName) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
+SELECT campusName
+FROM CAMPUS
+     LEFT JOIN STOCK S ON CAMPUS.campusName = S.campus
+     LEFT JOIN ACCOUNT A on CAMPUS.campusName = A.campus
+WHERE instr(campusName, (?)) > 0
+  AND ((?) = 'IGNORE_BOOK' OR instr(serialnum, (?)) > 0)
+  AND ((?) = 'IGNORE_ID' OR instr(UUID, (?)) > 0)
+LIMIT 10 OFFSET (? * 10)
