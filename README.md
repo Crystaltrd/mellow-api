@@ -12,11 +12,10 @@
 
 ```sql
 SELECT publisherName
-FROM PUBLISHER,
-     BOOK
+FROM PUBLISHER
+         LEFT JOIN BOOK B ON B.publisher = PUBLISHER.publisherName
 WHERE instr(publisherName, (?)) > 0
-  AND publisherName = publisher
-  AND instr(serialnum, (?)) > 0
+  AND ((?) = 'IGNORE_BOOK' OR instr(serialnum, (?)) > 0)
 GROUP BY publisherName
 ORDER BY IIF((?) = 'POPULAR', SUM(hits), COUNT()) DESC
 LIMIT 10 OFFSET (? * 10)
@@ -33,13 +32,11 @@ LIMIT 10 OFFSET (? * 10)
 
 ```sql
 SELECT authorName
-FROM AUTHOR,
-     AUTHORED,
-     BOOK
+FROM AUTHOR
+         LEFT JOIN AUTHORED A ON AUTHOR.authorName = A.author
+         LEFT JOIN BOOK B ON B.serialnum = A.serialnum
 WHERE instr(authorName, (?)) > 0
-  AND author = authorName
-  AND instr(AUTHORED.serialnum, (?)) > 0
-  AND AUTHORED.serialnum = BOOK.serialnum
+  AND ((?) = 'IGNORE_BOOK' OR instr(A.serialnum, (?)) > 0)
 GROUP BY authorName
 ORDER BY IIF((?) = 'POPULAR', SUM(hits), COUNT()) DESC
 LIMIT 10 OFFSET (? * 10)
@@ -61,11 +58,10 @@ LIMIT 10 OFFSET (? * 10)
 
 ```sql
 SELECT typeName
-FROM DOCTYPE,
-     BOOK
+FROM DOCTYPE
+         LEFT JOIN BOOK B ON DOCTYPE.typeName = B.type
 WHERE instr(typeName, (?)) > 0
-  AND typeName = type
-  AND instr(serialnum, (?)) > 0
+  AND ((?) = 'IGNORE_BOOK' OR instr(serialnum, (?)) > 0)
 GROUP BY typeName
 ORDER BY IIF((?) = 'POPULAR', SUM(hits), COUNT()) DESC
 LIMIT 10 OFFSET (? * 10)
@@ -102,12 +98,11 @@ LIMIT 10 OFFSET (? * 10)
 
 ```sql
 SELECT roleName, perms
-FROM ROLE,
-     ACCOUNT
-WHERE roleName = role
-  AND instr(roleName, (?)) > 0
-  AND perms = (?)
-  AND instr(UUID, (?)) > 0
+FROM ROLE
+         LEFT JOIN ACCOUNT A ON A.role = ROLE.roleName
+WHERE instr(roleName, (?)) > 0
+  AND ((?) = 'IGNORE_PERMS' OR perms = (?))
+  AND ((?) = 'IGNORE_ID' OR instr(UUID, (?)) > 0)
 ORDER BY perms DESC
 LIMIT 10 OFFSET (? * 10)
 ```
@@ -170,40 +165,30 @@ WHERE 'RELATION CONDITION'
 
 ### Account:
 
-* [ ] `SELECT UUID,displayname,pwhash,campus,role FROM ACCOUNT LIMIT 10 OFFSET (? * 10)`
+- ?by_ID
+- ?by_name
+- ?by_book
+- ?by_campus
+- ?by_role
+- ?frozen
 
-#### ?by_ID:
+* [ ] Done
 
-* [ ] `SELECT UUID,displayname,pwhash,campus,role FROM ACCOUNT WHERE UUID = (?)`
+```sql
+SELECT ACCOUNT.UUID, displayname, pwhash, campus, role, frozen
+FROM ACCOUNT
+         LEFT JOIN INVENTORY I on ACCOUNT.UUID = I.UUID
+WHERE instr(ACCOUNT.UUID, (?)) > 0
+  AND ((?) = 'IGNORE_FILTER' OR instr(serialnum, (?)) > 0)
+  AND instr(campus, (?)) > 0
+  AND instr(role, (?)) > 0
+  AND frozen = (?)
+ORDER BY ACCOUNT.UUID
+LIMIT 10 OFFSET (? * 10)
 
-#### ?by_name:
-
-* [ ] 
-  `SELECT UUID,displayname,pwhash,campus,role FROM ACCOUNT WHERE instr(displayname,(?)) > 0 LIMIT 10 OFFSET (? * 10)`
-
-#### ?by_book:
-
-* [ ] 
-  `SELECT UUID,displayname,pwhash,campus,role FROM ACCOUNT,INVENTORY WHERE INVENTORY.UUID = ACCOUNT.UUID AND serialnum = (?) LIMIT 10 OFFSET (? * 10)`
-
-#### ?by_campus:
-
-* [ ] `SELECT UUID,displayname,pwhash,campus,role FROM ACCOUNT WHERE instr(campus,(?)) > 0 LIMIT 10 OFFSET (? * 10)`
-
-#### ?by_role:
-
-* [ ] `SELECT UUID,displayname,pwhash,campus,role FROM ACCOUNT WHERE instr(role,(?)) > 0 LIMIT 10 OFFSET (? * 10)`
-
-#### ?frozen:
-
-* [ ] `SELECT UUID,displayname,pwhash,campus,role FROM ACCOUNT WHERE frozen = (?) LIMIT 10 OFFSET (? * 10)`
+```
 
 ### Book:
-
-* [ ] 
-  `SELECT serialnum,type,category,publisher,booktitle,bookrelease,bookcover,hits FROM BOOKS LIMIT 10 OFFSET (? * 10)`
-
-#### ?filter:
 
 - ?by_ID
 - ?by_category
@@ -222,6 +207,7 @@ WHERE 'RELATION CONDITION'
 * [ ] Done
 
 ```sql
+
 WITH RECURSIVE CategoryCascade AS (SELECT categoryClass, parentCategoryID
                                    FROM CATEGORY
                                    WHERE ((?) = 'ROOT' AND parentCategoryID IS NULL)
@@ -238,25 +224,22 @@ SELECT BOOK.serialnum,
        bookreleaseyear,
        bookcover,
        hits
-FROM BOOK,
+FROM (BOOK LEFT JOIN INVENTORY I ON BOOK.serialnum = I.serialnum),
      LANGUAGES,
      AUTHORED,
      STOCK,
-     INVENTORY,
      CategoryCascade
 WHERE category = CategoryCascade.categoryClass
+  AND ((?) = 'IGNORE_INV' OR instr(UUID, (?)) > 0)
   AND AUTHORED.serialnum = BOOK.serialnum
   AND LANGUAGES.serialnum = BOOK.serialnum
   AND STOCK.serialnum = BOOK.serialnum
-  AND INVENTORY.serialnum = BOOK.serialnum
-  AND instr(BOOK.serialnum, (?)) > 0
   AND instr(booktitle, (?)) > 0
   AND instr(lang, (?)) > 0
   AND instr(author, (?)) > 0
   AND instr(type, (?)) > 0
   AND instr(publisher, (?)) > 0
   AND instr(campus, (?)) > 0
-  AND instr(UUID, (?)) > 0
   AND IIF((?) = 'AVAILABLE', STOCK.instock > 0, TRUE)
   AND IIF((?) = 'FILTER_LOW', bookreleaseyear >= (?), TRUE)
   AND IIF((?) = 'FILTER_HIGH', bookreleaseyear <= (?), TRUE)
