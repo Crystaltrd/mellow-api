@@ -284,17 +284,17 @@ LIMIT 10 OFFSET (? * 10)
 
 ### Inventory:
 
-* [ ] `SELECT UUID,serialnum,rentduration,rentdate,extended FROM INVENTORY LIMIT 10 OFFSET (? * 10)`
+- ?by_account | ?self (alias to ?by_account with cookie)
+- ?by_book
 
-#### ?by_ID or ?self
-
-* [ ] 
-  `SELECT UUID,serialnum,rentduration,rentdate,extended FROM INVENTORY WHERE UUID = (?) ORDER BY rentdate DESC LIMIT 10 OFFSET (? * 10)`
-
-#### ?by_book
-
-* [ ] 
-  `SELECT UUID,serialnum,rentduration,rentdate,extended FROM INVENTORY WHERE serialnum = (?) ORDER BY rentdate DESC LIMIT 10 OFFSET (? * 10)`
+```sql
+SELECT UUID, serialnum, rentduration, rentdate, extended
+FROM INVENTORY
+WHERE instr(UUID, (?)) > 0
+  AND instr(serialnum, (?)) > 0
+ORDER BY rentdate DESC
+LIMIT 10 OFFSET (? * 10)
+```
 
 ### History:
 
