@@ -7,6 +7,7 @@
 - ?by_name
 - ?by_book
 - ?by_popularity | ?by_count
+
 * [ ] Done
 
 ```sql
@@ -15,12 +16,12 @@ FROM PUBLISHER,
      BOOK
 WHERE instr(publisherName, (?)) > 0
   AND publisherName = publisher
-  AND instr(serialnum, (?))
-GROUP BY publisherName ORDER BY IIF((?) = 'POPULAR',SUM(hits),COUNT()) DESC
+  AND instr(serialnum, (?)) > 0
+GROUP BY publisherName
+ORDER BY IIF((?) = 'POPULAR', SUM(hits), COUNT()) DESC
 LIMIT 10 OFFSET (? * 10)
 
 ```
-
 
 ### Author:
 
@@ -29,6 +30,7 @@ LIMIT 10 OFFSET (? * 10)
 - ?by_popularity | ?by_count
 
 * [ ] Done
+
 ```sql
 SELECT authorName
 FROM AUTHOR,
@@ -44,6 +46,7 @@ LIMIT 10 OFFSET (? * 10)
 ```
 
 ### Action:
+
 - ?by_name
 
 * [ ] `SELECT actionName FROM ACTION WHERE instr(actionName,(?)) > 0 LIMIT 10 OFFSET (? * 10)`
@@ -62,12 +65,14 @@ FROM DOCTYPE,
      BOOK
 WHERE instr(typeName, (?)) > 0
   AND typeName = type
-  AND instr(serialnum, (?))
-GROUP BY typeName ORDER BY IIF((?) = 'POPULAR',SUM(hits),COUNT()) DESC
+  AND instr(serialnum, (?)) > 0
+GROUP BY typeName
+ORDER BY IIF((?) = 'POPULAR', SUM(hits), COUNT()) DESC
 LIMIT 10 OFFSET (? * 10)
 ```
 
 ### Campus:
+
 - ?by_name
 - ?by_book
 - ?by_account
@@ -113,16 +118,17 @@ LIMIT 10 OFFSET (? * 10)
 
 ```sql
 WITH RECURSIVE CategoryCascade AS (SELECT categoryClass, parentCategoryID
-                            FROM CATEGORY
-                            WHERE 'INITIAL CONDITION'
-                            UNION ALL
-                            SELECT c.categoryClass, c.parentCategoryID
-                            FROM CATEGORY c
-                                     INNER JOIN CategoryCascade ct ON c.parentCategoryID = ct.categoryClass 'RELATION CONDITION')
+                                   FROM CATEGORY
+                                   WHERE 'INITIAL CONDITION'
+                                   UNION ALL
+                                   SELECT c.categoryClass, c.parentCategoryID
+                                   FROM CATEGORY c
+                                            INNER JOIN CategoryCascade ct ON c.parentCategoryID = ct.categoryClass 'RELATION CONDITION')
 SELECT CATEGORY.categoryClass, CATEGORY.categoryName
 FROM CATEGORY,
- CategoryCascade
-WHERE CategoryCascade.categoryClass = CATEGORY.categoryClass LIMIT 10 OFFSET (? * 10);
+     CategoryCascade
+WHERE CategoryCascade.categoryClass = CATEGORY.categoryClass
+LIMIT 10 OFFSET (? * 10);
 ```
 
 #### ?tree:
@@ -130,8 +136,12 @@ WHERE CategoryCascade.categoryClass = CATEGORY.categoryClass LIMIT 10 OFFSET (? 
 * [ ] Done
 
 ```sql
-SELECT categoryClass,categoryName,parentCategoryID FROM CATEGORY WHERE 'INITIAL CONDITION'
-SELECT categoryClass,categoryName,parentCategoryID FROM CATEGORY WHERE 'RELATION CONDITION'
+SELECT categoryClass, categoryName, parentCategoryID
+FROM CATEGORY
+WHERE 'INITIAL CONDITION'
+SELECT categoryClass, categoryName, parentCategoryID
+FROM CATEGORY
+WHERE 'RELATION CONDITION'
 ```
 
 #### ?by_name:
@@ -201,6 +211,7 @@ SELECT categoryClass,categoryName,parentCategoryID FROM CATEGORY WHERE 'RELATION
 - ?by_author
 - ?by_type
 - ?by_publisher
+- ?ignore_empty
 - ?by_campus
 - ?from_year
 - ?to_year
@@ -215,7 +226,7 @@ WITH RECURSIVE CategoryCascade AS (SELECT categoryClass, parentCategoryID
                                    UNION ALL
                                    SELECT c.categoryClass, c.parentCategoryID
                                    FROM CATEGORY c
-                                          INNER JOIN CategoryCascade ct ON c.parentCategoryID = ct.categoryClass)
+                                            INNER JOIN CategoryCascade ct ON c.parentCategoryID = ct.categoryClass)
 SELECT BOOK.serialnum,
        type,
        category,
@@ -230,19 +241,21 @@ FROM BOOK,
      STOCK,
      CategoryCascade
 WHERE category = CategoryCascade.categoryClass
-  AND instr(booktitle, (?)) > 0
-  AND BOOK.serialnum = LANGUAGES.serialnum
-  AND instr(lang, (?)) > 0
   AND AUTHORED.serialnum = BOOK.serialnum
+  AND BOOK.serialnum = LANGUAGES.serialnum
+  AND STOCK.serialnum = BOOK.serialnum
+  AND instr(booktitle, (?)) > 0
+  AND instr(lang, (?)) > 0
   AND instr(author, (?)) > 0
   AND instr(type, (?)) > 0
   AND instr(publisher, (?)) > 0
-  AND STOCK.serialnum = BOOK.serialnum
-  AND instr(STOCK.campus,(?)) > 0
-  AND STOCK.instock > 0
-  AND IIF((?) = 'FILTER_LOW',bookreleaseyear >= (?),TRUE)
-  AND IIF((?) = 'FILTER_HIGH',bookreleaseyear <= (?),TRUE)
-GROUP BY BOOK.serialnum,BOOK.hits ORDER BY BOOK.hits DESC LIMIT 10 OFFSET (? * 10) ;
+  AND instr(STOCK.campus, (?)) > 0
+  AND IIF((?) = 'AVAILABLE', STOCK.instock > 0, TRUE)
+  AND IIF((?) = 'FILTER_LOW', bookreleaseyear >= (?), TRUE)
+  AND IIF((?) = 'FILTER_HIGH', bookreleaseyear <= (?), TRUE)
+GROUP BY BOOK.serialnum, BOOK.hits
+ORDER BY BOOK.hits DESC
+LIMIT 10 OFFSET (? * 10);
 
 ```
 
