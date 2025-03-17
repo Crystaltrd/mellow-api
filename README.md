@@ -94,19 +94,23 @@ LIMIT 10 OFFSET (? * 10)
 
 ### Role:
 
-* [ ] `SELECT roleName,perms FROM ROLE LIMIT 10 OFFSET (? * 10)`
+- ?by_name
+- ?by_perm
+- ?by_account
 
-#### ?by_name:
+* [ ] Done
 
-* [ ] `SELECT roleName,perms FROM ROLE WHERE instr(roleName,(?)) > 0 LIMIT 10 OFFSET (? * 10)`
-
-#### ?by_perm:
-
-* [ ] `SELECT roleName,perms FROM ROLE WHERE perms = (?) LIMIT 10 OFFSET (? * 10)`
-
-#### ?by_account:
-
-* [ ] `SELECT role,perms FROM ACCOUNT,ROLE WHERE UUID = (?) AND role = roleName`
+```sql
+SELECT roleName, perms
+FROM ROLE,
+     ACCOUNT
+WHERE roleName = role
+  AND instr(roleName, (?)) > 0
+  AND perms = (?)
+  AND instr(UUID, (?)) > 0
+ORDER BY perms DESC
+LIMIT 10 OFFSET (? * 10)
+```
 
 ### Category:
 
@@ -256,8 +260,8 @@ WHERE category = CategoryCascade.categoryClass
   AND IIF((?) = 'AVAILABLE', STOCK.instock > 0, TRUE)
   AND IIF((?) = 'FILTER_LOW', bookreleaseyear >= (?), TRUE)
   AND IIF((?) = 'FILTER_HIGH', bookreleaseyear <= (?), TRUE)
-GROUP BY BOOK.serialnum, BOOK.hits
-ORDER BY IIF((?) = 'POPULAR', hits, SUM(instock)) DESC
+GROUP BY BOOK.serialnum, hits, booktitle
+ORDER BY IIF((?) = 'POPULAR', hits, booktitle) DESC
 LIMIT 10 OFFSET (? * 10);
 
 ```
@@ -270,6 +274,7 @@ LIMIT 10 OFFSET (? * 10);
 - ?by_popularity
 
 * [ ] Done
+
 ```sql
 SELECT STOCK.serialnum, campus, instock
 FROM STOCK,
@@ -289,6 +294,7 @@ LIMIT 10 OFFSET (? * 10)
 - ?by_book
 
 * [ ] Done
+
 ```sql
 SELECT UUID, serialnum, rentduration, rentdate, extended
 FROM INVENTORY
