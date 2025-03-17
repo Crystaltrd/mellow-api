@@ -199,22 +199,21 @@ WHERE 'RELATION CONDITION'
 * [ ] 
   `SELECT serialnum,type,category,publisher,booktitle,bookrelease,bookcover,hits FROM BOOKS LIMIT 10 OFFSET (? * 10)`
 
-#### ?by_ID:
-
-* [ ] `SELECT serialnum,type,category,publisher,booktitle,bookrelease,bookcover,hits FROM BOOK WHERE serialnum = (?)`
-
 #### ?filter:
 
+- ?by_ID
 - ?by_category
 - ?by_name
 - ?by_lang
 - ?by_author
 - ?by_type
 - ?by_publisher
-- ?ignore_empty
 - ?by_campus
+- ?by_account
+- ?ignore_empty
 - ?from_year
 - ?to_year
+- ?by_popularity
 
 * [ ] Done
 
@@ -239,47 +238,49 @@ FROM BOOK,
      LANGUAGES,
      AUTHORED,
      STOCK,
+     INVENTORY,
      CategoryCascade
 WHERE category = CategoryCascade.categoryClass
   AND AUTHORED.serialnum = BOOK.serialnum
-  AND BOOK.serialnum = LANGUAGES.serialnum
+  AND LANGUAGES.serialnum = BOOK.serialnum
   AND STOCK.serialnum = BOOK.serialnum
+  AND INVENTORY.serialnum = BOOK.serialnum
+  AND instr(BOOK.serialnum, (?)) > 0
   AND instr(booktitle, (?)) > 0
   AND instr(lang, (?)) > 0
   AND instr(author, (?)) > 0
   AND instr(type, (?)) > 0
   AND instr(publisher, (?)) > 0
-  AND instr(STOCK.campus, (?)) > 0
+  AND instr(campus, (?)) > 0
+  AND instr(UUID, (?)) > 0
   AND IIF((?) = 'AVAILABLE', STOCK.instock > 0, TRUE)
   AND IIF((?) = 'FILTER_LOW', bookreleaseyear >= (?), TRUE)
   AND IIF((?) = 'FILTER_HIGH', bookreleaseyear <= (?), TRUE)
 GROUP BY BOOK.serialnum, BOOK.hits
-ORDER BY BOOK.hits DESC
+ORDER BY IIF((?) = 'POPULAR', hits, SUM(instock)) DESC
 LIMIT 10 OFFSET (? * 10);
 
 ```
 
-#### ?by_account:
-
-* [ ] 
-  `SELECT serialnum,type,category,publisher,booktitle,bookrelease,bookcover,hits FROM BOOK,INVENTORY WHERE UUID = (?) AND BOOK.serialnum = INVENTORY.serialnum`
-
-#### ?by_popularity:
-
-* [ ] 
-  `SELECT serialnum,type,category,publisher,booktitle,bookrelease,bookcover,hits FROM BOOK ORDER BY hits DESC LIMIT 10 OFFSET (? * 10)`
-
 ### Stock:
 
-* [ ] `SELECT serialnum,campus,instock FROM STOCK LIMIT 10 OFFSET (? * 10)`
+- ?by_book
+- ?by_campus
+- ?ignore_empty
+- ?by_popularity
 
-#### ?by_book:
-
-* [ ] `SELECT serialnum,campus,instock FROM STOCK WHERE serialnum = (?) LIMIT 10 OFFSET (? * 10)`
-
-#### ?by_campus:
-
-* [ ] `SELECT serialnum,campus,instock FROM STOCK WHERE instr(campus,(?)) > 0 LIMIT 10 OFFSET (? * 10)`
+```sql
+SELECT STOCK.serialnum, campus, instock
+FROM STOCK,
+     BOOK
+WHERE instr(STOCK.serialnum, (?)) > 0
+  AND STOCK.serialnum = BOOK.serialnum
+  AND instr(campus, (?)) > 0
+  AND IIF((?) = 'AVAILABLE', instock > 0, TRUE)
+GROUP BY BOOK.serialnum, campus, instock, hits
+ORDER BY IIF((?) = 'POPULAR', hits, instock) DESC
+LIMIT 10 OFFSET (? * 10)
+```
 
 ### Inventory:
 

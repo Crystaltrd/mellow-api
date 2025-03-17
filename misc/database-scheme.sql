@@ -206,7 +206,7 @@ CREATE TABLE INVENTORY
 
 CREATE TABLE HISTORY
 (
-    UUID        TEXT  NOT NULL,
+    UUID        TEXT     NOT NULL,
     UUID_ISSUER TEXT,
     serialnum   TEXT     NOT NULL,
     action      TEXT     NOT NULL,
