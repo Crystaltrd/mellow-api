@@ -6,7 +6,7 @@
 
 - ?by_name
 - ?by_book
-- ?by_popularity | ?by_count
+- ?by_popularity
 
 * [ ] Done
 
@@ -27,7 +27,7 @@ LIMIT 10 OFFSET (? * 10)
 
 - ?by_name
 - ?by_book
-- ?by_popularity | ?by_count
+- ?by_popularity
 
 * [ ] Done
 
@@ -55,7 +55,7 @@ LIMIT 10 OFFSET (? * 10)
 
 - ?by_name
 - ?by_book
-- ?by_popularity | ?by_count
+- ?by_popularity
 
 * [ ] Done
 
