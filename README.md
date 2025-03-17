@@ -107,7 +107,7 @@ LIMIT 10 OFFSET (? * 10)
 ```
 
 ### Category:
-
+TODO: this....thing
 * [ ] `SELECT categoryClass,categoryName,parentCategoryID FROM CATEGORY LIMIT 10 OFFSET (? * 10)`
 
 #### ?cascade:
