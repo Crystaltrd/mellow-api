@@ -108,11 +108,30 @@ LIMIT 10 OFFSET (? * 10)
 
 ### Category:
 
-TODO: this....thing
+Initial condition:
 
-* [ ] `SELECT categoryClass,categoryName,parentCategoryID FROM CATEGORY LIMIT 10 OFFSET (? * 10)`
+- ?by_name
+- ?by_class
+- ?by_parent
+- ?by_book
 
-#### ?cascade:
+* [ ] Done
+
+```sql
+SELECT categoryClass, categoryName, parentCategoryID
+FROM CATEGORY
+         LEFT JOIN BOOK B ON CATEGORY.categoryClass = B.category
+WHERE ((?) = 'IGNORE_NAME' OR instr(categoryName, (?)) > 0)
+  AND ((?) = 'IGNORE_CLASS' OR categoryClass = (?))
+  AND ((?) = 'IGNORE_CLASS' OR parentCategoryID = (?))
+  AND ((?) = 'IGNORE_BOOK' OR serialnum = (?))
+GROUP BY categoryClass
+ORDER BY IIF((?) = 'POPULAR', SUM(hits), COUNT()) DESC
+LIMIT 10 OFFSET (? * 10)
+```
+
+- ?cascade
+- ?get_parents
 
 * [ ] Done
 
@@ -123,7 +142,9 @@ WITH RECURSIVE CategoryCascade AS (SELECT categoryClass, parentCategoryID
                                    UNION ALL
                                    SELECT c.categoryClass, c.parentCategoryID
                                    FROM CATEGORY c
-                                            INNER JOIN CategoryCascade ct ON c.parentCategoryID = ct.categoryClass 'RELATION CONDITION')
+                                            INNER JOIN CategoryCascade ct
+                                                       ON IIF((?) = 'GET_PARENTS', c.parentCategoryID = ct.categoryClass,
+                                                              c.categoryClass = ct.parentCategoryID))
 SELECT CATEGORY.categoryClass, CATEGORY.categoryName
 FROM CATEGORY,
      CategoryCascade
@@ -131,7 +152,7 @@ WHERE CategoryCascade.categoryClass = CATEGORY.categoryClass
 LIMIT 10 OFFSET (? * 10);
 ```
 
-#### ?tree:
+- ?tree
 
 * [ ] Done
 
@@ -141,28 +162,8 @@ FROM CATEGORY
 WHERE 'INITIAL CONDITION'
 SELECT categoryClass, categoryName, parentCategoryID
 FROM CATEGORY
-WHERE 'RELATION CONDITION'
+WHERE parentCategoryID = (?)
 ```
-
-#### ?by_name:
-
-* [ ] 
-  `SELECT categoryClass,categoryName,parentCategoryID FROM CATEGORY WHERE instr(categoryName,(?)) > 0 LIMIT 10 OFFSET (? * 10)`
-
-#### ?by_class:
-
-* [ ] 
-  `SELECT categoryClass,categoryName,parentCategoryID FROM CATEGORY WHERE instr(categoryClass,(?)) > 0 LIMIT 10 OFFSET (? * 10)`
-
-#### ?by_parent:
-
-* [ ] 
-  `SELECT categoryClass,categoryName,parentCategoryID FROM CATEGORY WHERE instr(parentCategoryID,(?)) > 0 LIMIT 10 OFFSET (? * 10)`
-
-#### ?by_book:
-
-* [ ] 
-  `SELECT category,categoryName,parentCategoryID FROM CATEGORY,BOOK WHERE serialnum = (?) AND categoryClass = category`
 
 ### Account:
 
