@@ -69,6 +69,25 @@ ORDER BY IIF((?) = 'POPULAR', SUM(hits), COUNT()) DESC
 LIMIT 10 OFFSET (? * 10)
 ```
 
+### Language:
+
+- ?by_name
+- ?by_book
+- ?by_popularity
+
+* [ ] Done
+
+```sql
+SELECT langCode
+FROM LANG
+         LEFT JOIN LANGUAGES A ON LANG.langCode = A.lang
+         LEFT JOIN BOOK B ON B.serialnum = A.serialnum
+WHERE ((?) = 'IGNORE_NAME' OR instr(langCode, (?)) > 0)
+  AND ((?) = 'IGNORE_BOOK' OR A.serialnum = (?))
+GROUP BY langCode
+ORDER BY IIF((?) = 'POPULAR', SUM(hits), COUNT()) DESC
+LIMIT 10 OFFSET (? * 10)
+```
 ### Action:
 
 - ?by_name
