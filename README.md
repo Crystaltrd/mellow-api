@@ -1,6 +1,33 @@
 ## API endpoints :
 
 - Optional : `?page` , default `0`
+- ?by_name
+- ?by_book
+- ?by_popularity
+- ?by_account
+- ?by_perm
+- ?by_class
+- ?by_parent
+- ?cascade
+- ?tree
+- ?get_parents
+- ?by_ID
+- ?by_campus
+- ?by_role
+- ?frozen
+- ?by_category
+- ?by_lang
+- ?by_author
+- ?by_type
+- ?by_publisher
+- ?ignore_empty
+- ?from_year
+- ?to_year
+- ?self
+- ?by_issuer
+- ?by_action
+- ?from_date
+- ?to_date
 
 ### Publisher:
 
