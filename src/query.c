@@ -711,6 +711,6 @@ int main(void) {
     // querying the INVENTORY if invalid page
     if (khttp_parse(&r, keys, KEY__MAX, pages, PG__MAX, PG_INVENTORY) != KCGI_OK)
         return EXIT_FAILURE;
-
+    errx(EXIT_FAILURE,pages[get_stmts()]);
     return EXIT_SUCCESS;
 }
