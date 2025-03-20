@@ -253,7 +253,7 @@ void alloc_ctx_cfg() {
         errx(EXIT_FAILURE, "sqlbox_open");
 }
 
-void process(const enum statement STATEMENT) {
+void fill_params(const enum statement STATEMENT) {
     struct kpair *field;
     switch (STATEMENT) {
         case STMTS_ACTION:
