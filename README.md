@@ -188,7 +188,7 @@ WITH RECURSIVE CategoryCascade AS (SELECT categoryName, categoryClass, parentCat
                                             LEFT JOIN BOOK B ON CATEGORY.categoryClass = B.category
                                    WHERE ((?) = 'IGNORE_NAME' OR instr(categoryName, (?)) > 0)
                                      AND ((?) = 'IGNORE_CLASS' OR categoryClass = (?))
-                                     AND ((?) = 'IGNORE_CLASS' OR parentCategoryID = (?))
+                                     AND ((?) = 'IGNORE_PARENT_CLASS' OR parentCategoryID = (?))
                                      AND ((?) = 'IGNORE_BOOK' OR serialnum = (?))
                                    GROUP BY categoryClass
                                    UNION ALL

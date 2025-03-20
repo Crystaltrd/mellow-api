@@ -404,7 +404,7 @@ void fill_params(const enum statement STATEMENT) {
 
             break;
         case STMTS_CATEGORY:
-            parmsz = 12;
+            parmsz = 10;
             parms = calloc(parmsz, sizeof(struct sqlbox_parm));
             parms[0] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
@@ -432,27 +432,19 @@ void fill_params(const enum statement STATEMENT) {
             };
             parms[6] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
-                .sparm = (!r.fieldmap[KEY_FILTER_BY_PARENT]) ? "IGNORE_PARENT" : "DONT_IGNORE"
+                .sparm = (!r.fieldmap[KEY_FILTER_BY_BOOK]) ? "IGNORE_BOOK" : "DONT_IGNORE"
             };
             parms[7] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
-                .sparm = ((field = r.fieldmap[KEY_FILTER_BY_PARENT])) ? field->parsed.s : ""
-            };
-            parms[8] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = (!r.fieldmap[KEY_FILTER_BY_BOOK]) ? "IGNORE_BOOK" : "DONT_IGNORE"
-            };
-            parms[9] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
                 .sparm = ((field = r.fieldmap[KEY_FILTER_BY_BOOK])) ? field->parsed.s : ""
             };
-            parms[10] = (struct sqlbox_parm){
+            parms[8] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
                 .sparm = (r.fieldmap[KEY_FILTER_BY_POPULARITY]) ? "POPULAR" : "DONT_IGNORE"
             };
             break;
         case STMTS_CATEGORY_CASCADE:
-            parmsz = 12;
+            parmsz = 10;
             parms = calloc(parmsz, sizeof(struct sqlbox_parm));
             parms[0] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
@@ -478,23 +470,16 @@ void fill_params(const enum statement STATEMENT) {
                 .type = SQLBOX_PARM_STRING,
                 .sparm = ((field = r.fieldmap[KEY_FILTER_BY_PARENT])) ? field->parsed.s : ""
             };
+
             parms[6] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = (!r.fieldmap[KEY_FILTER_BY_PARENT]) ? "IGNORE_PARENT" : "DONT_IGNORE"
-            };
-            parms[7] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = ((field = r.fieldmap[KEY_FILTER_BY_PARENT])) ? field->parsed.s : ""
-            };
-            parms[8] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
                 .sparm = (!r.fieldmap[KEY_FILTER_BY_BOOK]) ? "IGNORE_BOOK" : "DONT_IGNORE"
             };
-            parms[9] = (struct sqlbox_parm){
+            parms[7] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
                 .sparm = ((field = r.fieldmap[KEY_FILTER_BY_BOOK])) ? field->parsed.s : ""
             };
-            parms[10] = (struct sqlbox_parm){
+            parms[8] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
                 .sparm = (r.fieldmap[KEY_FILTER_GET_PARENTS]) ? "GET_PARENTS" : "DONT_IGNORE"
             };
