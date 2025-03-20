@@ -30,6 +30,7 @@ struct accperms {
 /*
  * All possible sub-pages in the query endpoint with their corresponding names
  */
+
 enum pg {
     PG_PUBLISHER,
     PG_AUTHOR,
@@ -168,6 +169,24 @@ enum statement {
     STMTS__MAX
 };
 
+/*
+ * Helper function to get the Statement for a specific page
+ */
+enum statement get_stmts() {
+    enum key i;
+    for (i = KEY_PG_PUBLISHER; i < KEY_PAGE && !(r.fieldmap[i]); i++) {
+    }
+    if (i == KEY_PAGE)
+        i = r.page;
+    if (i < PG_CATEGORY) {
+        return (enum statement) i;
+    } else if (i == PG_CATEGORY) {
+        if (r.fieldmap[KEY_FILTER_CASCADE])
+            return STMTS_CATEGORY_CASCADE;
+        return STMTS_CATEGORY;
+    }
+    return i + 1;
+}
 
 /*
  * Array of sources(databases) and their access mode, we only have one which is our central database.
@@ -685,10 +704,13 @@ void fill_params(const enum statement STATEMENT) {
     };
 }
 
+
+
 int main(void) {
     // Parse the http request and match the keys to the keys, and pages to the pages, default to
     // querying the INVENTORY if invalid page
     if (khttp_parse(&r, keys, KEY__MAX, pages, PG__MAX, PG_INVENTORY) != KCGI_OK)
         return EXIT_FAILURE;
+
     return EXIT_SUCCESS;
 }
