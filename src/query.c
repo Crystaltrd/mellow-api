@@ -676,6 +676,7 @@ void process(const enum statement STATEMENT) {
             };
             break;
         default:
+            errx(EXIT_FAILURE, "params");
             break;
     }
 
