@@ -223,7 +223,7 @@ static struct sqlbox_pstmt pstmts[STMTS__MAX] = {
     },
     {
         (char *)
-        "SELECT campusName FROM CAMPUS LEFT JOIN STOCK S ON CAMPUS.campusName = S.campus LEFT JOIN ACCOUNT A on CAMPUS.campusName = A.campus WHERE ((?) = 'IGNORE_NAME' OR instr(campusName, (?)) > 0) AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) AND ((?) = 'IGNORE_ACCOUNT' OR UUID = (?)) LIMIT 10 OFFSET (? * 10)"
+        "SELECT campusName FROM CAMPUS LEFT JOIN STOCK S ON CAMPUS.campusName = S.campus LEFT JOIN ACCOUNT A on CAMPUS.campusName = A.campus WHERE ((?) = 'IGNORE_NAME' OR instr(campusName, (?)) > 0) AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) AND ((?) = 'IGNORE_ACCOUNT' OR UUID = (?)) GROUP BY campusName LIMIT 10 OFFSET (? * 10)"
     },
     {
         (char *)
@@ -723,7 +723,7 @@ void process(const enum statement STATEMENT) {
     khttp_body(&r);
     kjson_open(&req,&r);
     kjson_obj_open(&req);
-    kjson_array_open(&req);
+    kjson_arrayp_open(&req,"result");
     while ((res = sqlbox_step(boxctx, stmtid)) != NULL && res->code == SQLBOX_CODE_OK && res->psz != 0) {
         kjson_array_open(&req);
         for (int i = 0; i < res->psz; ++i) {
