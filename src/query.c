@@ -179,8 +179,6 @@ enum statement get_stmts() {
     }
     if (i == KEY_PAGE)
         i = r.page;
-    if (i == PG__MAX)
-        errx(EXIT_FAILURE, "page");
     if (i < PG_CATEGORY) {
         return (enum statement) i;
     } else if (i == PG_CATEGORY) {
@@ -711,7 +709,7 @@ void fill_params(const enum statement STATEMENT) {
 int main(void) {
     // Parse the http request and match the keys to the keys, and pages to the pages, default to
     // querying the INVENTORY if invalid page
-    if (khttp_parse(&r, keys, KEY__MAX, pages, PG__MAX, PG_INVENTORY) != KCGI_OK)
+    if (khttp_parse(&r, keys, KEY__MAX, pages, PG__MAX, PG_INVENTORY) != KCGI_OK || r.page == PG__MAX)
         return EXIT_FAILURE;
     puts("Status: 200 OK\r");
     puts("Content-Type: text/html\r");
