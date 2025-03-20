@@ -179,6 +179,8 @@ enum statement get_stmts() {
     }
     if (i == KEY_PAGE)
         i = r.page;
+    if (i == PG__MAX)
+        errx(EXIT_FAILURE, "page");
     if (i < PG_CATEGORY) {
         return (enum statement) i;
     } else if (i == PG_CATEGORY) {
@@ -714,7 +716,7 @@ int main(void) {
     puts("Status: 200 OK\r");
     puts("Content-Type: text/html\r");
     puts("\r");
-    printf("%d",get_stmts());
+    printf("%d", get_stmts());
     puts(pstmts[get_stmts()].stmt);
     return EXIT_SUCCESS;
 }
