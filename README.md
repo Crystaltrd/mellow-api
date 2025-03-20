@@ -275,12 +275,14 @@ WITH RECURSIVE CategoryCascade AS (SELECT categoryClass, parentCategoryID
 SELECT BOOK.serialnum,
        type,
        category,
+       categoryName,
        publisher,
        booktitle,
        bookreleaseyear,
        bookcover,
        hits
 FROM (BOOK LEFT JOIN INVENTORY I ON BOOK.serialnum = I.serialnum),
+     CATEGORY,
      LANGUAGES,
      AUTHORED,
      STOCK,
@@ -289,6 +291,7 @@ WHERE category = CategoryCascade.categoryClass
   AND AUTHORED.serialnum = BOOK.serialnum
   AND LANGUAGES.serialnum = BOOK.serialnum
   AND STOCK.serialnum = BOOK.serialnum
+  AND CATEGORY.categoryClass = BOOK.category
   AND ((?) = 'IGNORE_ID' OR BOOK.serialnum = (?))
   AND ((?) = 'IGNORE_NAME' OR instr(booktitle, (?)))
   AND ((?) = 'IGNORE_LANG' OR lang = (?))
