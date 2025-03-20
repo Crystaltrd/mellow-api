@@ -186,7 +186,7 @@ enum statement {
     STMTS__MAX
 };
 
-static const char *rows[STMTS__MAX][8] = {
+static const char *rows[STMTS__MAX][9] = {
     {"publisherName"},
     {"authorName"},
     {"langcode"},
@@ -197,7 +197,7 @@ static const char *rows[STMTS__MAX][8] = {
     {"categoryClass", "categoryName", "parentCategoryID"},
     {"categoryClass", "categoryName", "parentCategoryID"},
     {"UUID", "displayname", "pwhash", "campus", "role"},
-    {"serialnum", "type", "category", "publisher", "booktitle", "bookreleaseyear", "bookcover", "hits"},
+    {"serialnum", "type", "category","categoryName", "publisher", "booktitle", "bookreleaseyear", "bookcover", "hits"},
     {"serialnum", "campus", "instock"},
     {"UUID", "serialnum", "rentduration", "rentdate", "extended"},
     {"UUID", "UUID_ISSUER", "serialnum", "action", "actiondate"}
@@ -274,7 +274,7 @@ static struct sqlbox_pstmt pstmts[STMTS__MAX] = {
     },
     {
         (char *)
-        "WITH RECURSIVE CategoryCascade AS (SELECT categoryClass, parentCategoryID FROM CATEGORY WHERE ((?) = 'ROOT' AND parentCategoryID IS NULL) OR categoryClass = (?) UNION ALL SELECT c.categoryClass, c.parentCategoryID FROM CATEGORY c INNER JOIN CategoryCascade ct ON c.parentCategoryID = ct.categoryClass) SELECT BOOK.serialnum, type, category, publisher, booktitle, bookreleaseyear, bookcover, hits FROM (BOOK LEFT JOIN INVENTORY I ON BOOK.serialnum = I.serialnum), LANGUAGES, AUTHORED, STOCK, CategoryCascade WHERE category = CategoryCascade.categoryClass AND AUTHORED.serialnum = BOOK.serialnum AND LANGUAGES.serialnum = BOOK.serialnum AND STOCK.serialnum = BOOK.serialnum AND ((?) = 'IGNORE_ID' OR BOOK.serialnum = (?)) AND ((?) = 'IGNORE_NAME' OR instr(booktitle, (?))) AND ((?) = 'IGNORE_LANG' OR lang = (?)) AND ((?) = 'IGNORE_AUTHOR' OR instr(author, (?)) > 0) AND ((?) = 'IGNORE_TYPE' OR type = (?)) AND ((?) = 'IGNORE_PUBLISHER' OR instr(publisher, (?)) > 0) AND ((?) = 'IGNORE_CAMPUS' OR campus = (?)) AND ((?) = 'IGNORE_ACCOUNT' OR UUID = (?)) AND ((?) = 'INCLUDE_EMPTY' OR STOCK.instock > 0) AND ((?) = 'IGNORE_FROM_DATE' OR bookreleaseyear >= (?)) AND ((?) = 'IGNORE_TO_DATE' OR bookreleaseyear <= (?)) GROUP BY BOOK.serialnum, hits, booktitle ORDER BY IIF((?) = 'POPULAR', hits, booktitle) DESC LIMIT 10 OFFSET (? * 10)"
+        "WITH RECURSIVE CategoryCascade AS (SELECT categoryClass, parentCategoryID FROM CATEGORY WHERE ((?) = 'ROOT' AND parentCategoryID IS NULL) OR categoryClass = (?) UNION ALL SELECT c.categoryClass, c.parentCategoryID FROM CATEGORY c INNER JOIN CategoryCascade ct ON c.parentCategoryID = ct.categoryClass) SELECT BOOK.serialnum, type, category,categoryName publisher, booktitle, bookreleaseyear, bookcover, hits FROM (BOOK LEFT JOIN INVENTORY I ON BOOK.serialnum = I.serialnum), LANGUAGES, AUTHORED, STOCK, CategoryCascade WHERE category = CategoryCascade.categoryClass AND AUTHORED.serialnum = BOOK.serialnum AND LANGUAGES.serialnum = BOOK.serialnum AND STOCK.serialnum = BOOK.serialnum AND ((?) = 'IGNORE_ID' OR BOOK.serialnum = (?)) AND ((?) = 'IGNORE_NAME' OR instr(booktitle, (?))) AND ((?) = 'IGNORE_LANG' OR lang = (?)) AND ((?) = 'IGNORE_AUTHOR' OR instr(author, (?)) > 0) AND ((?) = 'IGNORE_TYPE' OR type = (?)) AND ((?) = 'IGNORE_PUBLISHER' OR instr(publisher, (?)) > 0) AND ((?) = 'IGNORE_CAMPUS' OR campus = (?)) AND ((?) = 'IGNORE_ACCOUNT' OR UUID = (?)) AND ((?) = 'INCLUDE_EMPTY' OR STOCK.instock > 0) AND ((?) = 'IGNORE_FROM_DATE' OR bookreleaseyear >= (?)) AND ((?) = 'IGNORE_TO_DATE' OR bookreleaseyear <= (?)) GROUP BY BOOK.serialnum, hits, booktitle ORDER BY IIF((?) = 'POPULAR', hits, booktitle) DESC LIMIT 10 OFFSET (? * 10)"
     },
     {
         (char *)
