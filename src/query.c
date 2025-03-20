@@ -10,6 +10,7 @@
 #include <kcgijson.h>
 #include <sqlbox.h>
 #include <stdbool.h>
+#include <stdio.h>
 
 struct kreq r;
 struct kjsonreq req;
@@ -705,12 +706,14 @@ void fill_params(const enum statement STATEMENT) {
 }
 
 
-
 int main(void) {
     // Parse the http request and match the keys to the keys, and pages to the pages, default to
     // querying the INVENTORY if invalid page
     if (khttp_parse(&r, keys, KEY__MAX, pages, PG__MAX, PG_INVENTORY) != KCGI_OK)
         return EXIT_FAILURE;
-    errx(EXIT_FAILURE,"%s",pages[get_stmts()]);
+    puts("Status: 200 OK\r");
+    puts("Content-Type: text/html\r");
+    puts("\r");
+    puts(pstmts[get_stmts()].stmt);
     return EXIT_SUCCESS;
 }
