@@ -4,6 +4,7 @@
 #include <stdint.h> /* int64_t */
 #include <unistd.h> /* pledge() */
 #include <err.h> /* err(), warnx() */
+#include <inttypes.h>
 #include <stdlib.h> /* EXIT_FAILURE */
 #include <string.h> /* memset() */
 #include <kcgi.h>
@@ -259,13 +260,15 @@ static struct sqlbox_pstmt pstmts[STMTS__MAX] = {
 };
 struct sqlbox_parm *parms; //Array of statement parameters
 size_t parmsz;
-
+/*
+ * Allocates the context and source for the current operations
+ */
 void alloc_ctx_cfg() {
     memset(&cfg, 0, sizeof(struct sqlbox_cfg));
     cfg.msg.func_short = warnx;
     cfg.srcs.srcsz = 1;
     cfg.srcs.srcs = srcs;
-    cfg.stmts.stmtsz = 4;
+    cfg.stmts.stmtsz = STMTS__MAX;
     cfg.stmts.stmts = pstmts;
     if ((boxctx = sqlbox_alloc(&cfg)) == NULL)
         errx(EXIT_FAILURE, "sqlbox_alloc");
@@ -273,6 +276,10 @@ void alloc_ctx_cfg() {
         errx(EXIT_FAILURE, "sqlbox_open");
 }
 
+/*
+ * Fills the parm parameter array with the values that will replace the interrogation marks in the SQL statements
+ *
+ */
 void fill_params(const enum statement STATEMENT) {
     struct kpair *field;
     switch (STATEMENT) {
@@ -697,7 +704,6 @@ void fill_params(const enum statement STATEMENT) {
             break;
         default:
             errx(EXIT_FAILURE, "params");
-            break;
     }
 
     parms[parmsz - 1] = (struct sqlbox_parm){
@@ -705,16 +711,62 @@ void fill_params(const enum statement STATEMENT) {
     };
 }
 
+void process(const enum statement STATEMENT) {
+    size_t stmtid;
+    const struct sqlbox_parmset *res;
+    if (!(stmtid = sqlbox_prepare_bind(boxctx, dbid, STATEMENT, parmsz, parms, SQLBOX_STMT_MULTI)))
+        errx(EXIT_FAILURE, "sqlbox_prepare_bind");
+    khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
+    khttp_head(&r, kresps[KRESP_CONTENT_TYPE], "%s", kmimetypes[KMIME_APP_JSON]);
+    khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
+    khttp_head(&r, kresps[KRESP_VARY], "%s", "Origin");
+    kjson_obj_open(&req);
+    kjson_array_open(&req);
+    while ((res = sqlbox_step(boxctx, stmtid)) != NULL && res->code == SQLBOX_CODE_OK && res->psz != 0) {
+        kjson_array_open(&req);
+        for (int i = 0; i < res->psz; ++i) {
+            switch (res->ps[i].type) {
+                case SQLBOX_PARM_INT:
+                    kjson_putint(&req, res->ps[i].iparm);
+                    break;
+                case SQLBOX_PARM_STRING:
+                    kjson_putstring(&req, res->ps[i].sparm);
+                    break;
+                case SQLBOX_PARM_FLOAT:
+                    kjson_putdouble(&req, res->ps[i].fparm);
+                    break;
+                case SQLBOX_PARM_BLOB:
+                    kjson_putstring(&req, res->ps[i].bparm);
+                    break;
+                case SQLBOX_PARM_NULL:
+                    kjson_putnull(&req);
+                    break;
+                default:
+                    break;
+            }
+        }
+        kjson_array_close(&req);
+    }
+    if (!sqlbox_finalise(boxctx, stmtid))
+        errx(EXIT_FAILURE, "sqlbox_finalise");
+
+    kjson_array_close(&req);
+    kjson_obj_close(&req);
+    kjson_close(&req);
+    khttp_free(&r);
+    if (res == NULL)
+        errx(EXIT_FAILURE, "sqlbox_step");
+}
 
 int main(void) {
     // Parse the http request and match the keys to the keys, and pages to the pages, default to
     // querying the INVENTORY if invalid page
     if (khttp_parse(&r, keys, KEY__MAX, pages, PG__MAX, PG_INVENTORY) != KCGI_OK || r.page == PG__MAX)
         return EXIT_FAILURE;
-    // Remove Later
-    puts("Status: 200 OK\r");
-    puts("Content-Type: text/html\r");
-    puts("\r");
-    puts(pstmts[get_stmts()].stmt);
+    const enum statement STMT = get_stmts();
+    alloc_ctx_cfg();
+    fill_params(STMT);
+    process(STMT);
+    sqlbox_free(boxctx);
     return EXIT_SUCCESS;
 }
