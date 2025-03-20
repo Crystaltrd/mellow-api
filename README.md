@@ -88,6 +88,7 @@ GROUP BY langCode
 ORDER BY IIF((?) = 'POPULAR', SUM(hits), COUNT()) DESC
 LIMIT 10 OFFSET (? * 10)
 ```
+
 ### Action:
 
 - ?by_name
@@ -182,16 +183,22 @@ LIMIT 10 OFFSET (? * 10)
 * [ ] Done
 
 ```sql
-WITH RECURSIVE CategoryCascade AS (SELECT categoryClass, parentCategoryID
+WITH RECURSIVE CategoryCascade AS (SELECT categoryName, categoryClass, parentCategoryID
                                    FROM CATEGORY
-                                   WHERE 'INITIAL CONDITION'
+                                            LEFT JOIN BOOK B ON CATEGORY.categoryClass = B.category
+                                   WHERE ((?) = 'IGNORE_NAME' OR instr(categoryName, (?)) > 0)
+                                     AND ((?) = 'IGNORE_CLASS' OR categoryClass = (?))
+                                     AND ((?) = 'IGNORE_CLASS' OR parentCategoryID = (?))
+                                     AND ((?) = 'IGNORE_BOOK' OR serialnum = (?))
+                                   GROUP BY categoryClass
                                    UNION ALL
-                                   SELECT c.categoryClass, c.parentCategoryID
+                                   SELECT c.categoryName, c.categoryClass, c.parentCategoryID
                                    FROM CATEGORY c
                                             INNER JOIN CategoryCascade ct
-                                                       ON IIF((?) = 'GET_PARENTS', c.parentCategoryID = ct.categoryClass,
+                                                       ON IIF((?) = 'GET_PARENTS',
+                                                              c.parentCategoryID = ct.categoryClass,
                                                               c.categoryClass = ct.parentCategoryID))
-SELECT CATEGORY.categoryClass, CATEGORY.categoryName
+SELECT CATEGORY.categoryClass, CATEGORY.categoryName, CATEGORY.parentCategoryID
 FROM CATEGORY,
      CategoryCascade
 WHERE CategoryCascade.categoryClass = CATEGORY.categoryClass
