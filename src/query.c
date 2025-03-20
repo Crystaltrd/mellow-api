@@ -784,7 +784,7 @@ void process(const enum statement STATEMENT) {
         for (int i = 0; i < res->psz; ++i) {
             switch (res->ps[i].type) {
                 case SQLBOX_PARM_INT:
-                    if (strcmp(rows[STATEMENT][i], "perms") == 0 && r.fieldmap[KEY_PERMS_DETAILS]) {
+                    if (STATEMENT == STMTS_ROLE && r.fieldmap[KEY_PERMS_DETAILS]) {
                         struct accperms perms = int_to_accperms((int) res->ps[i].iparm);
                         kjson_putintp(&req, "numerical", res->ps[i].iparm);
                         kjson_objp_open(&req, rows[STATEMENT][i]);
