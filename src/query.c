@@ -714,6 +714,7 @@ int main(void) {
     puts("Status: 200 OK\r");
     puts("Content-Type: text/html\r");
     puts("\r");
+    printf("%d",get_stmts());
     puts(pstmts[get_stmts()].stmt);
     return EXIT_SUCCESS;
 }
