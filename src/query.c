@@ -201,7 +201,7 @@ struct sqlbox_src srcs[] = {
 struct sqlbox *boxctx;
 struct sqlbox_cfg cfg;
 size_t dbid; // Database associated with a config and a context
-static const struct sqlbox_pstmt pstmts[STMTS__MAX] = {
+static struct sqlbox_pstmt pstmts[STMTS__MAX] = {
     {
         (char *)
         "SELECT publisherName FROM PUBLISHER LEFT JOIN BOOK B ON B.publisher = PUBLISHER.publisherName WHERE ((?) = 'IGNORE_NAME' OR instr(publisherName, (?)) > 0) AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) GROUP BY publisherName ORDER BY IIF((?) = 'POPULAR', SUM(hits), COUNT()) DESC LIMIT 10 OFFSET (? * 10)"
