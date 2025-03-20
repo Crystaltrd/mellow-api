@@ -171,6 +171,22 @@ enum statement {
     STMTS__MAX
 };
 
+static const char *rows[STMTS__MAX][8] = {
+    {"publisherName"},
+    {"authorName"},
+    {"langcode"},
+    {"actionName"},
+    {"typeName"},
+    {"campusName"},
+    {"roleName", "perms"},
+    {"categoryClass", "categoryName", "parentCategoryID"},
+    {"categoryClass", "categoryName", "parentCategoryID"},
+    {"UUID", "displayname", "pwhash", "campus", "role"},
+    {"serialnum", "type", "category", "publisher", "booktitle", "bookreleaseyear", "bookcover", "hits"},
+    {"serialnum", "campus", "instock"},
+    {"UUID", "serialnum", "rentduration", "rentdate", "extended"},
+    {"UUID", "UUID_ISSUER", "serialnum", "action", "actiondate"}
+};
 /*
  * Helper function to get the Statement for a specific page
  */
@@ -722,38 +738,36 @@ void process(const enum statement STATEMENT) {
     khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
     khttp_head(&r, kresps[KRESP_VARY], "%s", "Origin");
     khttp_body(&r);
-    kjson_open(&req,&r);
-    kjson_obj_open(&req);
-    kjson_arrayp_open(&req,"result");
+    kjson_open(&req, &r);
+    kjson_array_open(&req);
     while ((res = sqlbox_step(boxctx, stmtid)) != NULL && res->code == SQLBOX_CODE_OK && res->psz != 0) {
-        kjson_array_open(&req);
+        kjson_obj_open(&req);
         for (int i = 0; i < res->psz; ++i) {
             switch (res->ps[i].type) {
                 case SQLBOX_PARM_INT:
-                    kjson_putint(&req, res->ps[i].iparm);
+                    kjson_putintp(&req, rows[STATEMENT][i], res->ps[i].iparm);
                     break;
                 case SQLBOX_PARM_STRING:
-                    kjson_putstring(&req, res->ps[i].sparm);
+                    kjson_putstringp(&req, rows[STATEMENT][i], res->ps[i].sparm);
                     break;
                 case SQLBOX_PARM_FLOAT:
-                    kjson_putdouble(&req, res->ps[i].fparm);
+                    kjson_putdoublep(&req, rows[STATEMENT][i], res->ps[i].fparm);
                     break;
                 case SQLBOX_PARM_BLOB:
-                    kjson_putstring(&req, res->ps[i].bparm);
+                    kjson_putstringp(&req, rows[STATEMENT][i], res->ps[i].bparm);
                     break;
                 case SQLBOX_PARM_NULL:
-                    kjson_putnull(&req);
+                    kjson_putnullp(&req, rows[STATEMENT][i]);
                     break;
                 default:
                     break;
             }
         }
-        kjson_array_close(&req);
+        kjson_obj_close(&req);
     }
     if (!sqlbox_finalise(boxctx, stmtid))
         errx(EXIT_FAILURE, "sqlbox_finalise");
     kjson_array_close(&req);
-    kjson_obj_close(&req);
     kjson_close(&req);
     khttp_free(&r);
     if (res == NULL)
