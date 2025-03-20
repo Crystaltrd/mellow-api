@@ -144,7 +144,9 @@ static const struct kvalid keys[KEY__MAX] = {
     {kvalid_date, "from_date"},
     {kvalid_date, "to_date"},
 };
-
+/*
+ * Pre-made SQL statements
+ */
 enum statement {
     STMTS_PUBLISHER,
     STMTS_AUTHOR,
