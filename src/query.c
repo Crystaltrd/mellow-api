@@ -29,6 +29,19 @@ struct accperms {
     bool inventory;
 };
 
+struct accperms int_to_accperms(int perm) {
+    struct accperms perms = {
+        .admin = (perm & (1 << 6)),
+        .staff = (perm & (1 << 5)),
+        .manage_books = (perm & (1 << 4)),
+        .manage_stock = (perm & (1 << 3)),
+        .return_book = (perm & (1 << 2)),
+        .rent_book = (perm & (1 << 1)),
+        .inventory = (perm & 1)
+    };
+    return perms;
+}
+
 /*
  * All possible sub-pages in the query endpoint with their corresponding names
  */
@@ -102,6 +115,7 @@ enum key {
     KEY_FILTER_BY_ACTION,
     KEY_FILTER_FROM_DATE,
     KEY_FILTER_TO_DATE,
+    KEY_PERMS_DETAILS,
     KEY__MAX
 };
 
@@ -149,6 +163,7 @@ static const struct kvalid keys[KEY__MAX] = {
     {kvalid_string, "by_action"},
     {kvalid_date, "from_date"},
     {kvalid_date, "to_date"},
+    {NULL, "details"},
 };
 /*
  * Pre-made SQL statements
@@ -769,7 +784,20 @@ void process(const enum statement STATEMENT) {
         for (int i = 0; i < res->psz; ++i) {
             switch (res->ps[i].type) {
                 case SQLBOX_PARM_INT:
-                    kjson_putintp(&req, rows[STATEMENT][i], res->ps[i].iparm);
+                    if (strcmp(rows[STATEMENT][i], "perms") == 0 && r.fieldmap[KEY_PERMS_DETAILS]) {
+                        struct accperms perms = int_to_accperms((int) res->ps[i].iparm);
+                        kjson_putintp(&req, "numerical", res->ps[i].iparm);
+                        kjson_objp_open(&req, rows[STATEMENT][i]);
+                        kjson_putboolp(&req, "admin", perms.admin);
+                        kjson_putboolp(&req, "staff", perms.staff);
+                        kjson_putboolp(&req, "manage_books", perms.manage_books);
+                        kjson_putboolp(&req, "manage_stock", perms.manage_stock);
+                        kjson_putboolp(&req, "return_book", perms.return_book);
+                        kjson_putboolp(&req, "rent_book", perms.rent_book);
+                        kjson_putboolp(&req, "inventory", perms.inventory);
+                        kjson_obj_close(&req);
+                    } else
+                        kjson_putintp(&req, rows[STATEMENT][i], res->ps[i].iparm);
                     break;
                 case SQLBOX_PARM_STRING:
                     kjson_putstringp(&req, rows[STATEMENT][i], res->ps[i].sparm);
