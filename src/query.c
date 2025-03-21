@@ -784,6 +784,7 @@ void fill_params(const enum statement STATEMENT) {
             break;
         case STMTS_HISTORY:
             parmsz = 3;
+            parms = calloc(parmsz, sizeof(struct sqlbox_parm));
             parms[0] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
                 .sparm = (!((field = r.fieldmap[KEY_FILTER_BY_ACCOUNT])) && !r.fieldmap[KEY_FILTER_SELF]) || field->
@@ -796,7 +797,6 @@ void fill_params(const enum statement STATEMENT) {
                 .type = SQLBOX_PARM_STRING,
                 .sparm = ((field = r.fieldmap[KEY_FILTER_BY_ACCOUNT])) ? field->parsed.s : "" //TODO : Handle Self
             };
-            parms = calloc(parmsz, sizeof(struct sqlbox_parm));
         break;
         default:
             errx(EXIT_FAILURE, "params");
