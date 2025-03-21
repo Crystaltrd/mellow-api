@@ -762,7 +762,7 @@ void get_cat_children(const char *class) {
         {.type = SQLBOX_PARM_STRING,.sparm = "IGNORE_CLASS"},
         {.type = SQLBOX_PARM_STRING,.sparm = ""},
         {.type = SQLBOX_PARM_STRING,.sparm = "DONT_IGNORE"},
-        {.type = SQLBOX_PARM_STRING,.sparm = class},
+        {.type = SQLBOX_PARM_STRING,.sparm = "foo"},
         {.type = SQLBOX_PARM_STRING,.sparm = "IGNORE_BOOK"},
         {.type = SQLBOX_PARM_STRING,.sparm = ""},
         {.type = SQLBOX_PARM_STRING,.sparm = "DONT_IGNORE"},
