@@ -752,25 +752,26 @@ void fill_params(const enum statement STATEMENT) {
     };
 }
 
-void get_cat_children(struct sqlbox_parm parent_res) {
+void get_cat_children(const char *class) {
     size_t stmtid;
     size_t parmsz2 = 10;
     const struct sqlbox_parmset *res;
-    struct sqlbox_parm parms2[] = {
-        {.type = SQLBOX_PARM_STRING, .sparm = "IGNORE_NAME"},
-        {.type = SQLBOX_PARM_STRING, .sparm = ""},
-        {.type = SQLBOX_PARM_STRING, .sparm = "IGNORE_CLASS"},
-        {.type = SQLBOX_PARM_STRING, .sparm = ""},
-        {.type = SQLBOX_PARM_STRING, .sparm = "DONT_IGNORE"},
-        {.type = SQLBOX_PARM_STRING, .sparm = parent_res.sparm},
-        {.type = SQLBOX_PARM_STRING, .sparm = "IGNORE_BOOK"},
-        {.type = SQLBOX_PARM_STRING, .sparm = ""},
-        {.type = SQLBOX_PARM_STRING, .sparm = "DONT_IGNORE"},
+    struct sqlbox_parm parms2[parmsz2] = {
+        {.type = SQLBOX_PARM_STRING,.sparm = "IGNORE_NAME"},
+        {.type = SQLBOX_PARM_STRING,.sparm = ""},
+        {.type = SQLBOX_PARM_STRING,.sparm = "IGNORE_CLASS"},
+        {.type = SQLBOX_PARM_STRING,.sparm = ""},
+        {.type = SQLBOX_PARM_STRING,.sparm = "DONT_IGNORE"},
+        {.type = SQLBOX_PARM_STRING,.sparm = class},
+        {.type = SQLBOX_PARM_STRING,.sparm = "IGNORE_BOOK"},
+        {.type = SQLBOX_PARM_STRING,.sparm = ""},
+        {.type = SQLBOX_PARM_STRING,.sparm = "DONT_IGNORE"},
         {.type = SQLBOX_PARM_INT, .iparm = 0}
     };
     if (!(stmtid = sqlbox_prepare_bind(boxctx, dbid, STMTS_CATEGORY, parmsz2, parms2, SQLBOX_STMT_MULTI)))
         errx(EXIT_FAILURE, "sqlbox_prepare_bind");
-
+    while ((res = sqlbox_step(boxctx, stmtid)) != NULL && res->code == SQLBOX_CODE_OK && res->psz != 0) {
+    }
     if (!sqlbox_finalise(boxctx, stmtid))
         errx(EXIT_FAILURE, "sqlbox_finalise");
 }
@@ -825,7 +826,7 @@ void process(const enum statement STATEMENT) {
         }
         if (r.fieldmap[KEY_FILTER_TREE] && STATEMENT == STMTS_CATEGORY) {
             kjson_arrayp_open(&req, "children");
-            get_cat_children(res->ps[0]);
+            get_cat_children(res->ps[0].sparm);
             kjson_array_close(&req);
         }
         kjson_obj_close(&req);
