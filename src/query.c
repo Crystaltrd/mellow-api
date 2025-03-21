@@ -790,9 +790,9 @@ void fill_params(const enum statement STATEMENT) {
             errx(EXIT_FAILURE, "params");
     }
 
-    parms[parmsz - 1] = (struct sqlbox_parm){
+    /*parms[parmsz - 1] = (struct sqlbox_parm){
         .type = SQLBOX_PARM_INT, .iparm = ((field = r.fieldmap[KEY_PAGE])) ? field->parsed.i : 0
-    };
+    };*/
 }
 
 void get_cat_children(const char *class) {
