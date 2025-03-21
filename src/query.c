@@ -286,9 +286,7 @@ static struct sqlbox_pstmt pstmts[STMTS__MAX] = {
     },
     {
 
-        (char *)
-        "SELECT UUID, serialnum, rentduration, rentdate, extended FROM INVENTORY WHERE ((?) = 'IGNORE_ACCOUNT' OR UUID = (?)) AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) ORDER BY rentdate DESC LIMIT 10 OFFSET (? * 10)"
-    },
+        (char *)"SELECT * FROM HISTORY"},
 
 };
 struct sqlbox_parm *parms; //Array of statement parameters
