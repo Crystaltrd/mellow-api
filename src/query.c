@@ -756,7 +756,7 @@ void get_cat_children(const char *class) {
     size_t stmtid;
     size_t parmsz2 = 10;
     const struct sqlbox_parmset *res;
-    struct sqlbox_parm parms2[parmsz2] = {
+    struct sqlbox_parm parms2[] = {
         {.type = SQLBOX_PARM_STRING,.sparm = "IGNORE_NAME"},
         {.type = SQLBOX_PARM_STRING,.sparm = ""},
         {.type = SQLBOX_PARM_STRING,.sparm = "IGNORE_CLASS"},
