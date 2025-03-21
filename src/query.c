@@ -286,7 +286,7 @@ static struct sqlbox_pstmt pstmts[STMTS__MAX] = {
     },
     {
 
-        (char *)"SELECT * FROM HISTORY ORDER BY actiondate DESC LIMIT 10 OFFSET (? * 10)"},
+        (char *)"SELECT UUID,UUID_ISSUER,serialnum,action,actiondate FROM HISTORY ORDER BY actiondate DESC LIMIT 10 OFFSET (? * 10)"},
 
 };
 struct sqlbox_parm *parms; //Array of statement parameters
