@@ -811,7 +811,7 @@ void fill_params(const enum statement STATEMENT) {
             break;
         default:
             errx(EXIT_FAILURE, "params");
-    }KEY_FILTER_BY_ISS
+    }
 
     parms[parmsz - 1] = (struct sqlbox_parm){
         .type = SQLBOX_PARM_INT, .iparm = ((field = r.fieldmap[KEY_PAGE])) ? field->parsed.i : 0
