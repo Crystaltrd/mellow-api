@@ -286,7 +286,7 @@ static struct sqlbox_pstmt pstmts[STMTS__MAX] = {
     },
     {
 
-        (char *)"SELECT * FROM HISTORY"
+        (char *)"SELECT UUID FROM HISTORY"
     },
 
 };
