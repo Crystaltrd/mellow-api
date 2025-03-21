@@ -783,7 +783,8 @@ void fill_params(const enum statement STATEMENT) {
             };
             break;
         case STMTS_HISTORY:
-            parmsz =1;
+            parmsz = 1;
+        break;
         default:
             errx(EXIT_FAILURE, "params");
     }
