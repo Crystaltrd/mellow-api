@@ -287,7 +287,7 @@ static struct sqlbox_pstmt pstmts[STMTS__MAX] = {
     {
 
         (char *)
-        "SELECT UUID,UUID_ISSUER,serialnum,action,actiondate FROM HISTORY WHERE ((?) = 'IGNORE_ACCOUNT' OR UUID = (?))   AND ((?) = 'IGNORE_ISSUER' OR UUID_ISSUER = (?)) ORDER BY actiondate DESC LIMIT 10 OFFSET (? * 10)"
+        "SELECT UUID,UUID_ISSUER,serialnum,action,actiondate FROM HISTORY WHERE ((?) = 'IGNORE_ACCOUNT' OR UUID = (?)) AND ((?) = 'IGNORE_ISSUER' OR UUID_ISSUER = (?)) AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) ORDER BY actiondate DESC LIMIT 10 OFFSET (? * 10)"
     },
 
 };
@@ -784,7 +784,7 @@ void fill_params(const enum statement STATEMENT) {
             };
             break;
         case STMTS_HISTORY:
-            parmsz = 5;
+            parmsz = 7;
             parms = calloc(parmsz, sizeof(struct sqlbox_parm));
             parms[0] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
@@ -807,6 +807,17 @@ void fill_params(const enum statement STATEMENT) {
             parms[3] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
                 .sparm = ((field = r.fieldmap[KEY_FILTER_BY_ISSUER])) ? field->parsed.s : ""
+            };
+            parms[4] = (struct sqlbox_parm){
+                .type = SQLBOX_PARM_STRING,
+                .sparm = !((field = r.fieldmap[KEY_FILTER_BY_BOOK])) || field->valsz <= 0
+                             ? "IGNORE_BOOK"
+                             : "DONT_IGNORE"
+
+            };
+            parms[5] = (struct sqlbox_parm){
+                .type = SQLBOX_PARM_STRING,
+                .sparm = ((field = r.fieldmap[KEY_FILTER_BY_BOOK])) ? field->parsed.s : ""
             };
             break;
         default:
