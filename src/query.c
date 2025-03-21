@@ -880,7 +880,7 @@ void process(const enum statement STATEMENT) {
         }
         if (r.fieldmap[KEY_FILTER_TREE] && STATEMENT == STMTS_CATEGORY) {
             kjson_arrayp_open(&req, "children");
-            //get_cat_children(res->ps[2].sparm);
+            get_cat_children(res->ps[2].sparm);
             kjson_array_close(&req);
         }
         kjson_obj_close(&req);
