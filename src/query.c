@@ -287,7 +287,7 @@ static struct sqlbox_pstmt pstmts[STMTS__MAX] = {
     {
 
         (char *)
-        "SELECT UUID,UUID_ISSUER,serialnum,action,actiondate FROM HISTORY WHERE ((?) = 'IGNORE_ACCOUNT' OR UUID = (?)) ORDER BY actiondate DESC LIMIT 10 OFFSET (? * 10)"
+        "SELECT UUID,UUID_ISSUER,serialnum,action,actiondate FROM HISTORY WHERE ((?) = 'IGNORE_ACCOUNT' OR UUID = (?))   AND ((?) = 'IGNORE_ISSUER' OR UUID_ISSUER = (?)) ORDER BY actiondate DESC LIMIT 10 OFFSET (? * 10)"
     },
 
 };
