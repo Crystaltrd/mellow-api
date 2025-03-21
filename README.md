@@ -168,7 +168,8 @@ Initial condition:
 SELECT categoryClass, categoryName, parentCategoryID
 FROM CATEGORY
          LEFT JOIN BOOK B ON CATEGORY.categoryClass = B.category
-WHERE ((?) = 'IGNORE_NAME' OR instr(categoryName, (?)) > 0)
+WHERE ((?) = 'ROOT' AND parentCategoryID IS NULL)
+  AND ((?) = 'IGNORE_NAME' OR instr(categoryName, (?)) > 0)
   AND ((?) = 'IGNORE_CLASS' OR categoryClass = (?))
   AND ((?) = 'IGNORE_PARENT_CLASS' OR parentCategoryID = (?))
   AND ((?) = 'IGNORE_BOOK' OR serialnum = (?))
@@ -186,7 +187,8 @@ LIMIT 10 OFFSET (? * 10)
 WITH RECURSIVE CategoryCascade AS (SELECT categoryName, categoryClass, parentCategoryID
                                    FROM CATEGORY
                                             LEFT JOIN BOOK B ON CATEGORY.categoryClass = B.category
-                                   WHERE ((?) = 'IGNORE_NAME' OR instr(categoryName, (?)) > 0)
+                                   WHERE ((?) = 'ROOT' AND parentCategoryID IS NULL)
+                                     AND ((?) = 'IGNORE_NAME' OR instr(categoryName, (?)) > 0)
                                      AND ((?) = 'IGNORE_CLASS' OR categoryClass = (?))
                                      AND ((?) = 'IGNORE_PARENT_CLASS' OR parentCategoryID = (?))
                                      AND ((?) = 'IGNORE_BOOK' OR serialnum = (?))

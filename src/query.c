@@ -262,11 +262,11 @@ static struct sqlbox_pstmt pstmts[STMTS__MAX] = {
     },
     {
         (char *)
-        "SELECT categoryClass, categoryName, parentCategoryID FROM CATEGORY LEFT JOIN BOOK B ON CATEGORY.categoryClass = B.category WHERE ((?) = 'IGNORE_NAME' OR instr(categoryName, (?)) > 0) AND ((?) = 'IGNORE_CLASS' OR categoryClass = (?)) AND ((?) = 'IGNORE_PARENT_CLASS' OR parentCategoryID = (?)) AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) GROUP BY categoryClass ORDER BY IIF((?) = 'POPULAR', SUM(hits), COUNT()) DESC LIMIT 10 OFFSET (? * 10)"
+        "SELECT categoryClass, categoryName, parentCategoryID FROM CATEGORY LEFT JOIN BOOK B ON CATEGORY.categoryClass = B.category WHERE ((?) = 'ROOT' AND parentCategoryID IS NULL) AND ((?) = 'IGNORE_NAME' OR instr(categoryName, (?)) > 0) AND ((?) = 'IGNORE_CLASS' OR categoryClass = (?)) AND ((?) = 'IGNORE_PARENT_CLASS' OR parentCategoryID = (?)) AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) GROUP BY categoryClass ORDER BY IIF((?) = 'POPULAR', SUM(hits), COUNT()) DESC LIMIT 10 OFFSET (? * 10)"
     },
     {
         (char *)
-        " WITH RECURSIVE CategoryCascade AS (SELECT categoryName,categoryClass, parentCategoryID FROM CATEGORY LEFT JOIN BOOK B ON CATEGORY.categoryClass = B.category WHERE ((?) = 'IGNORE_NAME' OR instr(categoryName, (?)) > 0) AND ((?) = 'IGNORE_CLASS' OR categoryClass = (?)) AND ((?) = 'IGNORE_PARENT_CLASS' OR parentCategoryID = (?)) AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) GROUP BY categoryClass UNION ALL SELECT c.categoryName,c.categoryClass, c.parentCategoryID FROM CATEGORY c INNER JOIN CategoryCascade ct ON IIF((?) = 'GET_PARENTS', c.categoryClass = ct.parentCategoryID, c.parentCategoryID = ct.categoryClass)) SELECT CATEGORY.categoryClass, CATEGORY.categoryName,CATEGORY.parentCategoryID FROM CATEGORY, CategoryCascade WHERE CategoryCascade.categoryClass = CATEGORY.categoryClass LIMIT 10 OFFSET (? * 10)"
+        " WITH RECURSIVE CategoryCascade AS (SELECT categoryName,categoryClass, parentCategoryID FROM CATEGORY LEFT JOIN BOOK B ON CATEGORY.categoryClass = B.category WHERE ((?) = 'ROOT' AND parentCategoryID IS NULL) AND ((?) = 'IGNORE_NAME' OR instr(categoryName, (?)) > 0) AND ((?) = 'IGNORE_CLASS' OR categoryClass = (?)) AND ((?) = 'IGNORE_PARENT_CLASS' OR parentCategoryID = (?)) AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) GROUP BY categoryClass UNION ALL SELECT c.categoryName,c.categoryClass, c.parentCategoryID FROM CATEGORY c INNER JOIN CategoryCascade ct ON IIF((?) = 'GET_PARENTS', c.categoryClass = ct.parentCategoryID, c.parentCategoryID = ct.categoryClass)) SELECT CATEGORY.categoryClass, CATEGORY.categoryName,CATEGORY.parentCategoryID FROM CATEGORY, CategoryCascade WHERE CategoryCascade.categoryClass = CATEGORY.categoryClass LIMIT 10 OFFSET (? * 10)"
     },
     {
         (char *)
@@ -404,82 +404,92 @@ void fill_params(const enum statement STATEMENT) {
 
             break;
         case STMTS_CATEGORY:
-            parmsz = 10;
+            parmsz = 11;
             parms = calloc(parmsz, sizeof(struct sqlbox_parm));
+
             parms[0] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
-                .sparm = (!r.fieldmap[KEY_FILTER_BY_NAME]) ? "IGNORE_NAME" : "DONT_IGNORE"
+                .sparm = (r.fieldmap[KEY_FILTER_TREE] || !r.fieldmap[KEY_FILTER_BY_PARENT]) ? "ROOT" : "DONT_IGNORE"
             };
             parms[1] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
-                .sparm = ((field = r.fieldmap[KEY_FILTER_BY_NAME])) ? field->parsed.s : ""
+                .sparm = (!r.fieldmap[KEY_FILTER_BY_NAME]) ? "IGNORE_NAME" : "DONT_IGNORE"
             };
             parms[2] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
-                .sparm = (!r.fieldmap[KEY_FILTER_BY_CLASS]) ? "IGNORE_CLASS" : "DONT_IGNORE"
+                .sparm = ((field = r.fieldmap[KEY_FILTER_BY_NAME])) ? field->parsed.s : ""
             };
             parms[3] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
-                .sparm = ((field = r.fieldmap[KEY_FILTER_BY_CLASS])) ? field->parsed.s : ""
+                .sparm = (!r.fieldmap[KEY_FILTER_BY_CLASS]) ? "IGNORE_CLASS" : "DONT_IGNORE"
             };
             parms[4] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
-                .sparm = (!r.fieldmap[KEY_FILTER_BY_PARENT]) ? "IGNORE_PARENT_CLASS" : "DONT_IGNORE"
+                .sparm = ((field = r.fieldmap[KEY_FILTER_BY_CLASS])) ? field->parsed.s : ""
             };
             parms[5] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
-                .sparm = ((field = r.fieldmap[KEY_FILTER_BY_PARENT])) ? field->parsed.s : ""
+                .sparm = (!r.fieldmap[KEY_FILTER_BY_PARENT]) ? "IGNORE_PARENT_CLASS" : "DONT_IGNORE"
             };
             parms[6] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
-                .sparm = (!r.fieldmap[KEY_FILTER_BY_BOOK]) ? "IGNORE_BOOK" : "DONT_IGNORE"
+                .sparm = ((field = r.fieldmap[KEY_FILTER_BY_PARENT])) ? field->parsed.s : ""
             };
             parms[7] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
-                .sparm = ((field = r.fieldmap[KEY_FILTER_BY_BOOK])) ? field->parsed.s : ""
+                .sparm = (!r.fieldmap[KEY_FILTER_BY_BOOK]) ? "IGNORE_BOOK" : "DONT_IGNORE"
             };
             parms[8] = (struct sqlbox_parm){
+                .type = SQLBOX_PARM_STRING,
+                .sparm = ((field = r.fieldmap[KEY_FILTER_BY_BOOK])) ? field->parsed.s : ""
+            };
+            parms[9] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
                 .sparm = (r.fieldmap[KEY_FILTER_BY_POPULARITY]) ? "POPULAR" : "DONT_IGNORE"
             };
             break;
         case STMTS_CATEGORY_CASCADE:
-            parmsz = 10;
+            parmsz = 11;
             parms = calloc(parmsz, sizeof(struct sqlbox_parm));
+
             parms[0] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
-                .sparm = (!r.fieldmap[KEY_FILTER_BY_NAME]) ? "IGNORE_NAME" : "DONT_IGNORE"
+                .sparm = (r.fieldmap[KEY_FILTER_TREE] || !r.fieldmap[KEY_FILTER_BY_PARENT]) ? "ROOT" : "DONT_IGNORE"
             };
             parms[1] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
-                .sparm = ((field = r.fieldmap[KEY_FILTER_BY_NAME])) ? field->parsed.s : ""
+                .sparm = (!r.fieldmap[KEY_FILTER_BY_NAME]) ? "IGNORE_NAME" : "DONT_IGNORE"
             };
             parms[2] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
-                .sparm = (!r.fieldmap[KEY_FILTER_BY_CLASS]) ? "IGNORE_CLASS" : "DONT_IGNORE"
+                .sparm = ((field = r.fieldmap[KEY_FILTER_BY_NAME])) ? field->parsed.s : ""
             };
             parms[3] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
-                .sparm = ((field = r.fieldmap[KEY_FILTER_BY_CLASS])) ? field->parsed.s : ""
+                .sparm = (!r.fieldmap[KEY_FILTER_BY_CLASS]) ? "IGNORE_CLASS" : "DONT_IGNORE"
             };
             parms[4] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
-                .sparm = (!r.fieldmap[KEY_FILTER_BY_PARENT]) ? "IGNORE_PARENT_CLASS" : "DONT_IGNORE"
+                .sparm = ((field = r.fieldmap[KEY_FILTER_BY_CLASS])) ? field->parsed.s : ""
             };
             parms[5] = (struct sqlbox_parm){
+                .type = SQLBOX_PARM_STRING,
+                .sparm = (!r.fieldmap[KEY_FILTER_BY_PARENT]) ? "IGNORE_PARENT_CLASS" : "DONT_IGNORE"
+            };
+            parms[6] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
                 .sparm = ((field = r.fieldmap[KEY_FILTER_BY_PARENT])) ? field->parsed.s : ""
             };
 
-            parms[6] = (struct sqlbox_parm){
+            parms[7] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
                 .sparm = (!r.fieldmap[KEY_FILTER_BY_BOOK]) ? "IGNORE_BOOK" : "DONT_IGNORE"
             };
-            parms[7] = (struct sqlbox_parm){
+            parms[8] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
                 .sparm = ((field = r.fieldmap[KEY_FILTER_BY_BOOK])) ? field->parsed.s : ""
             };
-            parms[8] = (struct sqlbox_parm){
+            parms[9] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
                 .sparm = (r.fieldmap[KEY_FILTER_GET_PARENTS]) ? "GET_PARENTS" : "DONT_IGNORE"
             };
@@ -754,9 +764,10 @@ void fill_params(const enum statement STATEMENT) {
 
 void get_cat_children(const char *class) {
     size_t stmtid;
-    size_t parmsz2 = 10;
+    size_t parmsz2 = 11;
     const struct sqlbox_parmset *res;
     struct sqlbox_parm parms2[] = {
+        {.type = SQLBOX_PARM_STRING, .sparm = "NOT_ROOT"},
         {.type = SQLBOX_PARM_STRING, .sparm = "IGNORE_NAME"},
         {.type = SQLBOX_PARM_STRING, .sparm = ""},
         {.type = SQLBOX_PARM_STRING, .sparm = "IGNORE_CLASS"},
