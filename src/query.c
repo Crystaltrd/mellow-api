@@ -286,7 +286,7 @@ static struct sqlbox_pstmt pstmts[STMTS__MAX] = {
     },
     {
 
-        (char *)"SELECT * FROM HISTORY"},
+        (char *)"SELECT * FROM HISTORY ORDER BY actiondate DESC LIMIT 10 OFFSET (? * 10)"},
 
 };
 struct sqlbox_parm *parms; //Array of statement parameters
@@ -756,9 +756,6 @@ void fill_params(const enum statement STATEMENT) {
                 .sparm = (r.fieldmap[KEY_FILTER_BY_POPULARITY]) ? "POPULAR" : "DONT_IGNORE"
             };
             break;
-        case STMTS_HISTORY:
-            parmsz = 0;
-            break;
         case STMTS_INVENTORY:
             parmsz = 5;
             parms = calloc(parmsz, sizeof(struct sqlbox_parm));
@@ -785,13 +782,15 @@ void fill_params(const enum statement STATEMENT) {
                 .sparm = ((field = r.fieldmap[KEY_FILTER_BY_BOOK])) ? field->parsed.s : ""
             };
             break;
+        case STMTS_HISTORY:
+            parmsz =1;
         default:
             errx(EXIT_FAILURE, "params");
     }
 
-    /*parms[parmsz - 1] = (struct sqlbox_parm){
+    parms[parmsz - 1] = (struct sqlbox_parm){
         .type = SQLBOX_PARM_INT, .iparm = ((field = r.fieldmap[KEY_PAGE])) ? field->parsed.i : 0
-    };*/
+    };
 }
 
 void get_cat_children(const char *class) {
