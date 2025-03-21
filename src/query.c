@@ -286,8 +286,7 @@ static struct sqlbox_pstmt pstmts[STMTS__MAX] = {
     },
     {
 
-        (char *)"SELECT UUID FROM HISTORY"
-    },
+        (char *)"SELECT * FROM HISTORY"},
 
 };
 struct sqlbox_parm *parms; //Array of statement parameters
@@ -758,8 +757,6 @@ void fill_params(const enum statement STATEMENT) {
             };
             break;
         case STMTS_HISTORY:
-            parmsz = 0;
-            break;
         case STMTS_INVENTORY:
             parmsz = 5;
             parms = calloc(parmsz, sizeof(struct sqlbox_parm));
