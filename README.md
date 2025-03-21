@@ -366,8 +366,8 @@ WHERE ((?) = 'IGNORE_ACCOUNT' OR UUID = (?))
   AND ((?) = 'IGNORE_ISSUER' OR UUID_ISSUER = (?))
   AND ((?) = 'IGNORE_BOOK' OR serialnum = (?))
   AND ((?) = 'IGNORE_ACTION' OR action = (?))
-  AND ((?) = 'IGNORE_FROM_DATE' OR actiondate >= (?))
-  AND ((?) = 'IGNORE_TO_DATE' OR actiondate <= (?))
+  AND ((?) = 'IGNORE_FROM_DATE' OR actiondate >= datetime(?,'unixepoch'))
+  AND ((?) = 'IGNORE_TO_DATE' OR actiondate <= datetime(?,'unixepoch'))
 ORDER BY actiondate DESC
 LIMIT 10 OFFSET (? * 10)
 ```
