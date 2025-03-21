@@ -757,20 +757,48 @@ void get_cat_children(const char *class) {
     size_t parmsz2 = 10;
     const struct sqlbox_parmset *res;
     struct sqlbox_parm parms2[] = {
-        {.type = SQLBOX_PARM_STRING,.sparm = "IGNORE_NAME"},
-        {.type = SQLBOX_PARM_STRING,.sparm = ""},
-        {.type = SQLBOX_PARM_STRING,.sparm = "IGNORE_CLASS"},
-        {.type = SQLBOX_PARM_STRING,.sparm = ""},
-        {.type = SQLBOX_PARM_STRING,.sparm = "DONT_IGNORE"},
-        {.type = SQLBOX_PARM_STRING,.sparm = class},
-        {.type = SQLBOX_PARM_STRING,.sparm = "IGNORE_BOOK"},
-        {.type = SQLBOX_PARM_STRING,.sparm = ""},
-        {.type = SQLBOX_PARM_STRING,.sparm = "DONT_IGNORE"},
+        {.type = SQLBOX_PARM_STRING, .sparm = "IGNORE_NAME"},
+        {.type = SQLBOX_PARM_STRING, .sparm = ""},
+        {.type = SQLBOX_PARM_STRING, .sparm = "IGNORE_CLASS"},
+        {.type = SQLBOX_PARM_STRING, .sparm = ""},
+        {.type = SQLBOX_PARM_STRING, .sparm = "DONT_IGNORE"},
+        {.type = SQLBOX_PARM_STRING, .sparm = class},
+        {.type = SQLBOX_PARM_STRING, .sparm = "IGNORE_BOOK"},
+        {.type = SQLBOX_PARM_STRING, .sparm = ""},
+        {.type = SQLBOX_PARM_STRING, .sparm = "DONT_IGNORE"},
         {.type = SQLBOX_PARM_INT, .iparm = 0}
     };
     if (!(stmtid = sqlbox_prepare_bind(boxctx, dbid, STMTS_CATEGORY, parmsz2, parms2, SQLBOX_STMT_MULTI)))
         errx(EXIT_FAILURE, "sqlbox_prepare_bind");
     while ((res = sqlbox_step(boxctx, stmtid)) != NULL && res->code == SQLBOX_CODE_OK && res->psz != 0) {
+        kjson_obj_open(&req);
+        for (int i = 0; i < res->psz; ++i) {
+            switch (res->ps[i].type) {
+                case SQLBOX_PARM_INT:
+                    kjson_putintp(&req, rows[STMTS_CATEGORY][i], res->ps[i].iparm);
+                    break;
+                case SQLBOX_PARM_STRING:
+                    kjson_putstringp(&req, rows[STMTS_CATEGORY][i], res->ps[i].sparm);
+                    break;
+                case SQLBOX_PARM_FLOAT:
+                    kjson_putdoublep(&req, rows[STMTS_CATEGORY][i], res->ps[i].fparm);
+                    break;
+                case SQLBOX_PARM_BLOB:
+                    kjson_putstringp(&req, rows[STMTS_CATEGORY][i], res->ps[i].bparm);
+                    break;
+                case SQLBOX_PARM_NULL:
+                    kjson_putnullp(&req, rows[STMTS_CATEGORY][i]);
+                    break;
+                default:
+                    break;
+            }
+        }
+        /*if (r.fieldmap[KEY_FILTER_TREE] && STATEMENT == STMTS_CATEGORY) {
+            kjson_arrayp_open(&req, "children");
+            get_cat_children(res->ps[0].sparm);
+            kjson_array_close(&req);
+        }*/
+        kjson_obj_close(&req);
     }
     if (!sqlbox_finalise(boxctx, stmtid))
         errx(EXIT_FAILURE, "sqlbox_finalise");
