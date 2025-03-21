@@ -794,7 +794,6 @@ void get_cat_children(const char *class) {
     };
     if (!(stmtid = sqlbox_prepare_bind(boxctx, dbid, STMTS_CATEGORY, parmsz2, parms2, SQLBOX_STMT_MULTI)))
         errx(EXIT_FAILURE, "sqlbox_prepare_bind");
-    kjson_array_open(&req);
     while ((res = sqlbox_step(boxctx, stmtid)) != NULL && res->code == SQLBOX_CODE_OK && res->psz != 0) {
         kjson_obj_open(&req);
         for (int i = 0; i < res->psz; ++i) {
@@ -827,7 +826,6 @@ void get_cat_children(const char *class) {
     }
     if (!sqlbox_finalise(boxctx, stmtid))
         errx(EXIT_FAILURE, "sqlbox_finalise");
-    kjson_array_close(&req);
 }
 
 void process(const enum statement STATEMENT) {
