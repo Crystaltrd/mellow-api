@@ -817,11 +817,6 @@ void get_cat_children(const char *class) {
                     break;
             }
         }
-        if (r.fieldmap[KEY_FILTER_TREE]) {
-            kjson_objp_open(&req, "children");
-            get_cat_children(res->ps[2].sparm);
-            kjson_obj_close(&req);
-        }
         kjson_obj_close(&req);
     }
     if (!sqlbox_finalise(boxctx, stmtid))
