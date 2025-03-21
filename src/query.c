@@ -286,7 +286,7 @@ static struct sqlbox_pstmt pstmts[STMTS__MAX] = {
     },
     {
 
-        (char *)"SELECT UUID,UUID_ISSUER,serialnum,action,actiondate FROM HISTORY ORDER BY actiondate DESC LIMIT 10 OFFSET (? * 10)"},
+        (char *)"SELECT UUID,UUID_ISSUER,serialnum,action,actiondate FROM HISTORY WHERE ((?) = 'IGNORE_ACCOUNT' OR UUID = (?)) ORDER BY actiondate DESC LIMIT 10 OFFSET (? * 10)"},
 
 };
 struct sqlbox_parm *parms; //Array of statement parameters
@@ -783,7 +783,19 @@ void fill_params(const enum statement STATEMENT) {
             };
             break;
         case STMTS_HISTORY:
-            parmsz = 1;
+            parmsz = 3;
+            parms[0] = (struct sqlbox_parm){
+                .type = SQLBOX_PARM_STRING,
+                .sparm = (!((field = r.fieldmap[KEY_FILTER_BY_ACCOUNT])) && !r.fieldmap[KEY_FILTER_SELF]) || field->
+                         valsz <= 0
+                             ? "IGNORE_ACCOUNT"
+                             : "DONT_IGNORE"
+            };
+
+            parms[1] = (struct sqlbox_parm){
+                .type = SQLBOX_PARM_STRING,
+                .sparm = ((field = r.fieldmap[KEY_FILTER_BY_ACCOUNT])) ? field->parsed.s : "" //TODO : Handle Self
+            };
             parms = calloc(parmsz, sizeof(struct sqlbox_parm));
         break;
         default:
