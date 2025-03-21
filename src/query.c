@@ -329,21 +329,24 @@ void fill_params(const enum statement STATEMENT) {
             parmsz = 6;
             parms = calloc(parmsz, sizeof(struct sqlbox_parm));
             parms[0] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING, .sparm = (!r.fieldmap[KEY_FILTER_BY_NAME]) ? "IGNORE_NAME" : "DONT_IGNORE"
+                .type = SQLBOX_PARM_STRING,
+                .sparm = !((field = r.fieldmap[KEY_FILTER_BY_NAME])) ? "IGNORE_NAME" : "DONT_IGNORE"
             };
             parms[1] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
                 .sparm = ((field = r.fieldmap[KEY_FILTER_BY_NAME])) ? field->parsed.s : ""
             };
             parms[2] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING, .sparm = (!r.fieldmap[KEY_FILTER_BY_BOOK]) ? "IGNORE_BOOK" : "DONT_IGNORE"
+                .type = SQLBOX_PARM_STRING,
+                .sparm = (!r.fieldmap[KEY_FILTER_BY_BOOK]) ? "IGNORE_BOOK" : "DONT_IGNORE"
             };
             parms[3] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
                 .sparm = ((field = r.fieldmap[KEY_FILTER_BY_BOOK])) ? field->parsed.s : ""
             };
             parms[4] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING, .sparm = (r.fieldmap[KEY_FILTER_BY_POPULARITY]) ? "POPULAR" : "DONT_IGNORE"
+                .type = SQLBOX_PARM_STRING,
+                .sparm = (r.fieldmap[KEY_FILTER_BY_POPULARITY]) ? "POPULAR" : "DONT_IGNORE"
             };
             break;
         case STMTS_CAMPUS:
@@ -615,7 +618,6 @@ void fill_params(const enum statement STATEMENT) {
                 .type = SQLBOX_PARM_STRING,
                 .sparm = ((field = r.fieldmap[KEY_FILTER_BY_CAMPUS])) ? field->parsed.s : ""
             };
-
             parms[16] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
                 .sparm = (!r.fieldmap[KEY_FILTER_BY_ACCOUNT]) ? "IGNORE_ACCOUNT" : "DONT_IGNORE"
@@ -829,6 +831,8 @@ void process(const enum statement STATEMENT) {
     kjson_array_open(&req);
     while ((res = sqlbox_step(boxctx, stmtid)) != NULL && res->code == SQLBOX_CODE_OK && res->psz != 0) {
         kjson_obj_open(&req);
+        kjson_putstringp(&req,"by_name",r.fieldmap[KEY_FILTER_BY_NAME]->parsed.s);
+        kjson_putintp(&req,"by_namesz",(int)r.fieldmap[KEY_FILTER_BY_NAME]->valsz);
         for (int i = 0; i < res->psz; ++i) {
             switch (res->ps[i].type) {
                 case SQLBOX_PARM_INT:
