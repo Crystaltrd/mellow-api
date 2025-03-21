@@ -285,9 +285,11 @@ static struct sqlbox_pstmt pstmts[STMTS__MAX] = {
         "SELECT UUID, serialnum, rentduration, rentdate, extended FROM INVENTORY WHERE ((?) = 'IGNORE_ACCOUNT' OR UUID = (?)) AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) ORDER BY rentdate DESC LIMIT 10 OFFSET (? * 10)"
     },
     {
+
         (char *)
-        "SELECT UUID, UUID_ISSUER, serialnum, action, actiondate FROM HISTORY WHERE ((?) = 'IGNORE_ACCOUNT' OR UUID = (?)) AND ((?) = 'IGNORE_ISSUER' OR UUID_ISSUER = (?)) AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) AND ((?) = 'IGNORE_ACTION' OR action = (?)) AND ((?) = 'IGNORE_FROM_DATE' OR actiondate >= (?)) AND ((?) = 'IGNORE_TO_DATE' OR actiondate <= (?)) ORDER BY actiondate DESC LIMIT 10 OFFSET (? * 10)"
-    }
+        "SELECT UUID, serialnum, rentduration, rentdate, extended FROM INVENTORY WHERE ((?) = 'IGNORE_ACCOUNT' OR UUID = (?)) AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) ORDER BY rentdate DESC LIMIT 10 OFFSET (? * 10)"
+    },
+
 };
 struct sqlbox_parm *parms; //Array of statement parameters
 size_t parmsz;
@@ -756,6 +758,7 @@ void fill_params(const enum statement STATEMENT) {
                 .sparm = (r.fieldmap[KEY_FILTER_BY_POPULARITY]) ? "POPULAR" : "DONT_IGNORE"
             };
             break;
+        case STMTS_HISTORY:
         case STMTS_INVENTORY:
             parmsz = 5;
             parms = calloc(parmsz, sizeof(struct sqlbox_parm));
@@ -780,72 +783,6 @@ void fill_params(const enum statement STATEMENT) {
             parms[3] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
                 .sparm = ((field = r.fieldmap[KEY_FILTER_BY_BOOK])) ? field->parsed.s : ""
-            };
-            break;
-        case STMTS_HISTORY:
-            parmsz = 12;
-            parms = calloc(parmsz, sizeof(struct sqlbox_parm));
-            parms[0] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = (!((field = r.fieldmap[KEY_FILTER_BY_ACCOUNT])) && !r.fieldmap[KEY_FILTER_SELF]) || field->
-                         valsz <= 0
-                             ? "IGNORE_ACCOUNT"
-                             : "DONT_IGNORE"
-            };
-            parms[1] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = ((field = r.fieldmap[KEY_FILTER_BY_ACCOUNT])) ? field->parsed.s : "" //TODO : Handle Self
-            };
-            parms[2] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = !((field = r.fieldmap[KEY_FILTER_BY_ISSUER])) || field->valsz <= 0
-                             ? "IGNORE_ISSUER"
-                             : "DONT_IGNORE"
-            };
-            parms[3] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = ((field = r.fieldmap[KEY_FILTER_BY_ISSUER])) ? field->parsed.s : "" //TODO : Handle Self
-            };
-            parms[4] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = !((field = r.fieldmap[KEY_FILTER_BY_BOOK])) || field->valsz <= 0
-                             ? "IGNORE_BOOK"
-                             : "DONT_IGNORE"
-
-            };
-            parms[5] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = ((field = r.fieldmap[KEY_FILTER_BY_BOOK])) ? field->parsed.s : ""
-            };
-            parms[5] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = !((field = r.fieldmap[KEY_FILTER_BY_ACTION])) || field->valsz <= 0
-                             ? "IGNORE_ACTION"
-                             : "DONT_IGNORE"
-            };
-            parms[6] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = ((field = r.fieldmap[KEY_FILTER_BY_ACTION])) ? field->parsed.s : ""
-            };
-            parms[7] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = !((field = r.fieldmap[KEY_FILTER_FROM_DATE])) || field->valsz <= 0
-                             ? "IGNORE_FROM_DATE"
-                             : "DONT_IGNORE"
-            };
-            parms[8] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = ((field = r.fieldmap[KEY_FILTER_FROM_DATE])) ? field->parsed.s : ""
-            };
-            parms[9] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = !((field = r.fieldmap[KEY_FILTER_TO_DATE])) || field->valsz <= 0
-                             ? "IGNORE_TO_DATE"
-                             : "DONT_IGNORE"
-            };
-            parms[10] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = ((field = r.fieldmap[KEY_FILTER_TO_DATE])) ? field->parsed.s : ""
             };
             break;
         default:
