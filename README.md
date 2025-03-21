@@ -268,8 +268,7 @@ LIMIT 10 OFFSET (? * 10)
 
 WITH RECURSIVE CategoryCascade AS (SELECT categoryClass, parentCategoryID
                                    FROM CATEGORY
-                                   WHERE ((?) = 'ROOT' AND parentCategoryID IS NULL)
-                                      OR categoryClass = (?)
+                                   WHERE IIF((?) = 'ROOT', parentCategoryID IS NULL,categoryClass = (?))
                                    UNION ALL
                                    SELECT c.categoryClass, c.parentCategoryID
                                    FROM CATEGORY c
