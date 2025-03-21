@@ -793,7 +793,7 @@ void get_cat_children(const char *class) {
                     break;
             }
         }
-        if (r.fieldmap[KEY_FILTER_TREE] && STATEMENT == STMTS_CATEGORY) {
+        if (r.fieldmap[KEY_FILTER_TREE]) {
             kjson_arrayp_open(&req, "children");
             get_cat_children(res->ps[0].sparm);
             kjson_array_close(&req);
