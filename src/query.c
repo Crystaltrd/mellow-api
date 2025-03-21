@@ -787,8 +787,7 @@ void fill_params(const enum statement STATEMENT) {
             parms = calloc(parmsz, sizeof(struct sqlbox_parm));
             parms[0] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
-                .sparm = (!((field = r.fieldmap[KEY_FILTER_BY_ACCOUNT])) && !r.fieldmap[KEY_FILTER_SELF]) || field->
-                         valsz <= 0
+                .sparm = !((field = r.fieldmap[KEY_FILTER_BY_ACCOUNT])) || field->valsz <= 0
                              ? "IGNORE_ACCOUNT"
                              : "DONT_IGNORE"
             };
