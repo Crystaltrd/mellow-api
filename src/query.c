@@ -834,8 +834,8 @@ void fill_params(const enum statement STATEMENT) {
                              : "DONT_IGNORE"
             };
             parms[8] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = ((field = r.fieldmap[KEY_FILTER_FROM_DATE])) ? field->parsed.s : ""
+                .type = SQLBOX_PARM_INT,
+                .iparm = ((field = r.fieldmap[KEY_FILTER_FROM_DATE])) ? field->parsed.i : 0
             };
             parms[9] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
@@ -844,8 +844,8 @@ void fill_params(const enum statement STATEMENT) {
                              : "DONT_IGNORE"
             };
             parms[10] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = ((field = r.fieldmap[KEY_FILTER_TO_DATE])) ? field->parsed.s : ""
+                .type = SQLBOX_PARM_INT,
+                .iparm = ((field = r.fieldmap[KEY_FILTER_TO_DATE])) ? field->parsed.i : 0
             };
             break;
         default:
