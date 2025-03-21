@@ -196,8 +196,8 @@ WITH RECURSIVE CategoryCascade AS (SELECT categoryName, categoryClass, parentCat
                                    FROM CATEGORY c
                                             INNER JOIN CategoryCascade ct
                                                        ON IIF((?) = 'GET_PARENTS',
-                                                              c.parentCategoryID = ct.categoryClass,
-                                                              c.categoryClass = ct.parentCategoryID))
+                                                              c.categoryClass = ct.parentCategoryID,
+                                                              c.parentCategoryID = ct.categoryClass))
 SELECT CATEGORY.categoryClass, CATEGORY.categoryName, CATEGORY.parentCategoryID
 FROM CATEGORY,
      CategoryCascade
