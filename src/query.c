@@ -756,51 +756,21 @@ void get_cat_children(const char *class) {
     size_t stmtid;
     size_t parmsz2 = 10;
     const struct sqlbox_parmset *res;
-    struct sqlbox_parm *parms2 = calloc(parmsz2, sizeof(struct sqlbox_parm));
-    parms2[0] = (struct sqlbox_parm){
-        .type = SQLBOX_PARM_STRING,
-        .sparm = "IGNORE_NAME"
-    };
-    parms2[1] = (struct sqlbox_parm){
-        .type = SQLBOX_PARM_STRING,
-        .sparm = ""
-    };
-    parms2[2] = (struct sqlbox_parm){
-        .type = SQLBOX_PARM_STRING,
-        .sparm = "IGNORE_CLASS"
-    };
-    parms2[3] = (struct sqlbox_parm){
-        .type = SQLBOX_PARM_STRING,
-        .sparm = ""
-    };
-    parms2[4] = (struct sqlbox_parm){
-        .type = SQLBOX_PARM_STRING,
-        .sparm = "DONT_IGNORE"
-    };
-    parms2[5] = (struct sqlbox_parm){
-        .type = SQLBOX_PARM_STRING,
-        .sparm = class
-    };
-    parms2[6] = (struct sqlbox_parm){
-        .type = SQLBOX_PARM_STRING,
-        .sparm = "IGNORE_BOOK"
-    };
-    parms2[7] = (struct sqlbox_parm){
-        .type = SQLBOX_PARM_STRING,
-        .sparm = ""
-    };
-    parms2[8] = (struct sqlbox_parm){
-        .type = SQLBOX_PARM_STRING,
-        .sparm = "DONT_IGNORE"
-    };
-
-    parms2[9] = (struct sqlbox_parm){
-        .type = SQLBOX_PARM_INT, .iparm = 0
+    struct sqlbox_parm parms2[parmsz2] = {
+        {.type = SQLBOX_PARM_STRING,.sparm = "IGNORE_NAME"},
+        {.type = SQLBOX_PARM_STRING,.sparm = ""},
+        {.type = SQLBOX_PARM_STRING,.sparm = "IGNORE_CLASS"},
+        {.type = SQLBOX_PARM_STRING,.sparm = ""},
+        {.type = SQLBOX_PARM_STRING,.sparm = "DONT_IGNORE"},
+        {.type = SQLBOX_PARM_STRING,.sparm = class},
+        {.type = SQLBOX_PARM_STRING,.sparm = "IGNORE_BOOK"},
+        {.type = SQLBOX_PARM_STRING,.sparm = ""},
+        {.type = SQLBOX_PARM_STRING,.sparm = "DONT_IGNORE"},
+        {.type = SQLBOX_PARM_INT, .iparm = 0}
     };
     if (!(stmtid = sqlbox_prepare_bind(boxctx, dbid, STMTS_CATEGORY, parmsz2, parms2, SQLBOX_STMT_MULTI)))
         errx(EXIT_FAILURE, "sqlbox_prepare_bind");
-    while ((res = sqlbox_step(boxctx, stmtid)) != NULL && res->code == SQLBOX_CODE_OK && res->psz != 0) {
-    }
+
     if (!sqlbox_finalise(boxctx, stmtid))
         errx(EXIT_FAILURE, "sqlbox_finalise");
 }
