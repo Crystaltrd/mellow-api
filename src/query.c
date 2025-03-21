@@ -481,7 +481,7 @@ void fill_params(const enum statement STATEMENT) {
             };
             parms[8] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
-                .sparm = (r.fieldmap[KEY_FILTER_GET_PARENTS]) ? "GET_PARENTS" : "DONT_IGNORE"
+                .sparm = (!r.fieldmap[KEY_FILTER_GET_PARENTS]) ? "GET_PARENTS" : "DONT_IGNORE"
             };
             break;
         case STMTS_ACCOUNT:
