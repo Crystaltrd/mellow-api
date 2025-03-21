@@ -784,7 +784,7 @@ void fill_params(const enum statement STATEMENT) {
             };
             break;
         case STMTS_HISTORY:
-            parmsz = 7;
+            parmsz = 9;
             parms = calloc(parmsz, sizeof(struct sqlbox_parm));
             parms[0] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
