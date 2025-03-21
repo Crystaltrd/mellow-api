@@ -924,6 +924,7 @@ void process(const enum statement STATEMENT) {
     kjson_array_open(&req);
     while ((res = sqlbox_step(boxctx, stmtid)) != NULL && res->code == SQLBOX_CODE_OK && res->psz != 0) {
         kjson_obj_open(&req);
+        kjson_putintp(&req,"Date",r.fieldmap[KEY_FILTER_FROM_DATE]->parsed.i);
         for (int i = 0; i < res->psz; ++i) {
             switch (res->ps[i].type) {
                 case SQLBOX_PARM_INT:
