@@ -752,7 +752,7 @@ void fill_params(const enum statement STATEMENT) {
     };
 }
 
-void get_cat_children(const char *class) {
+void get_cat_children(struct sqlbox_parm parent_res) {
     size_t stmtid;
     size_t parmsz2 = 10;
     const struct sqlbox_parmset *res;
@@ -762,7 +762,7 @@ void get_cat_children(const char *class) {
         {.type = SQLBOX_PARM_STRING,.sparm = "IGNORE_CLASS"},
         {.type = SQLBOX_PARM_STRING,.sparm = ""},
         {.type = SQLBOX_PARM_STRING,.sparm = "DONT_IGNORE"},
-        {.type = SQLBOX_PARM_STRING,.sparm = "foo"},
+        {.type = SQLBOX_PARM_STRING,.sparm = parent_res.sparm},
         {.type = SQLBOX_PARM_STRING,.sparm = "IGNORE_BOOK"},
         {.type = SQLBOX_PARM_STRING,.sparm = ""},
         {.type = SQLBOX_PARM_STRING,.sparm = "DONT_IGNORE"},
@@ -825,7 +825,7 @@ void process(const enum statement STATEMENT) {
         }
         if (r.fieldmap[KEY_FILTER_TREE] && STATEMENT == STMTS_CATEGORY) {
             kjson_arrayp_open(&req, "children");
-            get_cat_children(res->ps[2].sparm);
+            get_cat_children(res->ps[2]);
             kjson_array_close(&req);
         }
         kjson_obj_close(&req);
