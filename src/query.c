@@ -756,7 +756,6 @@ void get_cat_children(struct sqlbox_parm parent_res) {
     size_t stmtid;
     size_t parmsz2 = 10;
     const struct sqlbox_parmset *res;
-    errx(EXIT_FAILURE, parent_res.sparm);
     struct sqlbox_parm parms2[] = {
         {.type = SQLBOX_PARM_STRING, .sparm = "IGNORE_NAME"},
         {.type = SQLBOX_PARM_STRING, .sparm = ""},
@@ -826,7 +825,7 @@ void process(const enum statement STATEMENT) {
         }
         if (r.fieldmap[KEY_FILTER_TREE] && STATEMENT == STMTS_CATEGORY) {
             kjson_arrayp_open(&req, "children");
-            get_cat_children(res->ps[2]);
+            errx(EXIT_FAILURE,"%s",res->ps[2].sparm);
             kjson_array_close(&req);
         }
         kjson_obj_close(&req);
