@@ -751,9 +751,10 @@ void fill_params(const enum statement STATEMENT) {
         .type = SQLBOX_PARM_INT, .iparm = ((field = r.fieldmap[KEY_PAGE])) ? field->parsed.i : 0
     };
 }
+
 void get_cat_children(const char *class) {
     size_t stmtid;
-    size_t parmsz2 = 9;
+    size_t parmsz2 = 10;
     const struct sqlbox_parmset *res;
     struct sqlbox_parm *parms2 = calloc(parmsz2, sizeof(struct sqlbox_parm));
     parms2[0] = (struct sqlbox_parm){
@@ -791,6 +792,10 @@ void get_cat_children(const char *class) {
     parms2[8] = (struct sqlbox_parm){
         .type = SQLBOX_PARM_STRING,
         .sparm = "DONT_IGNORE"
+    };
+
+    parms2[9] = (struct sqlbox_parm){
+        .type = SQLBOX_PARM_INT, .iparm = 0
     };
     if (!(stmtid = sqlbox_prepare_bind(boxctx, dbid, STMTS_CATEGORY, parmsz2, parms2, SQLBOX_STMT_MULTI)))
         errx(EXIT_FAILURE, "sqlbox_prepare_bind");
