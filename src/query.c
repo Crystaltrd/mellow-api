@@ -197,7 +197,7 @@ static const char *rows[STMTS__MAX][9] = {
     {"categoryClass", "categoryName", "parentCategoryID"},
     {"categoryClass", "categoryName", "parentCategoryID"},
     {"UUID", "displayname", "pwhash", "campus", "role"},
-    {"serialnum", "type", "category","categoryName", "publisher", "booktitle", "bookreleaseyear", "bookcover", "hits"},
+    {"serialnum", "type", "category", "categoryName", "publisher", "booktitle", "bookreleaseyear", "bookcover", "hits"},
     {"serialnum", "campus", "instock"},
     {"UUID", "serialnum", "rentduration", "rentdate", "extended"},
     {"UUID", "UUID_ISSUER", "serialnum", "action", "actiondate"}
@@ -751,6 +751,84 @@ void fill_params(const enum statement STATEMENT) {
         .type = SQLBOX_PARM_INT, .iparm = ((field = r.fieldmap[KEY_PAGE])) ? field->parsed.i : 0
     };
 }
+void get_cat_children(const char *class) {
+    size_t stmtid;
+    size_t parmsz2 = 9;
+    const struct sqlbox_parmset *res;
+    struct sqlbox_parm *parms2 = calloc(parmsz2, sizeof(struct sqlbox_parm));
+    parms2[0] = (struct sqlbox_parm){
+        .type = SQLBOX_PARM_STRING,
+        .sparm = "IGNORE_NAME"
+    };
+    parms2[1] = (struct sqlbox_parm){
+        .type = SQLBOX_PARM_STRING,
+        .sparm = ""
+    };
+    parms2[2] = (struct sqlbox_parm){
+        .type = SQLBOX_PARM_STRING,
+        .sparm = "IGNORE_CLASS"
+    };
+    parms2[3] = (struct sqlbox_parm){
+        .type = SQLBOX_PARM_STRING,
+        .sparm = ""
+    };
+    parms2[4] = (struct sqlbox_parm){
+        .type = SQLBOX_PARM_STRING,
+        .sparm = "DONT_IGNORE"
+    };
+    parms2[5] = (struct sqlbox_parm){
+        .type = SQLBOX_PARM_STRING,
+        .sparm = class
+    };
+    parms2[6] = (struct sqlbox_parm){
+        .type = SQLBOX_PARM_STRING,
+        .sparm = "IGNORE_BOOK"
+    };
+    parms2[7] = (struct sqlbox_parm){
+        .type = SQLBOX_PARM_STRING,
+        .sparm = ""
+    };
+    parms2[8] = (struct sqlbox_parm){
+        .type = SQLBOX_PARM_STRING,
+        .sparm = "DONT_IGNORE"
+    };
+    if (!(stmtid = sqlbox_prepare_bind(boxctx, dbid, STMTS_CATEGORY, parmsz2, parms2, SQLBOX_STMT_MULTI)))
+        errx(EXIT_FAILURE, "sqlbox_prepare_bind");
+    kjson_array_open(&req);
+    while ((res = sqlbox_step(boxctx, stmtid)) != NULL && res->code == SQLBOX_CODE_OK && res->psz != 0) {
+        kjson_obj_open(&req);
+        for (int i = 0; i < res->psz; ++i) {
+            switch (res->ps[i].type) {
+                case SQLBOX_PARM_INT:
+                    kjson_putintp(&req, rows[STMTS_CATEGORY][i], res->ps[i].iparm);
+                    break;
+                case SQLBOX_PARM_STRING:
+                    kjson_putstringp(&req, rows[STMTS_CATEGORY][i], res->ps[i].sparm);
+                    break;
+                case SQLBOX_PARM_FLOAT:
+                    kjson_putdoublep(&req, rows[STMTS_CATEGORY][i], res->ps[i].fparm);
+                    break;
+                case SQLBOX_PARM_BLOB:
+                    kjson_putstringp(&req, rows[STMTS_CATEGORY][i], res->ps[i].bparm);
+                    break;
+                case SQLBOX_PARM_NULL:
+                    kjson_putnullp(&req, rows[STMTS_CATEGORY][i]);
+                    break;
+                default:
+                    break;
+            }
+        }
+        if (r.fieldmap[KEY_FILTER_TREE]) {
+            kjson_objp_open(&req, "children");
+            get_cat_children(res->ps[2].sparm);
+            kjson_obj_close(&req);
+        }
+        kjson_obj_close(&req);
+    }
+    if (!sqlbox_finalise(boxctx, stmtid))
+        errx(EXIT_FAILURE, "sqlbox_finalise");
+    kjson_array_close(&req);
+}
 
 void process(const enum statement STATEMENT) {
     size_t stmtid;
@@ -800,6 +878,11 @@ void process(const enum statement STATEMENT) {
                     break;
             }
         }
+        if (r.fieldmap[KEY_FILTER_TREE] && STATEMENT == STMTS_CATEGORY) {
+            kjson_objp_open(&req, "children");
+            get_cat_children(res->ps[2].sparm);
+            kjson_obj_close(&req);
+        }
         kjson_obj_close(&req);
     }
     if (!sqlbox_finalise(boxctx, stmtid))
@@ -810,6 +893,7 @@ void process(const enum statement STATEMENT) {
     if (res == NULL)
         errx(EXIT_FAILURE, "sqlbox_step");
 }
+
 
 int main(void) {
     // Parse the http request and match the keys to the keys, and pages to the pages, default to
