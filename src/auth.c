@@ -33,7 +33,9 @@ int main() {
         return EXIT_FAILURE;
     if (r.cookiemap[COOKIE_UUID] == NULL || r.cookiemap[COOKIE_SESSIONID] == NULL) {
         khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
-        khttp_head(&r, kresps[KRESP_SET_COOKIE], "userid=foo; sessionid=bar; Path=/; expires=%s",
+        khttp_head(&r, kresps[KRESP_SET_COOKIE], "userid=foo; Path=/; expires=%s",
+                   khttp_epoch2str(time(NULL) + 60 * 60, buf, sizeof(buf)));
+        khttp_head(&r, kresps[KRESP_SET_COOKIE], "sessionid=foo; Path=/; expires=%s",
                    khttp_epoch2str(time(NULL) + 60 * 60, buf, sizeof(buf)));
         khttp_body(&r);
         kjson_open(&req, &r);
