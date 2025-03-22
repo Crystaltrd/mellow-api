@@ -36,7 +36,7 @@ enum statement {
     STMTS__MAX
 };
 
-static struct sqlbox_pstmt pstmts[STMTS__MAX]{
+static struct sqlbox_pstmt pstmts[STMTS__MAX] = {
     {(char *) "SELECT EXISTS(SELECT 1 FROM ACCOUNT WHERE UUID=(?) AND pwhash=(?) LIMIT 1"},
     {(char *) "INSERT INTO SESSIONS VALUES((?),(?),datetime('now',(?),'localtime'))"}
 };
