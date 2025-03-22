@@ -988,6 +988,7 @@ int main(void) {
         khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_404]);
         khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
         khttp_head(&r, kresps[KRESP_VARY], "%s", "Origin");
+        khttp_body(&r);
         khttp_free(&r);
         return EXIT_SUCCESS;
     }
