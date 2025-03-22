@@ -925,6 +925,7 @@ void process(const enum statement STATEMENT) {
     khttp_head(&r, kresps[KRESP_VARY], "%s", "Origin");
     khttp_body(&r);
     kjson_open(&req, &r);
+    khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_404]);
     kjson_array_open(&req);
     while ((res = sqlbox_step(boxctx, stmtid)) != NULL && res->code == SQLBOX_CODE_OK && res->psz != 0) {
         kjson_obj_open(&req);
