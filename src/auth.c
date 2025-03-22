@@ -45,7 +45,7 @@ enum khttp sanitize() {
     if (r.method != KMETHOD_POST)
         return KHTTP_405;
     if (!r.fieldmap[KEY_UUID] || !r.fieldmap[KEY_PASSWD])
-        return KHTTP_402;
+        return KHTTP_406;
     return KHTTP_200;
 }
 
