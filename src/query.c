@@ -979,10 +979,10 @@ void process(const enum statement STATEMENT) {
 }
 
 
-enum khttp sanitize(const struct kreq *r) {
-    if (r->method != KMETHOD_GET)
+enum khttp sanitize() {
+    if (r.method != KMETHOD_GET)
         return KHTTP_405;
-    if (r->page == PG__MAX)
+    if (r.page == PG__MAX)
         return KHTTP_404;
     return KHTTP_200;
 }
@@ -993,7 +993,7 @@ int main(void) {
     // querying the INVENTORY if no page was found
     if (khttp_parse(&r, keys, KEY__MAX, pages, PG__MAX, PG_INVENTORY) != KCGI_OK)
         return EXIT_FAILURE;
-    if ((er = sanitize(&r)) != KHTTP_200) {
+    if ((er = sanitize()) != KHTTP_200) {
         khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[er]);
         khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
         khttp_head(&r, kresps[KRESP_VARY], "%s", "Origin");

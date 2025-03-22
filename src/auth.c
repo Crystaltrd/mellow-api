@@ -14,6 +14,9 @@
 #include <stdio.h>
 #include <time.h>
 
+struct kreq r;
+struct kjsonreq req;
+
 enum key {
     KEY_UUID,
     KEY_PASSWD,
@@ -27,22 +30,32 @@ static const struct kvalid keys[KEY__MAX] = {
     {NULL, "remember"},
 };
 
+enum statement {
+    STMTS_CHECK,
+    STMTS_ADD,
+    STMTS__MAX
+};
 
-enum khttp sanitize(const struct kreq *r) {
-    if (r->method != KMETHOD_POST)
+static struct sqlbox_pstmt pstmts[STMTS__MAX]{
+    {(char *) "SELECT EXISTS(SELECT 1 FROM ACCOUNT WHERE UUID=(?) AND pwhash=(?) LIMIT 1"},
+    {(char *) "INSERT INTO SESSIONS VALUES((?),(?),datetime('now',(?),'localtime'))"}
+};
+
+enum khttp sanitize() {
+    if (r.method != KMETHOD_POST)
         return KHTTP_405;
+    if (!r.fieldmap[KEY_UUID] || !r.fieldmap[KEY_PASSWD])
+        return KHTTP_402;
     return KHTTP_200;
 }
 
 int main() {
-    struct kreq r;
-    struct kjsonreq req;
     enum khttp er;
     if (khttp_parse(&r, keys, KEY__MAX, NULL, 0, 0) != KCGI_OK)
         return EXIT_FAILURE;
-    if ((er = sanitize(&r)) != KHTTP_200) {
-        khttp_head(&r, kresps[KRESP_STATUS],"%s", khttps[er]);
-        khttp_head(&r, kresps[KRESP_CONTENT_TYPE],"%s", kmimetypes[KMIME_TEXT_PLAIN]);
+    if ((er = sanitize()) != KHTTP_200) {
+        khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[er]);
+        khttp_head(&r, kresps[KRESP_CONTENT_TYPE], "%s", kmimetypes[KMIME_TEXT_PLAIN]);
         khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
         khttp_head(&r, kresps[KRESP_VARY], "%s", "Origin");
         khttp_body(&r);
