@@ -26,6 +26,7 @@ auth.o:
 query.o:
 	${CC} ${CFLAGS} -c -o query.o src/query.c
 database.db: misc/database-scheme.sql
+	rm database.db
 	sqlite3 database.db < misc/database-scheme.sql
 clean:
 	rm auth.o
