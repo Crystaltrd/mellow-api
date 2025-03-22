@@ -12,6 +12,7 @@
 #include <sqlbox.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <time.h>
 
 enum cookie {
     COOKIE_UUID,
@@ -27,12 +28,13 @@ static const struct kvalid cookies[COOKIE__MAX] = {
 int main() {
     struct kreq r;
     struct kjsonreq req;
+    char buf[32]
     if (khttp_parse(&r, cookies, COOKIE__MAX, NULL, 0, 0) != KCGI_OK)
         return EXIT_FAILURE;
-
     if (r.cookiemap[COOKIE_UUID] == NULL || r.cookiemap[COOKIE_SESSIONID] == NULL) {
         khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
-        khttp_head(&r, kresps[KRESP_SET_COOKIE],"userid=foo; sessionid=bar; Path=/");
+        khttp_head(&r, kresps[KRESP_SET_COOKIE], "userid=foo; sessionid=bar; Path=/; expires=%s",
+                   khttp_epoch2str(time(NULL) + 60 * 60, buf, sizeof(buf)));
         khttp_body(&r);
         kjson_open(&req, &r);
         kjson_obj_open(&req);
