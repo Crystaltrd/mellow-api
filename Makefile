@@ -28,7 +28,7 @@ query.o:
 database.db: misc/database-scheme.sql
 	sqlite3 database.db < misc/database-scheme.sql
 clean:
-	rm -rfv auth.o
-	rm -rfv query.o
-	rm -rfv query
-	rm -rfv auth
+	rm auth.o
+	rm query.o
+	rm query
+	rm auth
