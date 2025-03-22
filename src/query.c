@@ -928,7 +928,7 @@ void process(const enum statement STATEMENT) {
     kjson_array_open(&req);
     while ((res = sqlbox_step(boxctx, stmtid)) != NULL && res->code == SQLBOX_CODE_OK && res->psz != 0) {
         kjson_obj_open(&req);
-        for (int i = 0; i < (int)res->psz; ++i) {
+        for (int i = 0; i < (int) res->psz; ++i) {
             switch (res->ps[i].type) {
                 case SQLBOX_PARM_INT:
                     if (STATEMENT == STMTS_ROLE && r.fieldmap[KEY_PERMS_DETAILS]) {
@@ -979,18 +979,29 @@ void process(const enum statement STATEMENT) {
 }
 
 
+enum khttp sanitize(const struct kreq *r) {
+    if (r->method != KMETHOD_GET)
+        return KHTTP_405;
+    if (r->page == PG__MAX)
+        return KHTTP_404;
+    return KHTTP_200;
+}
+
 int main(void) {
+    enum khttp er;
     // Parse the http request and match the keys to the keys, and pages to the pages, default to
     // querying the INVENTORY if no page was found
     if (khttp_parse(&r, keys, KEY__MAX, pages, PG__MAX, PG_INVENTORY) != KCGI_OK)
         return EXIT_FAILURE;
-    if (r.page == PG__MAX) {
-        khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_404]);
+    if ((er = sanitize(&r)) != KHTTP_200) {
+        khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[er]);
         khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
         khttp_head(&r, kresps[KRESP_VARY], "%s", "Origin");
         khttp_body(&r);
+        if (r.mime == KMIME_TEXT_HTML)
+            khttp_puts(&r, "Could not service request.");
         khttp_free(&r);
-        return EXIT_SUCCESS;
+        return 0;
     }
     const enum statement STMT = get_stmts();
     alloc_ctx_cfg();

@@ -14,44 +14,42 @@
 #include <stdio.h>
 #include <time.h>
 
-enum cookie {
-    COOKIE_UUID,
-    COOKIE_SESSIONID,
-    COOKIE__MAX
+enum key {
+    KEY_UUID,
+    KEY_PASSWD,
+    KEY_REMEMBER,
+    KEY__MAX
 };
 
-static const struct kvalid cookies[COOKIE__MAX] = {
-    {kvalid_stringne, "userid"},
-    {kvalid_stringne, "sessionid"},
+static const struct kvalid keys[KEY__MAX] = {
+    {kvalid_stringne, "UUID"},
+    {kvalid_stringne, "passwd"},
+    {NULL, "remember"},
 };
+
+
+enum khttp sanitize(const struct kreq *r) {
+    if (r->method != KMETHOD_PUT)
+        return KHTTP_405;
+    return KHTTP_200;
+}
 
 int main() {
     struct kreq r;
     struct kjsonreq req;
-    char buf[32];
-    if (khttp_parse(&r, cookies, COOKIE__MAX, NULL, 0, 0) != KCGI_OK)
+    enum khttp er;
+    if (khttp_parse(&r, keys, KEY__MAX, NULL, 0, 0) != KCGI_OK)
         return EXIT_FAILURE;
-    if (r.cookiemap[COOKIE_UUID] == NULL || r.cookiemap[COOKIE_SESSIONID] == NULL) {
-        khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
-        khttp_head(&r, kresps[KRESP_SET_COOKIE], "userid=foo; Path=/; expires=%s",
-                   khttp_epoch2str(time(NULL) + 60 * 60, buf, sizeof(buf)));
-        khttp_head(&r, kresps[KRESP_SET_COOKIE], "sessionid=foo; Path=/; expires=%s",
-                   khttp_epoch2str(time(NULL) + 60 * 60, buf, sizeof(buf)));
+    if ((er = sanitize(&r)) != KHTTP_200) {
+        khttp_head(&r, kresps[KRESP_STATUS],"%s", khttps[er]);
+        khttp_head(&r, kresps[KRESP_CONTENT_TYPE],"%s", kmimetypes[KMIME_TEXT_PLAIN]);
+        khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
+        khttp_head(&r, kresps[KRESP_VARY], "%s", "Origin");
         khttp_body(&r);
-        kjson_open(&req, &r);
-        kjson_obj_open(&req);
-        kjson_putstringp(&req, "cookie", "not found");
-    } else {
-        khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
-        khttp_body(&r);
-        kjson_open(&req, &r);
-        kjson_obj_open(&req);
-        kjson_putstringp(&req, "UUID", r.cookiemap[COOKIE_UUID]->parsed.s);
-        kjson_putstringp(&req, "Session ID", r.cookiemap[COOKIE_SESSIONID]->parsed.s);
-        kjson_putstringp(&req, "UUID-GET", r.fieldmap[COOKIE_UUID]->parsed.s);
-        kjson_putstringp(&req, "Session ID-GET", r.fieldmap[COOKIE_SESSIONID]->parsed.s);
+        if (r.mime == KMIME_TEXT_HTML)
+            khttp_puts(&r, "Could not service request.");
+        khttp_free(&r);
+        return 0;
     }
-    kjson_obj_close(&req);
-    kjson_close(&req);
-    khttp_free(&r);
+    return EXIT_SUCCESS;
 }
