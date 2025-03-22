@@ -32,4 +32,3 @@ clean:
 	rm -rfv query.o
 	rm -rfv query
 	rm -rfv auth
-	rm -rfv database.db
