@@ -129,5 +129,16 @@ int main() {
         return 0;
     }
     alloc_ctx_cfg();
+    if (check_passwd() == EXIT_FAILURE) {
+        khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
+        khttp_head(&r, kresps[KRESP_CONTENT_TYPE], "%s", kmimetypes[KMIME_TEXT_PLAIN]);
+        khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
+        khttp_head(&r, kresps[KRESP_VARY], "%s", "Origin");
+        khttp_body(&r);
+        if (r.mime == KMIME_TEXT_HTML)
+            khttp_puts(&r, "WRONG PASSWORD.");
+        khttp_free(&r);
+        return 0;
+    }
     return EXIT_SUCCESS;
 }
