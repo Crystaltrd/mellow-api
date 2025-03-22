@@ -106,10 +106,12 @@ int check_passwd() {
         errx(EXIT_FAILURE, "sqlbox_prepare_bind");
     if ((res = sqlbox_step(boxctx, stmtid)) == NULL)
         errx(EXIT_FAILURE, "sqlbox_step");
+
     strncpy(hash, res->ps[0].sparm,_PASSWORD_LEN);
     if (crypt_checkpass(r.fieldmap[KEY_PASSWD]->parsed.s, hash) == 0)
         return EXIT_SUCCESS;
-
+    sqlbox_finalise(boxctx,stmtid);
+    sqlbox_close(boxctx,dbid);
     return EXIT_FAILURE;
 }
 
