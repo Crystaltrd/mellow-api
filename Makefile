@@ -21,9 +21,9 @@ auth: auth.o
 	${CC} --static -o auth auth.o ${LDFLAGS}
 query: query.o
 	${CC} --static -o query query.o ${LDFLAGS}
-auth.o:
+auth.o: src/auth.c
 	${CC} ${CFLAGS} -c -o auth.o src/auth.c
-query.o:
+query.o: src/query.c
 	${CC} ${CFLAGS} -c -o query.o src/query.c
 database.db: misc/database-scheme.sql
 	rm database.db
