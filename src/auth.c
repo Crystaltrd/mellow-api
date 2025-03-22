@@ -28,7 +28,7 @@ static const struct kvalid cookies[COOKIE__MAX] = {
 int main() {
     struct kreq r;
     struct kjsonreq req;
-    char buf[32]
+    char buf[32];
     if (khttp_parse(&r, cookies, COOKIE__MAX, NULL, 0, 0) != KCGI_OK)
         return EXIT_FAILURE;
     if (r.cookiemap[COOKIE_UUID] == NULL || r.cookiemap[COOKIE_SESSIONID] == NULL) {
