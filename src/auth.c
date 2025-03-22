@@ -36,6 +36,10 @@ int main() {
     if (r.cookiemap[COOKIE_UUID] == NULL || r.cookiemap[COOKIE_SESSIONID] == NULL) {
         kjson_putstringp(&req,"cookie","not found");
     }
+    else {
+        kjson_putstringp(&req,"UUID",r.cookiemap[COOKIE_UUID]->parsed.s);
+        kjson_putstringp(&req,"Session ID",r.cookiemap[COOKIE_SESSIONID]->parsed.s);
+    }
     kjson_obj_close(&req);
     kjson_close(&req);
     khttp_free(&r);
