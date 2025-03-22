@@ -882,7 +882,7 @@ void get_cat_children(const char *class) {
         errx(EXIT_FAILURE, "sqlbox_prepare_bind");
     while ((res = sqlbox_step(boxctx, stmtid)) != NULL && res->code == SQLBOX_CODE_OK && res->psz != 0) {
         kjson_obj_open(&req);
-        for (int i = 0; i < res->psz; ++i) {
+        for (int i = 0; i < (int) res->psz; ++i) {
             switch (res->ps[i].type) {
                 case SQLBOX_PARM_INT:
                     kjson_putintp(&req, rows[STMTS_CATEGORY][i], res->ps[i].iparm);
@@ -928,7 +928,7 @@ void process(const enum statement STATEMENT) {
     kjson_array_open(&req);
     while ((res = sqlbox_step(boxctx, stmtid)) != NULL && res->code == SQLBOX_CODE_OK && res->psz != 0) {
         kjson_obj_open(&req);
-        for (int i = 0; i < res->psz; ++i) {
+        for (int i = 0; i < (int)res->psz; ++i) {
             switch (res->ps[i].type) {
                 case SQLBOX_PARM_INT:
                     if (STATEMENT == STMTS_ROLE && r.fieldmap[KEY_PERMS_DETAILS]) {
