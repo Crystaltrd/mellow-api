@@ -1,5 +1,5 @@
-CFLAGS=-g -Wall -Wextra `pkg-config --cflags kcgi-html kcgi-json sqlbox`
-LDFLAGS=`pkg-config --libs kcgi-html kcgi-json sqlbox`
+CFLAGS=-g -Wall -Wextra `pkg-config --static --cflags kcgi-html kcgi-json sqlbox`
+LDFLAGS=`pkg-config --static --libs kcgi-html kcgi-json sqlbox`
 PBNIX_HTML=${HOME}/public_html/mellow
 DESTDIR=/var/www/cgi-bin/mellow
 all: query auth database.db
@@ -18,9 +18,9 @@ install-pubnix: query auth database.db
 	install -m 0755 query ${PBNIX_HTML}/query.cgi
 	install -m 0755 auth ${PBNIX_HTML}/auth.cgi
 auth: auth.o
-	${CC} -o auth auth.o ${LDFLAGS}
+	${CC} --static -o auth auth.o ${LDFLAGS}
 query: query.o
-	${CC} -o query query.o ${LDFLAGS}
+	${CC} --static -o query query.o ${LDFLAGS}
 auth.o:
 	${CC} ${CFLAGS} -c -o auth.o src/auth.c
 query.o:
