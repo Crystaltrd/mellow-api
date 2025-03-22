@@ -29,16 +29,21 @@ int main() {
     struct kjsonreq req;
     if (khttp_parse(&r, cookies, COOKIE__MAX, NULL, 0, 0) != KCGI_OK)
         return EXIT_FAILURE;
-    khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
-    khttp_body(&r);
-    kjson_open(&req, &r);
-    kjson_obj_open(&req);
+
     if (r.cookiemap[COOKIE_UUID] == NULL || r.cookiemap[COOKIE_SESSIONID] == NULL) {
-        kjson_putstringp(&req,"cookie","not found");
-    }
-    else {
-        kjson_putstringp(&req,"UUID",r.cookiemap[COOKIE_UUID]->parsed.s);
-        kjson_putstringp(&req,"Session ID",r.cookiemap[COOKIE_SESSIONID]->parsed.s);
+        khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
+        khttp_head(&r, kresps[KRESP_SET_COOKIE],"userid=foo; sessionid=bar; Path=/");
+        khttp_body(&r);
+        kjson_open(&req, &r);
+        kjson_obj_open(&req);
+        kjson_putstringp(&req, "cookie", "not found");
+    } else {
+        khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
+        khttp_body(&r);
+        kjson_open(&req, &r);
+        kjson_obj_open(&req);
+        kjson_putstringp(&req, "UUID", r.cookiemap[COOKIE_UUID]->parsed.s);
+        kjson_putstringp(&req, "Session ID", r.cookiemap[COOKIE_SESSIONID]->parsed.s);
     }
     kjson_obj_close(&req);
     kjson_close(&req);
