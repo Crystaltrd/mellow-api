@@ -989,7 +989,7 @@ int main(void) {
         khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
         khttp_head(&r, kresps[KRESP_VARY], "%s", "Origin");
         khttp_free(&r);
-        return EXIT_FAILURE;
+        return EXIT_SUCCESS;
     }
     const enum statement STMT = get_stmts();
     alloc_ctx_cfg();
