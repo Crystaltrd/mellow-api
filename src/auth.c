@@ -13,10 +13,19 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <time.h>
-#define	_PASSWORD_LEN		128
 #include <pwd.h>
 #include <unistd.h>
+#ifndef __BSD_VISIBLE
+#define	_PASSWORD_LEN		128
 
+int
+crypt_checkpass(const char *password, const char *hash);
+
+int
+crypt_newhash(const char *password, const char *pref, char *hash,
+              size_t hashsize);
+
+#endif
 struct kreq r;
 struct kjsonreq req;
 
@@ -98,7 +107,10 @@ int check_passwd() {
     if ((res = sqlbox_step(boxctx, stmtid)) == NULL)
         errx(EXIT_FAILURE, "sqlbox_step");
     strncpy(hash, res->ps[0].sparm,_PASSWORD_LEN);
-    return true;
+    if (crypt_checkpass(r.fieldmap[KEY_PASSWD]->parsed.s, hash) == 0)
+        return EXIT_SUCCESS;
+
+    return EXIT_FAILURE;
 }
 
 int main() {
@@ -116,5 +128,6 @@ int main() {
         khttp_free(&r);
         return 0;
     }
+    alloc_ctx_cfg();
     return EXIT_SUCCESS;
 }
