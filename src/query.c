@@ -978,20 +978,22 @@ void process(const enum statement STATEMENT) {
         errx(EXIT_FAILURE, "sqlbox_step");
 }
 
-
-int main(void) {
-    // Parse the http request and match the keys to the keys, and pages to the pages, default to
+void sanitize() {
+     // Parse the http request and match the keys to the keys, and pages to the pages, default to
     // querying the INVENTORY if no page was found
     if (khttp_parse(&r, keys, KEY__MAX, pages, PG__MAX, PG_INVENTORY) != KCGI_OK)
-        return EXIT_FAILURE;
+        exit(EXIT_FAILURE);
     if (r.page == PG__MAX) {
         khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_404]);
         khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
         khttp_head(&r, kresps[KRESP_VARY], "%s", "Origin");
         khttp_body(&r);
         khttp_free(&r);
-        return EXIT_SUCCESS;
+        exit (EXIT_SUCCESS);
     }
+}
+int main(void) {
+
     const enum statement STMT = get_stmts();
     alloc_ctx_cfg();
     fill_params(STMT);
