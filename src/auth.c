@@ -48,6 +48,8 @@ int main() {
         kjson_obj_open(&req);
         kjson_putstringp(&req, "UUID", r.cookiemap[COOKIE_UUID]->parsed.s);
         kjson_putstringp(&req, "Session ID", r.cookiemap[COOKIE_SESSIONID]->parsed.s);
+        kjson_putstringp(&req, "UUID-GET", r.fieldmap[COOKIE_UUID]->parsed.s);
+        kjson_putstringp(&req, "Session ID-GET", r.fieldmap[COOKIE_SESSIONID]->parsed.s);
     }
     kjson_obj_close(&req);
     kjson_close(&req);
