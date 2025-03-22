@@ -29,7 +29,7 @@ static const struct kvalid keys[KEY__MAX] = {
 
 
 enum khttp sanitize(const struct kreq *r) {
-    if (r->method != KMETHOD_PUT)
+    if (r->method != KMETHOD_POST)
         return KHTTP_405;
     return KHTTP_200;
 }
