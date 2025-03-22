@@ -3,4 +3,4 @@ project(mellow_api C)
 
 set(CMAKE_C_STANDARD 17)
 
-add_executable(mellow_api src/query.c)
+add_executable(mellow_api src/query.c src/auth.c)
