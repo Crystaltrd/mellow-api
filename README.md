@@ -233,11 +233,13 @@ WHERE parentCategoryID = (?)
 * [ ] Done
 
 ```sql
-SELECT ACCOUNT.UUID, displayname, pwhash, campus, role, frozen
-FROM ACCOUNT
+SELECT ACCOUNT.UUID, displayname, pwhash, campus, role, frozen, perms
+FROM ROLE,
+     ACCOUNT
          LEFT JOIN INVENTORY I on ACCOUNT.UUID = I.UUID
          LEFT JOIN SESSIONS S on ACCOUNT.UUID = S.account
-WHERE ((?) = 'IGNORE_ID' OR ACCOUNT.UUID = (?))
+WHERE ACCOUNT.role = ROLE.roleName
+  AND ((?) = 'IGNORE_ID' OR ACCOUNT.UUID = (?))
   AND ((?) = 'IGNORE_NAME' OR instr(displayname, (?)) > 0)
   AND ((?) = 'IGNORE_BOOK' OR serialnum = (?))
   AND ((?) = 'IGNORE_CAMPUS' OR campus = (?))
