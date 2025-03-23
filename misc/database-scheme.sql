@@ -111,7 +111,7 @@ CREATE TABLE SESSIONS
     FOREIGN KEY (account) REFERENCES ACCOUNT (UUID) ON UPDATE CASCADE ON DELETE CASCADE
 );
 INSERT INTO ACCOUNT
-VALUES ('1', 'Alice', 'pwhash1', 'El Kseur', 'ADMIN', FALSE),
+VALUES ('1', 'Alice', '$2b$10$2HqdewExklOfFFCBhOkTP.ufmT.cq1lQP4QSyRRYHETWRGxs3YTH6', 'El Kseur', 'ADMIN', FALSE),
        ('2', 'Bob', 'pwhash2', 'El Kseur', 'LIBRARIAN', FALSE),
        ('3', 'Charlie', 'pwhash3', 'Aboudaou', 'STUDENT', FALSE);
 
