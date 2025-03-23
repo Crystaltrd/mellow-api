@@ -122,10 +122,8 @@ int check_passwd() {
 }
 
 void open_session() {
-    size_t stmtid;
     size_t parmsz = 3;
     const uint32_t sessionID = arc4random_uniform(SESSIONID_MAX);
-    const struct sqlbox_parmset *res;
     struct sqlbox_parm parms[] = {
         {
             .type = SQLBOX_PARM_STRING,
