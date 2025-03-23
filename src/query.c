@@ -1026,7 +1026,8 @@ void process(const enum statement STATEMENT) {
     khttp_head(&r, kresps[KRESP_VARY], "%s", "Origin");
     khttp_body(&r);
     kjson_open(&req, &r);
-    kjson_array_open(&req);
+    kjson_obj_open(&req);
+    kjson_arrayp_open(&req,"result");
     while ((res = sqlbox_step(boxctx, stmtid)) != NULL && res->code == SQLBOX_CODE_OK && res->psz != 0) {
         kjson_obj_open(&req);
         for (int i = 0; i < (int) res->psz; ++i) {
@@ -1073,6 +1074,7 @@ void process(const enum statement STATEMENT) {
     if (!sqlbox_finalise(boxctx, stmtid))
         errx(EXIT_FAILURE, "sqlbox_finalise");
     kjson_array_close(&req);
+    kjson_obj_close(&req);
     kjson_close(&req);
     khttp_free(&r);
     if (res == NULL)
