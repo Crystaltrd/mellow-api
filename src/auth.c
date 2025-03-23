@@ -114,7 +114,6 @@ int check_passwd() {
     }
     strncpy(hash, res->ps[0].sparm,_PASSWORD_LEN);
     sqlbox_finalise(boxctx, stmtid);
-    sqlbox_close(boxctx, dbid);
     if (crypt_checkpass(r.fieldmap[KEY_PASSWD]->parsed.s, hash) == 0)
         return EXIT_SUCCESS;
 
@@ -178,6 +177,7 @@ int main() {
     if (r.mime == KMIME_TEXT_HTML)
         khttp_puts(&r, "Created successfully.");
     khttp_free(&r);
+    sqlbox_close(boxctx, dbid);
     sqlbox_free(boxctx);
     return EXIT_SUCCESS;
 }
