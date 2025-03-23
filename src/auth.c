@@ -148,10 +148,9 @@ void open_session() {
     kjson_open(&req, &r);
     kjson_obj_open(&req);
     kjson_putboolp(&req, "authorized",true);
-    kjson_putintstrp(&req,"sessionid",sessionID);
+    kjson_putintstrp(&req, "sessionid", sessionID);
     kjson_obj_close(&req);
     khttp_free(&r);
-    return 0;
 }
 
 int main() {
@@ -185,7 +184,6 @@ int main() {
         return 0;
     }
     open_session();
-
     sqlbox_close(boxctx, dbid);
     sqlbox_free(boxctx);
     return EXIT_SUCCESS;
