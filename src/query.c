@@ -627,13 +627,13 @@ void fill_params(const enum statement STATEMENT) {
                 .iparm = ((field = r.fieldmap[KEY_FILTER_FROZEN])) ? field->parsed.i : 0
             };
 
-            parms[11] = (struct sqlbox_parm){
+            parms[12] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
                 .sparm = !((field = r.fieldmap[KEY_FILTER_BY_SESSION])) || field->valsz <= 0
                              ? "IGNORE_SESSION"
                              : "DONT_IGNORE"
             };
-            parms[12] = (struct sqlbox_parm){
+            parms[13] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_INT,
                 .iparm = ((field = r.fieldmap[KEY_FILTER_BY_SESSION])) ? field->parsed.i : 0
             };
