@@ -145,7 +145,7 @@ void open_session() {
     khttp_head(&r, kresps[KRESP_CONTENT_TYPE], "%s", kmimetypes[KMIME_TEXT_PLAIN]);
     khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
     khttp_head(&r, kresps[KRESP_VARY], "%s", "Origin");
-    khttp_head(r, kresps[KRESP_SET_COOKIE],
+    khttp_head(&r, kresps[KRESP_SET_COOKIE],
                "sessionID=%d; Path=/; expires=%s", sessionID,
                khttp_epoch2str(time(NULL) + ((r.fieldmap[KEY_REMEMBER]) ? 7 * 24 * 60 * 60 : 60 * 60 * 3), buf, sizeof(buf)));
     khttp_body(&r);
