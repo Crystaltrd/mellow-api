@@ -611,14 +611,28 @@ void fill_params(const enum statement STATEMENT) {
         case STMTS_ACCOUNT:
             parmsz = 15;
             parms = calloc(parmsz, sizeof(struct sqlbox_parm));
-            parms[0] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = !((field = r.fieldmap[KEY_FILTER_BY_ID])) || field->valsz <= 0 ? "IGNORE_ID" : "DONT_IGNORE"
-            };
-            parms[1] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = ((field = r.fieldmap[KEY_FILTER_BY_ID])) ? field->parsed.s : ""
-            };
+            if (r.fieldmap[KEY_FILTER_ME] && curr_usr.authorized) {
+                parms[0] = (struct sqlbox_parm){
+                    .type = SQLBOX_PARM_STRING,
+                    .sparm = "DONT_IGNORE"
+                };
+                parms[1] = (struct sqlbox_parm){
+                    .type = SQLBOX_PARM_STRING,
+                    .sparm = curr_usr.UUID
+                };
+            } else {
+                parms[0] = (struct sqlbox_parm){
+                    .type = SQLBOX_PARM_STRING,
+                    .sparm = !((field = r.fieldmap[KEY_FILTER_BY_ID])) || field->valsz <= 0
+                                 ? "IGNORE_ID"
+                                 : "DONT_IGNORE"
+                };
+                parms[1] = (struct sqlbox_parm){
+                    .type = SQLBOX_PARM_STRING,
+                    .sparm = ((field = r.fieldmap[KEY_FILTER_BY_ID])) ? field->parsed.s : ""
+                };
+            }
+
             parms[2] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
                 .sparm = !((field = r.fieldmap[KEY_FILTER_BY_NAME])) || field->valsz <= 0
@@ -1031,18 +1045,6 @@ void process(const enum statement STATEMENT) {
     khttp_body(&r);
     kjson_open(&req, &r);
     kjson_array_open(&req);
-    if (curr_usr.authorized) {
-        kjson_obj_open(&req);
-        kjson_putstringp(&req, "UUID", curr_usr.UUID);
-        kjson_putboolp(&req, "admin", curr_usr.perms.admin);
-        kjson_putboolp(&req, "staff", curr_usr.perms.staff);
-        kjson_putboolp(&req, "manage_books", curr_usr.perms.manage_books);
-        kjson_putboolp(&req, "manage_stock", curr_usr.perms.manage_stock);
-        kjson_putboolp(&req, "return_book", curr_usr.perms.return_book);
-        kjson_putboolp(&req, "rent_book", curr_usr.perms.rent_book);
-        kjson_putboolp(&req, "inventory", curr_usr.perms.inventory);
-        kjson_obj_close(&req);
-    }
     while ((res = sqlbox_step(boxctx, stmtid)) != NULL && res->code == SQLBOX_CODE_OK && res->psz != 0) {
         kjson_obj_open(&req);
         for (int i = 0; i < (int) res->psz; ++i) {
