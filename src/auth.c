@@ -122,7 +122,6 @@ int check_passwd() {
 
 void open_session() {
     size_t parmsz = 3;
-    char buf[32];
     const uint32_t sessionID = arc4random_uniform(SESSIONID_MAX);
     struct sqlbox_parm parms[] = {
         {
@@ -146,8 +145,8 @@ void open_session() {
     khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
     khttp_head(&r, kresps[KRESP_VARY], "%s", "Origin");
     khttp_head(&r, kresps[KRESP_SET_COOKIE],
-               "sessionID=%d; Path=/; expires=%s", sessionID,
-               khttp_epoch2str(time(NULL) + ((r.fieldmap[KEY_REMEMBER]) ? 7 * 24 * 60 * 60 : 60 * 60 * 3), buf, sizeof(buf)));
+               "sessionID=%d; Path=/; Max-Age=%d", sessionID,
+               ((r.fieldmap[KEY_REMEMBER]) ? 7 * 24 * 60 * 60 : 60 * 60 * 3));
     khttp_body(&r);
     kjson_open(&req, &r);
     kjson_obj_open(&req);
