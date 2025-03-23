@@ -170,7 +170,7 @@ static const struct kvalid keys[KEY__MAX] = {
     {kvalid_date, "from_date"},
     {kvalid_date, "to_date"},
     {kvalid_int, "by_session"},
-    {kvalid_int, "sessionID"},
+    {kvalid_int, "sessionid"},
     {NULL, "details"},
 };
 /*
@@ -1028,7 +1028,6 @@ void process(const enum statement STATEMENT) {
     kjson_open(&req, &r);
     kjson_obj_open(&req);
     kjson_putstringp(&req, "UUID", curr_usr.UUID);
-
     kjson_putboolp(&req, "admin", curr_usr.perms.admin);
     kjson_putboolp(&req, "staff", curr_usr.perms.staff);
     kjson_putboolp(&req, "manage_books", curr_usr.perms.manage_books);
