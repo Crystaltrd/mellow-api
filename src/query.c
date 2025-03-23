@@ -42,6 +42,7 @@ struct accperms int_to_accperms(int perm) {
     return perms;
 }
 
+
 /*
  * All possible sub-pages in the query endpoint with their corresponding names
  */
@@ -60,12 +61,13 @@ enum pg {
     PG_STOCK,
     PG_INVENTORY,
     PG_HISTORY,
+    PG_SESSIONS,
     PG__MAX
 };
 
 static const char *pages[PG__MAX] = {
     "publisher", "author", "lang", "action", "doctype", "campus", "role", "category", "account", "book", "stock",
-    "inventory", "history"
+    "inventory", "history", "sessions"
 };
 
 /*
@@ -86,6 +88,7 @@ enum key {
     KEY_PG_STOCK,
     KEY_PG_INVENTORY,
     KEY_PG_HISTORY,
+    KEY_PG_SESSIONS,
     // FILTERS
     KEY_PAGE,
     KEY_FILTER_BY_NAME,
@@ -115,6 +118,7 @@ enum key {
     KEY_FILTER_BY_ACTION,
     KEY_FILTER_FROM_DATE,
     KEY_FILTER_TO_DATE,
+    KEY_FILTER_BY_SESSION,
     KEY_PERMS_DETAILS,
     KEY__MAX
 };
@@ -134,6 +138,7 @@ static const struct kvalid keys[KEY__MAX] = {
     {NULL, "stock"},
     {NULL, "inventory"},
     {NULL, "history"},
+    {NULL, "sessions"},
     // FILTERS
     {kvalid_uint, "page"},
     {kvalid_string, "by_name"},
@@ -163,6 +168,7 @@ static const struct kvalid keys[KEY__MAX] = {
     {kvalid_string, "by_action"},
     {kvalid_date, "from_date"},
     {kvalid_date, "to_date"},
+    {kvalid_int, "by_session"},
     {NULL, "details"},
 };
 /*
@@ -183,6 +189,7 @@ enum statement {
     STMTS_STOCK,
     STMTS_INVENTORY,
     STMTS_HISTORY,
+    STMTS_SESSIONS,
     STMTS__MAX
 };
 
@@ -201,6 +208,7 @@ static const char *rows[STMTS__MAX][9] = {
     {"serialnum", "campus", "instock"},
     {"UUID", "serialnum", "rentduration", "rentdate", "extended"},
     {"UUID", "UUID_ISSUER", "serialnum", "action", "actiondate"}
+    {"account", "sessionID", "expiresAt"}
 };
 /*
  * Helper function to get the Statement for a specific page
@@ -270,7 +278,7 @@ static struct sqlbox_pstmt pstmts[STMTS__MAX] = {
     },
     {
         (char *)
-        "SELECT ACCOUNT.UUID, displayname, pwhash, campus, role, frozen FROM ACCOUNT LEFT JOIN INVENTORY I on ACCOUNT.UUID = I.UUID WHERE ((?) = 'IGNORE_ID' OR ACCOUNT.UUID = (?)) AND ((?) = 'IGNORE_NAME' OR instr(displayname, (?)) > 0) AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) AND ((?) = 'IGNORE_CAMPUS' OR campus = (?)) AND ((?) = 'IGNORE_ROLE' OR role = (?)) AND ((?) = 'IGNORE_FREEZE' OR frozen = (?)) ORDER BY ACCOUNT.UUID LIMIT 10 OFFSET (? * 10)"
+        "SELECT ACCOUNT.UUID, displayname, pwhash, campus, role, frozen FROM ACCOUNT LEFT JOIN INVENTORY I on ACCOUNT.UUID = I.UUID LEFT JOIN SESSION S on ACCOUNT.UUID = S.account WHERE ((?) = 'IGNORE_ID' OR ACCOUNT.UUID = (?)) AND ((?) = 'IGNORE_NAME' OR instr(displayname, (?)) > 0) AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) AND ((?) = 'IGNORE_CAMPUS' OR campus = (?)) AND ((?) = 'IGNORE_ROLE' OR role = (?)) AND ((?) = 'IGNORE_FREEZE' OR frozen = (?)) AND ((?) = 'IGNORE_SESSION' OR sessionID = (?)) ORDER BY ACCOUNT.UUID LIMIT 10 OFFSET (? * 10)"
     },
     {
         (char *)
@@ -289,6 +297,10 @@ static struct sqlbox_pstmt pstmts[STMTS__MAX] = {
         (char *)
         "SELECT UUID,UUID_ISSUER,serialnum,action,actiondate FROM HISTORY WHERE ((?) = 'IGNORE_ACCOUNT' OR UUID = (?)) AND ((?) = 'IGNORE_ISSUER' OR UUID_ISSUER = (?)) AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) AND ((?) = 'IGNORE_ACTION' OR action = (?)) AND ((?) = 'IGNORE_FROM_DATE' OR actiondate >= datetime((?),'unixepoch')) AND ((?) = 'IGNORE_TO_DATE' OR actiondate <= datetime((?),'unixepoch')) ORDER BY actiondate DESC LIMIT 10 OFFSET (? * 10)"
     },
+    {
+        (char *)
+        "SELECT account,sessionID,expiresAt FROM SESSIONS WHERE ((?) = 'IGNORE_ID' OR sessionID = (?)) AND ((?) = 'IGNORE_ACCOUNT' OR account = (?)) LIMIT 10 OFFSET (? * 10)"
+    }
 
 };
 struct sqlbox_parm *parms; //Array of statement parameters
@@ -309,10 +321,22 @@ void alloc_ctx_cfg() {
         errx(EXIT_FAILURE, "sqlbox_open");
 }
 
+
+/*
+ * A struct holding the UUID and Permissions of the user issuing the call
+ */
+struct usr {
+    const char *UUID;
+    struct accperms perms;
+};
+
+struct usr curr_usr = {.perms = {0, 0, 0, 0, 0, 0, 0}};
+
 /*
  * Fills the parm parameter array with the values that will replace the interrogation marks in the SQL statements
  *
  */
+
 void fill_params(const enum statement STATEMENT) {
     struct kpair *field;
     switch (STATEMENT) {
@@ -541,7 +565,7 @@ void fill_params(const enum statement STATEMENT) {
             };
             break;
         case STMTS_ACCOUNT:
-            parmsz = 13;
+            parmsz = 15;
             parms = calloc(parmsz, sizeof(struct sqlbox_parm));
             parms[0] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
@@ -603,6 +627,16 @@ void fill_params(const enum statement STATEMENT) {
                 .iparm = ((field = r.fieldmap[KEY_FILTER_FROZEN])) ? field->parsed.i : 0
             };
 
+            parms[11] = (struct sqlbox_parm){
+                .type = SQLBOX_PARM_STRING,
+                .sparm = !((field = r.fieldmap[KEY_FILTER_BY_SESSION])) || field->valsz <= 0
+                             ? "IGNORE_SESSION"
+                             : "DONT_IGNORE"
+            };
+            parms[12] = (struct sqlbox_parm){
+                .type = SQLBOX_PARM_INT,
+                .iparm = ((field = r.fieldmap[KEY_FILTER_BY_SESSION])) ? field->parsed.i : 0
+            };
             break;
         case STMTS_BOOK:
             parmsz = 25;

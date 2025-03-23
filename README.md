@@ -168,7 +168,7 @@ Initial condition:
 SELECT categoryClass, categoryName, parentCategoryID
 FROM CATEGORY
          LEFT JOIN BOOK B ON CATEGORY.categoryClass = B.category
-WHERE IIF((?) = 'ROOT' ,parentCategoryID IS NULL,TRUE)
+WHERE IIF((?) = 'ROOT', parentCategoryID IS NULL, TRUE)
   AND ((?) = 'IGNORE_NAME' OR instr(categoryName, (?)) > 0)
   AND ((?) = 'IGNORE_CLASS' OR categoryClass = (?))
   AND ((?) = 'IGNORE_PARENT_CLASS' OR parentCategoryID = (?))
@@ -187,7 +187,7 @@ LIMIT 10 OFFSET (? * 10)
 WITH RECURSIVE CategoryCascade AS (SELECT categoryName, categoryClass, parentCategoryID
                                    FROM CATEGORY
                                             LEFT JOIN BOOK B ON CATEGORY.categoryClass = B.category
-                                   WHERE IIF((?) = 'ROOT',parentCategoryID IS NULL,TRUE)
+                                   WHERE IIF((?) = 'ROOT', parentCategoryID IS NULL, TRUE)
                                      AND ((?) = 'IGNORE_NAME' OR instr(categoryName, (?)) > 0)
                                      AND ((?) = 'IGNORE_CLASS' OR categoryClass = (?))
                                      AND ((?) = 'IGNORE_PARENT_CLASS' OR parentCategoryID = (?))
@@ -227,6 +227,7 @@ WHERE parentCategoryID = (?)
 - ?by_book
 - ?by_campus
 - ?by_role
+- ?by_session
 - ?frozen
 
 * [ ] Done
@@ -235,12 +236,14 @@ WHERE parentCategoryID = (?)
 SELECT ACCOUNT.UUID, displayname, pwhash, campus, role, frozen
 FROM ACCOUNT
          LEFT JOIN INVENTORY I on ACCOUNT.UUID = I.UUID
+         LEFT JOIN SESSIONS S on ACCOUNT.UUID = S.account
 WHERE ((?) = 'IGNORE_ID' OR ACCOUNT.UUID = (?))
   AND ((?) = 'IGNORE_NAME' OR instr(displayname, (?)) > 0)
   AND ((?) = 'IGNORE_BOOK' OR serialnum = (?))
   AND ((?) = 'IGNORE_CAMPUS' OR campus = (?))
   AND ((?) = 'IGNORE_ROLE' OR role = (?))
   AND ((?) = 'IGNORE_FREEZE' OR frozen = (?))
+  AND ((?) = 'IGNORE_SESSION' OR sessionID = (?))
 ORDER BY ACCOUNT.UUID
 LIMIT 10 OFFSET (? * 10)
 
@@ -268,7 +271,7 @@ LIMIT 10 OFFSET (? * 10)
 
 WITH RECURSIVE CategoryCascade AS (SELECT categoryClass, parentCategoryID
                                    FROM CATEGORY
-                                   WHERE IIF((?) = 'ROOT', parentCategoryID IS NULL,categoryClass = (?))
+                                   WHERE IIF((?) = 'ROOT', parentCategoryID IS NULL, categoryClass = (?))
                                    UNION ALL
                                    SELECT c.categoryClass, c.parentCategoryID
                                    FROM CATEGORY c
@@ -366,8 +369,8 @@ WHERE ((?) = 'IGNORE_ACCOUNT' OR UUID = (?))
   AND ((?) = 'IGNORE_ISSUER' OR UUID_ISSUER = (?))
   AND ((?) = 'IGNORE_BOOK' OR serialnum = (?))
   AND ((?) = 'IGNORE_ACTION' OR action = (?))
-  AND ((?) = 'IGNORE_FROM_DATE' OR actiondate >= datetime(?,'unixepoch'))
-  AND ((?) = 'IGNORE_TO_DATE' OR actiondate <= datetime(?,'unixepoch'))
+  AND ((?) = 'IGNORE_FROM_DATE' OR actiondate >= datetime(?, 'unixepoch'))
+  AND ((?) = 'IGNORE_TO_DATE' OR actiondate <= datetime(?, 'unixepoch'))
 ORDER BY actiondate DESC
 LIMIT 10 OFFSET (? * 10)
 ```
