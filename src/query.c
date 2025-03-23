@@ -362,7 +362,7 @@ void fill_user() {
         if ((res = sqlbox_step(boxctx, stmtid)) == NULL)
             errx(EXIT_FAILURE, "sqlbox_step");
         if (res->psz == 0)
-            errx(EXIT_FAILURE,"NOT_FOUND");
+            errx(EXIT_FAILURE,"fill_user");
         curr_usr.UUID = calloc(res->ps[0].sz, sizeof(char));
         strncpy(curr_usr.UUID, res->ps[0].sparm, res->ps[0].sz);
         curr_usr.perms = int_to_accperms((int) res->ps[6].iparm);
@@ -1115,7 +1115,7 @@ int main(void) {
     }
     const enum statement STMT = get_stmts();
     alloc_ctx_cfg();
-   // fill_user();
+   fill_user();
     fill_params(STMT);
     process(STMT);
     sqlbox_free(boxctx);
