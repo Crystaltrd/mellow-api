@@ -170,7 +170,7 @@ static const struct kvalid keys[KEY__MAX] = {
     {kvalid_date, "from_date"},
     {kvalid_date, "to_date"},
     {kvalid_int, "by_session"},
-    {kvalid_int, "sessionID"},
+    {kvalid_stringne, "sessionID"},
     {NULL, "details"},
 };
 /*
@@ -354,7 +354,7 @@ void fill_user() {
             {.type = SQLBOX_PARM_STRING, .sparm = "IGNORE_FREEZE"},
             {.type = SQLBOX_PARM_STRING, .sparm = ""},
             {.type = SQLBOX_PARM_STRING, .sparm = "DONT_IGNORE"},
-            {.type = SQLBOX_PARM_INT, .iparm = field->parsed.i},
+            {.type = SQLBOX_PARM_STRING, .sparm = field->parsed.s},
             {.type = SQLBOX_PARM_INT, .iparm = 0}
         };
             errx(EXIT_FAILURE, "COOKIE_FOUND");
