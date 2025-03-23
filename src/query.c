@@ -113,7 +113,7 @@ enum key {
     KEY_FILTER_IGNORE_EMPTY,
     KEY_FILTER_FROM_YEAR,
     KEY_FILTER_TO_YEAR,
-    KEY_FILTER_SELF,
+    KEY_FILTER_ME,
     KEY_FILTER_BY_ISSUER,
     KEY_FILTER_BY_ACTION,
     KEY_FILTER_FROM_DATE,
@@ -164,7 +164,7 @@ static const struct kvalid keys[KEY__MAX] = {
     {kvalid_bit, "ignore_empty"},
     {kvalid_int, "from_year"},
     {kvalid_int, "to_year"},
-    {NULL, "self"},
+    {NULL, "me"},
     {kvalid_string, "by_issuer"},
     {kvalid_string, "by_action"},
     {kvalid_date, "from_date"},
@@ -1031,6 +1031,18 @@ void process(const enum statement STATEMENT) {
     khttp_body(&r);
     kjson_open(&req, &r);
     kjson_array_open(&req);
+    if (curr_usr.authorized) {
+        kjson_objp_open(&req, "Issuer");
+        kjson_putstringp(&req, "UUID", curr_usr.UUID);
+        kjson_putboolp(&req, "admin", curr_usr.perms.admin);
+        kjson_putboolp(&req, "staff", curr_usr.perms.staff);
+        kjson_putboolp(&req, "manage_books", curr_usr.perms.manage_books);
+        kjson_putboolp(&req, "manage_stock", curr_usr.perms.manage_stock);
+        kjson_putboolp(&req, "return_book", curr_usr.perms.return_book);
+        kjson_putboolp(&req, "rent_book", curr_usr.perms.rent_book);
+        kjson_putboolp(&req, "inventory", curr_usr.perms.inventory);
+        kjson_obj_close(&req);
+    }
     while ((res = sqlbox_step(boxctx, stmtid)) != NULL && res->code == SQLBOX_CODE_OK && res->psz != 0) {
         kjson_obj_open(&req);
         for (int i = 0; i < (int) res->psz; ++i) {
