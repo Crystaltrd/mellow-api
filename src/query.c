@@ -912,6 +912,7 @@ void fill_params(const enum statement STATEMENT) {
                 .type = SQLBOX_PARM_STRING,
                 .sparm = ((field = r.fieldmap[KEY_FILTER_BY_ACCOUNT])) ? field->parsed.s : ""
             };
+        break;
         default:
             errx(EXIT_FAILURE, "params");
     }
