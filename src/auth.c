@@ -147,5 +147,13 @@ int main() {
         khttp_free(&r);
         return 0;
     }
+    khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
+    khttp_head(&r, kresps[KRESP_CONTENT_TYPE], "%s", kmimetypes[KMIME_TEXT_PLAIN]);
+    khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
+    khttp_head(&r, kresps[KRESP_VARY], "%s", "Origin");
+    khttp_body(&r);
+    if (r.mime == KMIME_TEXT_HTML)
+        khttp_puts(&r, "Correct Password.");
+    khttp_free(&r);
     return EXIT_SUCCESS;
 }
