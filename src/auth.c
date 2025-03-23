@@ -139,6 +139,19 @@ void open_session() {
     };
     if (sqlbox_exec(boxctx, dbid, STMTS_ADD, parmsz, parms,SQLBOX_STMT_CONSTRAINT) != SQLBOX_CODE_OK)
         errx(EXIT_FAILURE, "sqlbox_exec");
+
+    khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
+    khttp_head(&r, kresps[KRESP_CONTENT_TYPE], "%s", kmimetypes[KMIME_TEXT_PLAIN]);
+    khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
+    khttp_head(&r, kresps[KRESP_VARY], "%s", "Origin");
+    khttp_body(&r);
+    kjson_open(&req, &r);
+    kjson_obj_open(&req);
+    kjson_putboolp(&req, "authorized",true);
+    kjson_putintstrp(&req,"sessionid",sessionID);
+    kjson_obj_close(&req);
+    khttp_free(&r);
+    return 0;
 }
 
 int main() {
@@ -163,20 +176,16 @@ int main() {
         khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
         khttp_head(&r, kresps[KRESP_VARY], "%s", "Origin");
         khttp_body(&r);
-        if (r.mime == KMIME_TEXT_HTML)
-            khttp_puts(&r, "WRONG PASSWORD.");
+        kjson_open(&req, &r);
+        kjson_obj_open(&req);
+        kjson_putboolp(&req, "authorized",false);
+        kjson_putstringp(&req, "error", "The Username or Password that you provided are wrong");
+        kjson_obj_close(&req);
         khttp_free(&r);
         return 0;
     }
     open_session();
-    khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
-    khttp_head(&r, kresps[KRESP_CONTENT_TYPE], "%s", kmimetypes[KMIME_TEXT_PLAIN]);
-    khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
-    khttp_head(&r, kresps[KRESP_VARY], "%s", "Origin");
-    khttp_body(&r);
-    if (r.mime == KMIME_TEXT_HTML)
-        khttp_puts(&r, "Created successfully.");
-    khttp_free(&r);
+
     sqlbox_close(boxctx, dbid);
     sqlbox_free(boxctx);
     return EXIT_SUCCESS;
