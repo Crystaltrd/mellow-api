@@ -357,6 +357,7 @@ void fill_user() {
             {.type = SQLBOX_PARM_INT, .iparm = field->parsed.i},
             {.type = SQLBOX_PARM_INT, .iparm = 0}
         };
+            errx(EXIT_FAILURE, "COOKIE_FOUND");
         if (!(stmtid = sqlbox_prepare_bind(boxctx, dbid, STMTS_ACCOUNT, parmsz, parms, 0)))
             errx(EXIT_FAILURE, "sqlbox_prepare_bind");
 
