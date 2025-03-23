@@ -1115,7 +1115,7 @@ int main(void) {
     }
     const enum statement STMT = get_stmts();
     alloc_ctx_cfg();
-    fill_user();
+   // fill_user();
     fill_params(STMT);
     process(STMT);
     sqlbox_free(boxctx);
