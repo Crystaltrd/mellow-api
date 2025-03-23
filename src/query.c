@@ -886,6 +886,32 @@ void fill_params(const enum statement STATEMENT) {
                 .iparm = ((field = r.fieldmap[KEY_FILTER_TO_DATE])) ? field->parsed.i : 0
             };
             break;
+        case STMTS_SESSIONS:
+
+            parmsz = 5;
+            parms = calloc(parmsz, sizeof(struct sqlbox_parm));
+            parms[0] = (struct sqlbox_parm){
+                .type = SQLBOX_PARM_STRING,
+                .sparm = !((field = r.fieldmap[KEY_FILTER_BY_ID])) || field->valsz <= 0
+                             ? "IGNORE_ID"
+                             : "DONT_IGNORE"
+            };
+            parms[1] = (struct sqlbox_parm){
+                .type = SQLBOX_PARM_STRING,
+                .sparm = ((field = r.fieldmap[KEY_FILTER_BY_ID])) ? field->parsed.s : ""
+            };
+
+            parms[2] = (struct sqlbox_parm){
+                .type = SQLBOX_PARM_STRING,
+                .sparm = !((field = r.fieldmap[KEY_FILTER_BY_ACCOUNT])) || field->
+                         valsz <= 0
+                             ? "IGNORE_ACCOUNT"
+                             : "DONT_IGNORE"
+            };
+            parms[3] = (struct sqlbox_parm){
+                .type = SQLBOX_PARM_STRING,
+                .sparm = ((field = r.fieldmap[KEY_FILTER_BY_ACCOUNT])) ? field->parsed.s : ""
+            };
         default:
             errx(EXIT_FAILURE, "params");
     }
