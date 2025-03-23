@@ -26,6 +26,7 @@ crypt_newhash(const char *password, const char *pref, char *hash,
               size_t hashsize);
 
 #endif
+#define SESSIONID_MAX 99999999
 struct kreq r;
 struct kjsonreq req;
 
@@ -120,6 +121,29 @@ int check_passwd() {
     return EXIT_FAILURE;
 }
 
+void open_session() {
+    size_t stmtid;
+    size_t parmsz = 3;
+    const uint32_t sessionID = arc4random_uniform(SESSIONID_MAX);
+    const struct sqlbox_parmset *res;
+    struct sqlbox_parm parms[] = {
+        {
+            .type = SQLBOX_PARM_STRING,
+            .sparm = r.fieldmap[KEY_UUID]->parsed.s
+        },
+        {
+            .type = SQLBOX_PARM_INT,
+            .iparm = sessionID
+        },
+        {
+            .type = SQLBOX_PARM_STRING,
+            .sparm = (r.fieldmap[KEY_REMEMBER]) ? "+7 days" : "+3 hours"
+        }
+    };
+    if (sqlbox_exec(boxctx, dbid, STMTS_ADD, parmsz, parms,SQLBOX_STMT_CONSTRAINT) != SQLBOX_CODE_OK)
+        errx(EXIT_FAILURE, "sqlbox_exec");
+}
+
 int main() {
     enum khttp er;
     if (khttp_parse(&r, keys, KEY__MAX, NULL, 0, 0) != KCGI_OK)
@@ -147,13 +171,15 @@ int main() {
         khttp_free(&r);
         return 0;
     }
+    open_session();
     khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
     khttp_head(&r, kresps[KRESP_CONTENT_TYPE], "%s", kmimetypes[KMIME_TEXT_PLAIN]);
     khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
     khttp_head(&r, kresps[KRESP_VARY], "%s", "Origin");
     khttp_body(&r);
     if (r.mime == KMIME_TEXT_HTML)
-        khttp_puts(&r, "Correct Password.");
+        khttp_puts(&r, "Created successfully.");
     khttp_free(&r);
+    sqlbox_free(boxctx);
     return EXIT_SUCCESS;
 }
