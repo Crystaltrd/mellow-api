@@ -147,10 +147,14 @@ void open_session() {
     khttp_head(&r, kresps[KRESP_SET_COOKIE],
                "sessionID=%d; Path=/; Max-Age=%d", sessionID,
                ((r.fieldmap[KEY_REMEMBER]) ? 7 * 24 * 60 * 60 : 60 * 60 * 3));
+    khttp_head(&r, kresps[KRESP_SET_COOKIE],
+               "UUID=%s; Path=/; Max-Age=%d", r.fieldmap[KEY_UUID]->parsed.s,
+               ((r.fieldmap[KEY_REMEMBER]) ? 7 * 24 * 60 * 60 : 60 * 60 * 3));
     khttp_body(&r);
     kjson_open(&req, &r);
     kjson_obj_open(&req);
     kjson_putboolp(&req, "authorized",true);
+    kjson_putstringp(&req, "UUID", r.fieldmap[KEY_UUID]->parsed.s);
     kjson_putintstrp(&req, "sessionid", sessionID);
     kjson_obj_close(&req);
     khttp_free(&r);
