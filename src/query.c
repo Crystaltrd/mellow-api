@@ -357,7 +357,6 @@ void fill_user() {
             {.type = SQLBOX_PARM_STRING, .sparm = field->parsed.s},
             {.type = SQLBOX_PARM_INT, .iparm = 0}
         };
-            errx(EXIT_FAILURE, "COOKIE_FOUND");
         if (!(stmtid = sqlbox_prepare_bind(boxctx, dbid, STMTS_ACCOUNT, parmsz, parms, 0)))
             errx(EXIT_FAILURE, "sqlbox_prepare_bind");
 
@@ -1027,6 +1026,7 @@ void process(const enum statement STATEMENT) {
     khttp_body(&r);
     kjson_open(&req, &r);
     kjson_obj_open(&req);
+    kjson_putboolp(&req,"Cookie?",(r.cookiemap[COOKIE_SESSIONID] != NULL));
     kjson_putstringp(&req, "UUID", curr_usr.UUID);
     kjson_putboolp(&req, "admin", curr_usr.perms.admin);
     kjson_putboolp(&req, "staff", curr_usr.perms.staff);
@@ -1116,7 +1116,7 @@ int main(void) {
     }
     const enum statement STMT = get_stmts();
     alloc_ctx_cfg();
-    fill_user();
+    //fill_user();
     fill_params(STMT);
     process(STMT);
     sqlbox_free(boxctx);
