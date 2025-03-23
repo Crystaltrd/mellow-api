@@ -330,9 +330,14 @@ void alloc_ctx_cfg() {
 struct usr {
     char *UUID;
     struct accperms perms;
+    bool authorized;
 };
 
-struct usr curr_usr = {.UUID = NULL, .perms = {0, 0, 0, 0, 0, 0, 0}};
+struct usr curr_usr = {
+    .authorized = false,
+    .UUID = NULL,
+    .perms = {0, 0, 0, 0, 0, 0, 0}
+};
 
 void fill_user() {
     struct kpair *field;
@@ -361,11 +366,12 @@ void fill_user() {
             errx(EXIT_FAILURE, "sqlbox_prepare_bind");
         if ((res = sqlbox_step(boxctx, stmtid)) == NULL)
             errx(EXIT_FAILURE, "sqlbox_step");
-        if (res->psz == 0)
-            errx(EXIT_FAILURE,"fill_user");
-        curr_usr.UUID = calloc(res->ps[0].sz, sizeof(char));
-        strncpy(curr_usr.UUID, res->ps[0].sparm, res->ps[0].sz);
-        curr_usr.perms = int_to_accperms((int) res->ps[6].iparm);
+        if (res->psz != 0) {
+            curr_usr.authorized = true;
+            curr_usr.UUID = calloc(res->ps[0].sz, sizeof(char));
+            strncpy(curr_usr.UUID, res->ps[0].sparm, res->ps[0].sz);
+            curr_usr.perms = int_to_accperms((int) res->ps[6].iparm);
+        }
         sqlbox_finalise(boxctx, stmtid);
     }
 }
@@ -1024,17 +1030,7 @@ void process(const enum statement STATEMENT) {
     khttp_head(&r, kresps[KRESP_VARY], "%s", "Origin");
     khttp_body(&r);
     kjson_open(&req, &r);
-    kjson_obj_open(&req);
-    kjson_putboolp(&req,"Cookie?",(r.cookiemap[COOKIE_SESSIONID] != NULL));
-    kjson_putstringp(&req, "UUID", curr_usr.UUID);
-    kjson_putboolp(&req, "admin", curr_usr.perms.admin);
-    kjson_putboolp(&req, "staff", curr_usr.perms.staff);
-    kjson_putboolp(&req, "manage_books", curr_usr.perms.manage_books);
-    kjson_putboolp(&req, "manage_stock", curr_usr.perms.manage_stock);
-    kjson_putboolp(&req, "return_book", curr_usr.perms.return_book);
-    kjson_putboolp(&req, "rent_book", curr_usr.perms.rent_book);
-    kjson_putboolp(&req, "inventory", curr_usr.perms.inventory);
-    kjson_arrayp_open(&req, "result");
+    kjson_array_open(&req);
     while ((res = sqlbox_step(boxctx, stmtid)) != NULL && res->code == SQLBOX_CODE_OK && res->psz != 0) {
         kjson_obj_open(&req);
         for (int i = 0; i < (int) res->psz; ++i) {
@@ -1115,7 +1111,7 @@ int main(void) {
     }
     const enum statement STMT = get_stmts();
     alloc_ctx_cfg();
-   fill_user();
+    fill_user();
     fill_params(STMT);
     process(STMT);
     sqlbox_free(boxctx);
