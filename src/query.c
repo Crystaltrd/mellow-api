@@ -22,22 +22,20 @@ struct kjsonreq req;
 struct accperms {
     bool admin;
     bool staff;
-    bool manage_books;
     bool manage_stock;
-    bool return_book;
-    bool rent_book;
-    bool inventory;
+    bool manage_inventories;
+    bool monitor_history;
+    bool has_inventory;
 };
 
 struct accperms int_to_accperms(int perm) {
     struct accperms perms = {
         .admin = (perm & (1 << 6)),
         .staff = (perm & (1 << 5)),
-        .manage_books = (perm & (1 << 4)),
         .manage_stock = (perm & (1 << 3)),
-        .return_book = (perm & (1 << 2)),
-        .rent_book = (perm & (1 << 1)),
-        .inventory = (perm & 1)
+        .manage_inventories = (perm & (1 << 2)),
+        .monitor_history = (perm & (1 << 1)),
+        .has_inventory = (perm & 1)
     };
     return perms;
 }
@@ -336,7 +334,7 @@ struct usr {
 struct usr curr_usr = {
     .authorized = false,
     .UUID = NULL,
-    .perms = {0, 0, 0, 0, 0, 0, 0}
+    .perms = {0, 0, 0, 0, 0, 0,}
 };
 
 void fill_user() {
@@ -1088,11 +1086,10 @@ void process(const enum statement STATEMENT) {
                         kjson_objp_open(&req, rows[STATEMENT][i]);
                         kjson_putboolp(&req, "admin", perms.admin);
                         kjson_putboolp(&req, "staff", perms.staff);
-                        kjson_putboolp(&req, "manage_books", perms.manage_books);
                         kjson_putboolp(&req, "manage_stock", perms.manage_stock);
-                        kjson_putboolp(&req, "return_book", perms.return_book);
-                        kjson_putboolp(&req, "rent_book", perms.rent_book);
-                        kjson_putboolp(&req, "inventory", perms.inventory);
+                        kjson_putboolp(&req, "manage_inventories", perms.manage_inventories);
+                        kjson_putboolp(&req, "monitor_history", perms.monitor_history);
+                        kjson_putboolp(&req, "has_inventory", perms.has_inventory);
                         kjson_obj_close(&req);
                     } else
                         kjson_putintp(&req, rows[STATEMENT][i], res->ps[i].iparm);
@@ -1158,6 +1155,20 @@ int main(void) {
     const enum statement STMT = get_stmts();
     alloc_ctx_cfg();
     fill_user();
+    if ((STMT == STMTS_HISTORY || STMT == STMTS_ACCOUNT || STMT == STMTS_SESSIONS || STMT == STMTS_INVENTORY)) {
+        if (!curr_usr.authorized)
+            errx(EXIT_FAILURE, "Permission");
+        if (!curr_usr.perms.admin && !curr_usr.perms.staff) {
+            if (!r.fieldmap[KEY_FILTER_ME]) {
+                if (!((curr_usr.perms.monitor_history && STMT == STMTS_HISTORY) || (
+                          curr_usr.perms.manage_inventories && STMT == STMTS_INVENTORY))) {
+                    errx(EXIT_FAILURE, "Permission");
+                }
+            } else if (STMT == STMTS_INVENTORY && !curr_usr.perms.has_inventory) {
+                errx(EXIT_FAILURE, "Permission");
+            }
+        }
+    }
     fill_params(STMT);
     process(STMT);
     sqlbox_free(boxctx);
