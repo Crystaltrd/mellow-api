@@ -1032,6 +1032,7 @@ void process(const enum statement STATEMENT) {
     kjson_open(&req, &r);
     kjson_array_open(&req);
     if (curr_usr.authorized) {
+        kjson_obj_open(&req);
         kjson_putstringp(&req, "UUID", curr_usr.UUID);
         kjson_putboolp(&req, "admin", curr_usr.perms.admin);
         kjson_putboolp(&req, "staff", curr_usr.perms.staff);
@@ -1040,6 +1041,7 @@ void process(const enum statement STATEMENT) {
         kjson_putboolp(&req, "return_book", curr_usr.perms.return_book);
         kjson_putboolp(&req, "rent_book", curr_usr.perms.rent_book);
         kjson_putboolp(&req, "inventory", curr_usr.perms.inventory);
+        kjson_obj_close(&req);
     }
     while ((res = sqlbox_step(boxctx, stmtid)) != NULL && res->code == SQLBOX_CODE_OK && res->psz != 0) {
         kjson_obj_open(&req);
