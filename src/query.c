@@ -362,12 +362,11 @@ void fill_user() {
 
         if ((res = sqlbox_step(boxctx, stmtid)) == NULL)
             errx(EXIT_FAILURE, "sqlbox_step");
-        if (res->psz != 0) {
-            curr_usr.UUID = calloc(res->ps[0].sz, sizeof(char));
-            strncpy(curr_usr.UUID, res->ps[0].sparm, res->ps[0].sz);
-            curr_usr.perms = int_to_accperms((int) res->ps[6].iparm);
-        }
-
+        if (res->psz == 0)
+            errx(EXIT_FAILURE, "sqlbox_step");
+        curr_usr.UUID = calloc(res->ps[0].sz, sizeof(char));
+        strncpy(curr_usr.UUID, res->ps[0].sparm, res->ps[0].sz);
+        curr_usr.perms = int_to_accperms((int) res->ps[6].iparm);
         sqlbox_finalise(boxctx, stmtid);
     }
 }
