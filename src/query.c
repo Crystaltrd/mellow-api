@@ -170,7 +170,7 @@ static const struct kvalid keys[KEY__MAX] = {
     {kvalid_date, "from_date"},
     {kvalid_date, "to_date"},
     {kvalid_int, "by_session"},
-    {kvalid_int,"sessionID"},
+    {kvalid_int, "sessionID"},
     {NULL, "details"},
 };
 /*
@@ -205,7 +205,7 @@ static const char *rows[STMTS__MAX][9] = {
     {"roleName", "perms"},
     {"categoryClass", "categoryName", "parentCategoryID"},
     {"categoryClass", "categoryName", "parentCategoryID"},
-    {"UUID", "displayname", "pwhash", "campus", "role","perm"},
+    {"UUID", "displayname", "pwhash", "campus", "role", "perm"},
     {"serialnum", "type", "category", "categoryName", "publisher", "booktitle", "bookreleaseyear", "bookcover", "hits"},
     {"serialnum", "campus", "instock"},
     {"UUID", "serialnum", "rentduration", "rentdate", "extended"},
@@ -328,11 +328,49 @@ void alloc_ctx_cfg() {
  * A struct holding the UUID and Permissions of the user issuing the call
  */
 struct usr {
-    const char *UUID;
+    char *UUID;
     struct accperms perms;
 };
 
-struct usr curr_usr = {.perms = {0, 0, 0, 0, 0, 0, 0}};
+struct usr curr_usr = {.UUID = NULL, .perms = {0, 0, 0, 0, 0, 0, 0}};
+
+void fill_user() {
+    struct kpair *field;
+    if ((field = r.cookiemap[COOKIE_SESSIONID])) {
+        size_t stmtid;
+        size_t parmsz = 15;
+        const struct sqlbox_parmset *res;
+        struct sqlbox_parm parms[] = {
+            {.type = SQLBOX_PARM_STRING, .sparm = "IGNORE_ID"},
+            {.type = SQLBOX_PARM_STRING, .sparm = ""},
+            {.type = SQLBOX_PARM_STRING, .sparm = "IGNORE_NAME"},
+            {.type = SQLBOX_PARM_STRING, .sparm = ""},
+            {.type = SQLBOX_PARM_STRING, .sparm = "IGNORE_BOOK"},
+            {.type = SQLBOX_PARM_STRING, .sparm = ""},
+            {.type = SQLBOX_PARM_STRING, .sparm = "IGNORE_CAMPUS"},
+            {.type = SQLBOX_PARM_STRING, .sparm = ""},
+            {.type = SQLBOX_PARM_STRING, .sparm = "IGNORE_ROLE"},
+            {.type = SQLBOX_PARM_STRING, .sparm = ""},
+            {.type = SQLBOX_PARM_STRING, .sparm = "IGNORE_FREEZE"},
+            {.type = SQLBOX_PARM_STRING, .sparm = ""},
+            {.type = SQLBOX_PARM_STRING, .sparm = "DONT_IGNORE"},
+            {.type = SQLBOX_PARM_STRING, .sparm = field->parsed.s},
+            {.type = SQLBOX_PARM_INT, .iparm = 0}
+        };
+        if (!(stmtid = sqlbox_prepare_bind(boxctx, dbid, STMTS_ACCOUNT, parmsz, parms, 0)))
+            errx(EXIT_FAILURE, "sqlbox_prepare_bind");
+
+        if ((res = sqlbox_step(boxctx, stmtid)) == NULL)
+            errx(EXIT_FAILURE, "sqlbox_step");
+        if (res->psz != 0) {
+            curr_usr.UUID = calloc(res->ps[0].sz, sizeof(char));
+            strncpy(curr_usr.UUID, res->ps[0].sparm, res->ps[0].sz);
+            curr_usr.perms = int_to_accperms((int) res->ps[6].iparm);
+        }
+
+        sqlbox_finalise(boxctx, stmtid);
+    }
+}
 
 /*
  * Fills the parm parameter array with the values that will replace the interrogation marks in the SQL statements
@@ -914,7 +952,7 @@ void fill_params(const enum statement STATEMENT) {
                 .type = SQLBOX_PARM_STRING,
                 .sparm = ((field = r.fieldmap[KEY_FILTER_BY_ACCOUNT])) ? field->parsed.s : ""
             };
-        break;
+            break;
         default:
             errx(EXIT_FAILURE, "params");
     }
@@ -1068,6 +1106,7 @@ int main(void) {
     }
     const enum statement STMT = get_stmts();
     alloc_ctx_cfg();
+    fill_user();
     fill_params(STMT);
     process(STMT);
     sqlbox_free(boxctx);
