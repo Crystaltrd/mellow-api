@@ -120,6 +120,7 @@ enum key {
     KEY_FILTER_TO_DATE,
     KEY_FILTER_BY_SESSION,
     KEY_PERMS_DETAILS,
+    COOKIE_SESSIONID,
     KEY__MAX
 };
 
@@ -169,6 +170,7 @@ static const struct kvalid keys[KEY__MAX] = {
     {kvalid_date, "from_date"},
     {kvalid_date, "to_date"},
     {kvalid_int, "by_session"},
+    {kvalid_int,"sessionID"},
     {NULL, "details"},
 };
 /*
