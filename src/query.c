@@ -359,7 +359,6 @@ void fill_user() {
         };
         if (!(stmtid = sqlbox_prepare_bind(boxctx, dbid, STMTS_ACCOUNT, parmsz, parms, 0)))
             errx(EXIT_FAILURE, "sqlbox_prepare_bind");
-
         if ((res = sqlbox_step(boxctx, stmtid)) == NULL)
             errx(EXIT_FAILURE, "sqlbox_step");
         if (res->psz == 0)
@@ -1116,7 +1115,7 @@ int main(void) {
     }
     const enum statement STMT = get_stmts();
     alloc_ctx_cfg();
-    //fill_user();
+    fill_user();
     fill_params(STMT);
     process(STMT);
     sqlbox_free(boxctx);
