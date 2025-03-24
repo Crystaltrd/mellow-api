@@ -66,7 +66,7 @@ CREATE TABLE ROLE
 );
 
 INSERT INTO ROLE
-VALUES ('ADMIN', 64),
+VALUES ('ADMIN', 63),
        ('STAFF', 62),
        ('SHELF MANAGER', 56),
        ('LIBRARIAN', 6),

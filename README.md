@@ -1,4 +1,5 @@
 ## Permissions:
+
 - Admin: Can manage Staff accounts, can import and export backups.
 - Staff: Can manage non-staff accounts
 - Managing Stock: Can manage books and the stock, can create and delete languages, categories...etc
@@ -43,8 +44,6 @@
 - ?by_book
 - ?by_popularity
 
-* [ ] Done
-
 ```sql
 SELECT publisherName
 FROM PUBLISHER
@@ -57,13 +56,25 @@ LIMIT 10 OFFSET (? * 10)
 
 ```
 
+```json
+[
+  {
+    "publisherName": "pub1"
+  },
+  {
+    "publisherName": "pub2"
+  },
+  {
+    "publisherName": "pub3"
+  }
+]
+```
+
 ### Author:
 
 - ?by_name
 - ?by_book
 - ?by_popularity
-
-* [ ] Done
 
 ```sql
 SELECT authorName
@@ -77,13 +88,25 @@ ORDER BY IIF((?) = 'POPULAR', SUM(hits), COUNT()) DESC
 LIMIT 10 OFFSET (? * 10)
 ```
 
+```json
+[
+  {
+    "authorName": "AUTHOR2"
+  },
+  {
+    "authorName": "AUTHOR1"
+  },
+  {
+    "authorName": "AUTHOR3"
+  }
+]
+```
+
 ### Language:
 
 - ?by_name
 - ?by_book
 - ?by_popularity
-
-* [ ] Done
 
 ```sql
 SELECT langCode
@@ -97,19 +120,46 @@ ORDER BY IIF((?) = 'POPULAR', SUM(hits), COUNT()) DESC
 LIMIT 10 OFFSET (? * 10)
 ```
 
+```json
+[
+  {
+    "langcode": "lang2"
+  },
+  {
+    "langcode": "lang1"
+  },
+  {
+    "langcode": "lang3"
+  }
+]
+```
+
 ### Action:
 
 - ?by_name
 
-* [ ] `SELECT actionName FROM ACTION WHERE instr(actionName,(?)) > 0 LIMIT 10 OFFSET (? * 10)`
+`SELECT actionName FROM ACTION WHERE instr(actionName,(?)) > 0 LIMIT 10 OFFSET (? * 10)`
+
+```json
+
+[
+  {
+    "actionName": "act1"
+  },
+  {
+    "actionName": "act2"
+  },
+  {
+    "actionName": "ECHOES act3"
+  }
+]
+```
 
 ### Doctype:
 
 - ?by_name
 - ?by_book
 - ?by_popularity
-
-* [ ] Done
 
 ```sql
 SELECT typeName
@@ -122,13 +172,25 @@ ORDER BY IIF((?) = 'POPULAR', SUM(hits), COUNT()) DESC
 LIMIT 10 OFFSET (? * 10)
 ```
 
+```json
+[
+  {
+    "typeName": "type1"
+  },
+  {
+    "typeName": "type2"
+  },
+  {
+    "typeName": "type3"
+  }
+]
+```
+
 ### Campus:
 
 - ?by_name
 - ?by_book
 - ?by_account
-
-* [ ] Done
 
 ```sql
 SELECT campusName
@@ -141,13 +203,26 @@ WHERE ((?) = 'IGNORE_NAME' OR instr(campusName, (?)) > 0)
 LIMIT 10 OFFSET (? * 10)
 ```
 
+```json
+
+[
+  {
+    "campusName": "Aboudaou"
+  },
+  {
+    "campusName": "El Kseur"
+  },
+  {
+    "campusName": "Targa Ouzemmour"
+  }
+]
+```
+
 ### Role:
 
 - ?by_name
 - ?by_perm
 - ?by_account
-
-* [ ] Done
 
 ```sql
 SELECT roleName, perms
@@ -161,6 +236,35 @@ LIMIT 10 OFFSET (? * 10)
 
 ```
 
+```json
+[
+  {
+    "roleName": "ADMIN",
+    "perms": 63
+  },
+  {
+    "roleName": "STAFF",
+    "perms": 62
+  },
+  {
+    "roleName": "SHELF MANAGER",
+    "perms": 56
+  },
+  {
+    "roleName": "LIBRARIAN",
+    "perms": 6
+  },
+  {
+    "roleName": "PROFESSOR",
+    "perms": 1
+  },
+  {
+    "roleName": "STUDENT",
+    "perms": 1
+  }
+]
+```
+
 ### Category:
 
 Initial condition:
@@ -169,8 +273,6 @@ Initial condition:
 - ?by_class
 - ?by_parent
 - ?by_book
-
-* [ ] Done
 
 ```sql
 SELECT categoryClass, categoryName, parentCategoryID
@@ -186,10 +288,25 @@ ORDER BY IIF((?) = 'POPULAR', SUM(hits), COUNT()) DESC
 LIMIT 10 OFFSET (? * 10)
 ```
 
+ONLY RETURNS THE LEVEL 0 CATEGORIES IF ?by_parent is NOT specified
+
+```json
+[
+  {
+    "categoryClass": "0",
+    "categoryName": "Primary1",
+    "parentCategoryID": null
+  },
+  {
+    "categoryClass": "1",
+    "categoryName": "Primary2",
+    "parentCategoryID": null
+  }
+]
+```
+
 - ?cascade
 - ?get_parents
-
-* [ ] Done
 
 ```sql
 WITH RECURSIVE CategoryCascade AS (SELECT categoryName, categoryClass, parentCategoryID
@@ -215,9 +332,56 @@ WHERE CategoryCascade.categoryClass = CATEGORY.categoryClass
 LIMIT 10 OFFSET (? * 10);
 ```
 
-- ?tree
+```json
+[
+  {
+    "categoryClass": "0",
+    "categoryName": "Primary1",
+    "parentCategoryID": null
+  },
+  {
+    "categoryClass": "1",
+    "categoryName": "Primary2",
+    "parentCategoryID": null
+  },
+  {
+    "categoryClass": "00",
+    "categoryName": "Sec11",
+    "parentCategoryID": "0"
+  },
+  {
+    "categoryClass": "01",
+    "categoryName": "Sec12",
+    "parentCategoryID": "0"
+  },
+  {
+    "categoryClass": "10",
+    "categoryName": "Sec21",
+    "parentCategoryID": "1"
+  },
+  {
+    "categoryClass": "11",
+    "categoryName": "Sec22",
+    "parentCategoryID": "1"
+  },
+  {
+    "categoryClass": "000",
+    "categoryName": "Sec111",
+    "parentCategoryID": "00"
+  },
+  {
+    "categoryClass": "001",
+    "categoryName": "Sec112",
+    "parentCategoryID": "00"
+  }
+]
 
-* [ ] Done
+```
+
+Cascade with ?get_parents basically returns all the parents of the category, without any search criteria, it is an
+undefined behavior
+
+- ?tree
 
 ```sql
 SELECT categoryClass, categoryName, parentCategoryID
@@ -226,6 +390,64 @@ WHERE 'INITIAL CONDITION'
 SELECT categoryClass, categoryName, parentCategoryID
 FROM CATEGORY
 WHERE parentCategoryID = (?)
+```
+
+recursivity baby :3
+```json
+
+[
+  {
+    "categoryClass": "0",
+    "categoryName": "Primary1",
+    "parentCategoryID": null,
+    "children": [
+      {
+        "categoryClass": "00",
+        "categoryName": "Sec11",
+        "parentCategoryID": "0",
+        "children": [
+          {
+            "categoryClass": "000",
+            "categoryName": "Sec111",
+            "parentCategoryID": "00",
+            "children": []
+          },
+          {
+            "categoryClass": "001",
+            "categoryName": "Sec112",
+            "parentCategoryID": "00",
+            "children": []
+          }
+        ]
+      },
+      {
+        "categoryClass": "01",
+        "categoryName": "Sec12",
+        "parentCategoryID": "0",
+        "children": []
+      }
+    ]
+  },
+  {
+    "categoryClass": "1",
+    "categoryName": "Primary2",
+    "parentCategoryID": null,
+    "children": [
+      {
+        "categoryClass": "10",
+        "categoryName": "Sec21",
+        "parentCategoryID": "1",
+        "children": []
+      },
+      {
+        "categoryClass": "11",
+        "categoryName": "Sec22",
+        "parentCategoryID": "1",
+        "children": []
+      }
+    ]
+  }
+]
 ```
 
 ### Account:
@@ -237,8 +459,6 @@ WHERE parentCategoryID = (?)
 - ?by_role
 - ?by_session
 - ?frozen
-
-* [ ] Done
 
 ```sql
 SELECT ACCOUNT.UUID, displayname, pwhash, campus, role, frozen, perms
@@ -258,6 +478,10 @@ ORDER BY ACCOUNT.UUID
 LIMIT 10 OFFSET (? * 10)
 
 ```
+**This request fails if: (Unless the user is staff, admin, or has manage_inventories permissions)**
+- Accountless user
+- Inventory-less user
+- A user with an inventory without the ?me option
 
 ### Book:
 
