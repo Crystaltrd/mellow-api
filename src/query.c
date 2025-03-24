@@ -1157,15 +1157,15 @@ int main(void) {
     fill_user();
     if ((STMT == STMTS_HISTORY || STMT == STMTS_ACCOUNT || STMT == STMTS_SESSIONS || STMT == STMTS_INVENTORY)) {
         if (!curr_usr.authorized)
-            errx(EXIT_FAILURE, "Permission");
+            errx(EXIT_FAILURE, "Permission1");
         if (!curr_usr.perms.admin && !curr_usr.perms.staff) {
             if (!r.fieldmap[KEY_FILTER_ME]) {
                 if (!((curr_usr.perms.monitor_history && STMT == STMTS_HISTORY) || (
                           curr_usr.perms.manage_inventories && STMT == STMTS_INVENTORY))) {
-                    errx(EXIT_FAILURE, "Permission");
+                    errx(EXIT_FAILURE, "Permission2");
                 }
             } else if (STMT == STMTS_INVENTORY && !curr_usr.perms.has_inventory) {
-                errx(EXIT_FAILURE, "Permission");
+                errx(EXIT_FAILURE, "Permission3");
             }
         }
     }
