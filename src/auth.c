@@ -26,7 +26,6 @@ crypt_newhash(const char *password, const char *pref, char *hash,
               size_t hashsize);
 
 #endif
-#define SESSIONID_MAX 99999999
 struct kreq r;
 struct kjsonreq req;
 
@@ -122,15 +121,19 @@ int check_passwd() {
 
 void open_session() {
     size_t parmsz = 3;
-    const uint32_t sessionID = arc4random_uniform(SESSIONID_MAX);
+    char seed[128],timestamp[64],sessionID[_PASSWORD_LEN+64];
+    snprintf(timestamp,64,"%ld",time(NULL));
+    arc4random_buf(seed,128);
+    crypt_newhash(seed,"bcrypt,a",sessionID,_PASSWORD_LEN);
+    strlcat(sessionID,timestamp,_PASSWORD_LEN+64);
     struct sqlbox_parm parms[] = {
         {
             .type = SQLBOX_PARM_STRING,
             .sparm = r.fieldmap[KEY_UUID]->parsed.s
         },
         {
-            .type = SQLBOX_PARM_INT,
-            .iparm = sessionID
+            .type = SQLBOX_PARM_STRING,
+            .sparm = sessionID
         },
         {
             .type = SQLBOX_PARM_STRING,
@@ -145,7 +148,7 @@ void open_session() {
     khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
     khttp_head(&r, kresps[KRESP_VARY], "%s", "Origin");
     khttp_head(&r, kresps[KRESP_SET_COOKIE],
-               "sessionID=%d; Path=/; Max-Age=%d", sessionID,
+               "sessionID=%s; Path=/; Max-Age=%d", sessionID,
                ((r.fieldmap[KEY_REMEMBER]) ? 7 * 24 * 60 * 60 : 60 * 60 * 3));
     khttp_body(&r);
     kjson_open(&req, &r);
