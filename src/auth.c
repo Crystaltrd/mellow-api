@@ -15,7 +15,6 @@
 #include <time.h>
 #include <pwd.h>
 #include <unistd.h>
-#include "utils.c"
 #ifndef __BSD_VISIBLE
 #define	_PASSWORD_LEN		128
 
@@ -152,9 +151,7 @@ void open_session() {
     kjson_open(&req, &r);
     kjson_obj_open(&req);
     kjson_putboolp(&req, "authorized",true);
-    char buf[1024];
-    encode_base64(buf,(u_int8_t *)r.fieldmap[KEY_UUID]->parsed.s,r.fieldmap[KEY_UUID]->valsz);
-    kjson_putstringp(&req, "UUID", buf);
+    kjson_putstringp(&req, "UUID", r.fieldmap[KEY_UUID]->parsed.s);
     kjson_putintstrp(&req, "sessionid", sessionID);
     kjson_obj_close(&req);
     khttp_free(&r);

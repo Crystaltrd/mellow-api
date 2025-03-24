@@ -17,10 +17,9 @@ install-pubnix: query auth database.db
 	install -m 0655 database.db ${PBNIX_HTML}/db
 	install -m 0755 query ${PBNIX_HTML}/query.cgi
 	install -m 0755 auth ${PBNIX_HTML}/auth.cgi
-utils.o: src/utils.c
-	${CC} ${CFLAGS} -c -o utils.o src/utils.c
-auth: auth.o utils.o
-	${CC} --static -o auth utils.o auth.o ${LDFLAGS}
+
+auth: auth.o
+	${CC} --static -o auth auth.o ${LDFLAGS}
 query: query.o
 	${CC} --static -o query query.o ${LDFLAGS}
 auth.o: src/auth.c
