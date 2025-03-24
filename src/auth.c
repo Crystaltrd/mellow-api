@@ -15,6 +15,7 @@
 #include <time.h>
 #include <pwd.h>
 #include <unistd.h>
+#include "utils.c"
 #ifndef __BSD_VISIBLE
 #define	_PASSWORD_LEN		128
 
