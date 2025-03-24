@@ -30,8 +30,8 @@ struct accperms {
 
 struct accperms int_to_accperms(int perm) {
     struct accperms perms = {
-        .admin = (perm & (1 << 6)),
-        .staff = (perm & (1 << 5)),
+        .admin = (perm & (1 << 5)),
+        .staff = (perm & (1 << 4)),
         .manage_stock = (perm & (1 << 3)),
         .manage_inventories = (perm & (1 << 2)),
         .monitor_history = (perm & (1 << 1)),
