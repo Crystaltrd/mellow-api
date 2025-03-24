@@ -122,7 +122,7 @@ int check_passwd() {
 void open_session() {
     size_t parmsz = 3;
     char seed[128],timestamp[64],sessionID[_PASSWORD_LEN+64];
-    snprintf(timestamp,64,"%ld",time(NULL));
+    snprintf(timestamp,64,"%lld",time(NULL));
     arc4random_buf(seed,128);
     crypt_newhash(seed,"bcrypt,a",sessionID,_PASSWORD_LEN);
     strlcat(sessionID,timestamp,_PASSWORD_LEN+64);
@@ -155,7 +155,7 @@ void open_session() {
     kjson_obj_open(&req);
     kjson_putboolp(&req, "authorized",true);
     kjson_putstringp(&req, "UUID", r.fieldmap[KEY_UUID]->parsed.s);
-    kjson_putintstrp(&req, "sessionid", sessionID);
+    kjson_putstringp(&req, "sessionid", sessionID);
     kjson_obj_close(&req);
     khttp_free(&r);
 }
