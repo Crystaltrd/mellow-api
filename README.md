@@ -201,6 +201,8 @@ FROM CAMPUS
 WHERE ((?) = 'IGNORE_NAME' OR instr(campusName, (?)) > 0)
   AND ((?) = 'IGNORE_BOOK' OR serialnum = (?))
   AND ((?) = 'IGNORE_ACCOUNT' OR UUID = (?))
+GROUP BY campusName
+ORDER BY campusName
 LIMIT 10 OFFSET (? * 10)
 ```
 
@@ -232,6 +234,7 @@ FROM ROLE
 WHERE ((?) = 'IGNORE_NAME' OR instr(roleName, (?)) > 0)
   AND ((?) = 'IGNORE_PERMS' OR perms = (?))
   AND ((?) = 'IGNORE_ACCOUNT' OR UUID = (?))
+GROUP BY roleName, perms
 ORDER BY perms DESC
 LIMIT 10 OFFSET (? * 10)
 
@@ -284,7 +287,7 @@ WHERE IIF((?) = 'ROOT', parentCategoryID IS NULL, TRUE)
   AND ((?) = 'IGNORE_CLASS' OR categoryClass = (?))
   AND ((?) = 'IGNORE_PARENT_CLASS' OR parentCategoryID = (?))
   AND ((?) = 'IGNORE_BOOK' OR serialnum = (?))
-GROUP BY categoryClass
+GROUP BY categoryClass, categoryName, parentCategoryID
 ORDER BY IIF((?) = 'POPULAR', SUM(hits), COUNT()) DESC
 LIMIT 10 OFFSET (? * 10)
 ```
@@ -318,7 +321,7 @@ WITH RECURSIVE CategoryCascade AS (SELECT categoryName, categoryClass, parentCat
                                      AND ((?) = 'IGNORE_CLASS' OR categoryClass = (?))
                                      AND ((?) = 'IGNORE_PARENT_CLASS' OR parentCategoryID = (?))
                                      AND ((?) = 'IGNORE_BOOK' OR serialnum = (?))
-                                   GROUP BY categoryClass
+                                   GROUP BY categoryName, categoryClass, parentCategoryID
                                    UNION ALL
                                    SELECT c.categoryName, c.categoryClass, c.parentCategoryID
                                    FROM CATEGORY c
@@ -330,6 +333,7 @@ SELECT CATEGORY.categoryClass, CATEGORY.categoryName, CATEGORY.parentCategoryID
 FROM CATEGORY,
      CategoryCascade
 WHERE CategoryCascade.categoryClass = CATEGORY.categoryClass
+GROUP BY CATEGORY.categoryClass, CATEGORY.categoryName, CATEGORY.parentCategoryID
 LIMIT 10 OFFSET (? * 10);
 ```
 
@@ -476,7 +480,8 @@ WHERE ACCOUNT.role = ROLE.roleName
   AND ((?) = 'IGNORE_ROLE' OR role = (?))
   AND ((?) = 'IGNORE_FREEZE' OR frozen = (?))
   AND ((?) = 'IGNORE_SESSION' OR sessionID = (?))
-ORDER BY ACCOUNT.UUID
+GROUP BY ACCOUNT.UUID, displayname, pwhash, campus, perms, frozen
+ORDER BY displayname
 LIMIT 10 OFFSET (? * 10)
 
 ```
@@ -576,7 +581,7 @@ WHERE category = CategoryCascade.categoryClass
   AND ((?) = 'INCLUDE_EMPTY' OR STOCK.instock > 0)
   AND ((?) = 'IGNORE_FROM_DATE' OR bookreleaseyear >= (?))
   AND ((?) = 'IGNORE_TO_DATE' OR bookreleaseyear <= (?))
-GROUP BY BOOK.serialnum, hits, booktitle
+GROUP BY BOOK.serialnum, type, category, categoryName, publisher, booktitle, bookreleaseyear, bookcover, hits
 ORDER BY IIF((?) = 'POPULAR', hits, booktitle) DESC
 LIMIT 10 OFFSET (? * 10);
 
@@ -693,7 +698,7 @@ WHERE STOCK.serialnum = BOOK.serialnum
   AND ((?) = 'IGNORE_BOOK' OR STOCK.serialnum = (?))
   AND ((?) = 'IGNORE_CAMPUS' OR campus = (?))
   AND IIF((?) = 'AVAILABLE', instock > 0, TRUE)
-GROUP BY BOOK.serialnum, campus, instock, hits
+GROUP BY STOCK.serialnum, campus, instock, hits
 ORDER BY IIF((?) = 'POPULAR', hits, instock) DESC
 LIMIT 10 OFFSET (? * 10)
 ```
@@ -760,6 +765,7 @@ SELECT UUID, serialnum, rentduration, rentdate, extended
 FROM INVENTORY
 WHERE ((?) = 'IGNORE_ACCOUNT' OR UUID = (?))
   AND ((?) = 'IGNORE_BOOK' OR serialnum = (?))
+GROUP BY UUID, serialnum, rentduration, rentdate, extended
 ORDER BY rentdate DESC
 LIMIT 10 OFFSET (? * 10)
 ```
@@ -769,9 +775,15 @@ LIMIT 10 OFFSET (? * 10)
 - Accountless user
 - Inventory-less user
 - A user with an inventory without the ?me option
+
 ```json
 [
   {
+    UUID,
+    UUID_ISSUER,
+    serialnum,
+    action,
+    actiondate
     "UUID": "1",
     "serialnum": "1",
     "rentduration": 44,
@@ -780,6 +792,7 @@ LIMIT 10 OFFSET (? * 10)
   }
 ]
 ```
+
 ### History:
 
 - ?by_account
@@ -800,6 +813,7 @@ WHERE ((?) = 'IGNORE_ACCOUNT' OR UUID = (?))
   AND ((?) = 'IGNORE_ACTION' OR action = (?))
   AND ((?) = 'IGNORE_FROM_DATE' OR actiondate >= datetime(?, 'unixepoch'))
   AND ((?) = 'IGNORE_TO_DATE' OR actiondate <= datetime(?, 'unixepoch'))
+GROUP BY UUID, UUID_ISSUER, serialnum, action, actiondate
 ORDER BY actiondate DESC
 LIMIT 10 OFFSET (? * 10)
 ```
@@ -830,3 +844,17 @@ LIMIT 10 OFFSET (? * 10)
 ```
 
 NULL in the ISSUER means that the action was done internally(rare but happens)
+
+### Session:
+
+- ?by_account | ?me
+- ?by_id
+```sql
+SELECT account, sessionID, expiresAt
+FROM SESSIONS
+WHERE ((?) = 'IGNORE_ID' OR sessionID = (?))
+  AND ((?) = 'IGNORE_ACCOUNT' OR account = (?))
+GROUP BY account, sessionID, expiresAt
+ORDER BY expiresAt DESC
+LIMIT 10 OFFSET (? * 10)
+```

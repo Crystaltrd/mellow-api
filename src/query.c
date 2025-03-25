@@ -247,61 +247,61 @@ size_t dbid; // Database associated with a config and a context
 static struct sqlbox_pstmt pstmts[STMTS__MAX] = {
     {
         (char *)
-        "SELECT publisherName FROM PUBLISHER LEFT JOIN BOOK B ON B.publisher = PUBLISHER.publisherName WHERE ((?) = 'IGNORE_NAME' OR instr(publisherName, (?)) > 0) AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) GROUP BY publisherName ORDER BY IIF((?) = 'POPULAR', SUM(hits), COUNT()) DESC LIMIT 10 OFFSET (? * 10)"
+        "SELECT publisherName FROM PUBLISHER LEFT JOIN BOOK B ON B.publisher = PUBLISHER.publisherName WHERE ((?) = 'IGNORE_NAME' OR instr(publisherName, (?)) > 0) AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) GROUP BY publisherName ORDER BY IIF((?) = 'POPULAR', SUM(hits), publisherName) DESC LIMIT 10 OFFSET (? * 10)"
     },
     {
         (char *)
-        "SELECT authorName FROM AUTHOR LEFT JOIN AUTHORED A ON AUTHOR.authorName = A.author LEFT JOIN BOOK B ON B.serialnum = A.serialnum WHERE ((?) = 'IGNORE_NAME' OR instr(authorName, (?)) > 0) AND ((?) = 'IGNORE_BOOK' OR A.serialnum = (?)) GROUP BY authorName ORDER BY IIF((?) = 'POPULAR', SUM(hits), COUNT()) DESC LIMIT 10 OFFSET (? * 10)"
+        "SELECT authorName FROM AUTHOR LEFT JOIN AUTHORED A ON AUTHOR.authorName = A.author LEFT JOIN BOOK B ON B.serialnum = A.serialnum WHERE ((?) = 'IGNORE_NAME' OR instr(authorName, (?)) > 0) AND ((?) = 'IGNORE_BOOK' OR A.serialnum = (?)) GROUP BY authorName ORDER BY IIF((?) = 'POPULAR', SUM(hits), authorName) DESC LIMIT 10 OFFSET (? * 10)"
     },
     {
         (char *)
-        "SELECT langCode FROM LANG LEFT JOIN LANGUAGES A ON LANG.langCode = A.lang LEFT JOIN BOOK B ON B.serialnum = A.serialnum WHERE ((?) = 'IGNORE_NAME' OR instr(langCode, (?)) > 0) AND ((?) = 'IGNORE_BOOK' OR A.serialnum = (?)) GROUP BY langCode ORDER BY IIF((?) = 'POPULAR', SUM(hits), COUNT()) DESC LIMIT 10 OFFSET (? * 10)"
+        "SELECT langCode FROM LANG LEFT JOIN LANGUAGES A ON LANG.langCode = A.lang LEFT JOIN BOOK B ON B.serialnum = A.serialnum WHERE ((?) = 'IGNORE_NAME' OR instr(langCode, (?)) > 0) AND ((?) = 'IGNORE_BOOK' OR A.serialnum = (?)) GROUP BY langCode ORDER BY IIF((?) = 'POPULAR', SUM(hits), langCode) DESC LIMIT 10 OFFSET (? * 10)"
     },
-    {(char *) "SELECT actionName FROM ACTION WHERE instr(actionName,(?)) > 0 LIMIT 10 OFFSET (? * 10)"},
+    {(char *) "SELECT actionName FROM ACTION WHERE instr(actionName,(?)) > 0 ORDER BY actionName LIMIT 10 OFFSET (? * 10)"},
     {
         (char *)
-        "SELECT typeName FROM DOCTYPE  LEFT JOIN BOOK B ON DOCTYPE.typeName = B.type WHERE ((?) = 'IGNORE_NAME' OR instr(typeName, (?)) > 0)  AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) GROUP BY typeName ORDER BY IIF((?) = 'POPULAR', SUM(hits), COUNT()) DESC LIMIT 10 OFFSET (? * 10)"
-    },
-    {
-        (char *)
-        "SELECT campusName FROM CAMPUS LEFT JOIN STOCK S ON CAMPUS.campusName = S.campus LEFT JOIN ACCOUNT A on CAMPUS.campusName = A.campus WHERE ((?) = 'IGNORE_NAME' OR instr(campusName, (?)) > 0) AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) AND ((?) = 'IGNORE_ACCOUNT' OR UUID = (?)) GROUP BY campusName LIMIT 10 OFFSET (? * 10)"
+        "SELECT typeName FROM DOCTYPE  LEFT JOIN BOOK B ON DOCTYPE.typeName = B.type WHERE ((?) = 'IGNORE_NAME' OR instr(typeName, (?)) > 0)  AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) GROUP BY typeName ORDER BY IIF((?) = 'POPULAR', SUM(hits), typeName) DESC LIMIT 10 OFFSET (? * 10)"
     },
     {
         (char *)
-        "SELECT roleName, perms FROM ROLE LEFT JOIN ACCOUNT A ON A.role = ROLE.roleName WHERE ((?) = 'IGNORE_NAME' OR instr(roleName, (?)) > 0) AND ((?) = 'IGNORE_PERMS' OR perms = (?)) AND ((?) = 'IGNORE_ACCOUNT' OR UUID = (?)) ORDER BY perms DESC LIMIT 10 OFFSET (? * 10)"
+        "SELECT campusName FROM CAMPUS LEFT JOIN STOCK S ON CAMPUS.campusName = S.campus LEFT JOIN ACCOUNT A on CAMPUS.campusName = A.campus WHERE ((?) = 'IGNORE_NAME' OR instr(campusName, (?)) > 0) AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) AND ((?) = 'IGNORE_ACCOUNT' OR UUID = (?)) GROUP BY campusName ORDER BY campusName LIMIT 10 OFFSET (? * 10)"
     },
     {
         (char *)
-        "SELECT categoryClass, categoryName, parentCategoryID FROM CATEGORY LEFT JOIN BOOK B ON CATEGORY.categoryClass = B.category WHERE IIF((?) = 'ROOT',parentCategoryID IS NULL,TRUE) AND ((?) = 'IGNORE_NAME' OR instr(categoryName, (?)) > 0) AND ((?) = 'IGNORE_CLASS' OR categoryClass = (?)) AND ((?) = 'IGNORE_PARENT_CLASS' OR parentCategoryID = (?)) AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) GROUP BY categoryClass ORDER BY IIF((?) = 'POPULAR', SUM(hits), COUNT()) DESC LIMIT 10 OFFSET (? * 10)"
+        "SELECT roleName, perms FROM ROLE LEFT JOIN ACCOUNT A ON A.role = ROLE.roleName WHERE ((?) = 'IGNORE_NAME' OR instr(roleName, (?)) > 0) AND ((?) = 'IGNORE_PERMS' OR perms = (?)) AND ((?) = 'IGNORE_ACCOUNT' OR UUID = (?)) GROUP BY roleName, perms ORDER BY perms DESC LIMIT 10 OFFSET (? * 10)"
     },
     {
         (char *)
-        " WITH RECURSIVE CategoryCascade AS (SELECT categoryName,categoryClass, parentCategoryID FROM CATEGORY LEFT JOIN BOOK B ON CATEGORY.categoryClass = B.category WHERE IIF((?) = 'ROOT',parentCategoryID IS NULL,TRUE) AND ((?) = 'IGNORE_NAME' OR instr(categoryName, (?)) > 0) AND ((?) = 'IGNORE_CLASS' OR categoryClass = (?)) AND ((?) = 'IGNORE_PARENT_CLASS' OR parentCategoryID = (?)) AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) GROUP BY categoryClass UNION ALL SELECT c.categoryName,c.categoryClass, c.parentCategoryID FROM CATEGORY c INNER JOIN CategoryCascade ct ON IIF((?) = 'GET_PARENTS', c.categoryClass = ct.parentCategoryID, c.parentCategoryID = ct.categoryClass)) SELECT CATEGORY.categoryClass, CATEGORY.categoryName,CATEGORY.parentCategoryID FROM CATEGORY, CategoryCascade WHERE CategoryCascade.categoryClass = CATEGORY.categoryClass LIMIT 10 OFFSET (? * 10)"
+        "SELECT categoryClass, categoryName, parentCategoryID FROM CATEGORY LEFT JOIN BOOK B ON CATEGORY.categoryClass = B.category WHERE IIF((?) = 'ROOT',parentCategoryID IS NULL,TRUE) AND ((?) = 'IGNORE_NAME' OR instr(categoryName, (?)) > 0) AND ((?) = 'IGNORE_CLASS' OR categoryClass = (?)) AND ((?) = 'IGNORE_PARENT_CLASS' OR parentCategoryID = (?)) AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) GROUP BY categoryClass, categoryName, parentCategoryID ORDER BY IIF((?) = 'POPULAR', SUM(hits), categoryClass) DESC LIMIT 10 OFFSET (? * 10)"
     },
     {
         (char *)
-        "SELECT ACCOUNT.UUID, displayname, pwhash, campus, role, perms, frozen FROM ROLE,ACCOUNT LEFT JOIN INVENTORY I on ACCOUNT.UUID = I.UUID LEFT JOIN SESSIONS S on ACCOUNT.UUID = S.account WHERE ACCOUNT.role = ROLE.roleName AND ((?) = 'IGNORE_ID' OR ACCOUNT.UUID = (?)) AND ((?) = 'IGNORE_NAME' OR instr(displayname, (?)) > 0) AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) AND ((?) = 'IGNORE_CAMPUS' OR campus = (?)) AND ((?) = 'IGNORE_ROLE' OR role = (?)) AND ((?) = 'IGNORE_FREEZE' OR frozen = (?)) AND ((?) = 'IGNORE_SESSION' OR sessionID = (?)) ORDER BY ACCOUNT.UUID LIMIT 10 OFFSET (? * 10)"
+        " WITH RECURSIVE CategoryCascade AS (SELECT categoryName,categoryClass, parentCategoryID FROM CATEGORY LEFT JOIN BOOK B ON CATEGORY.categoryClass = B.category WHERE IIF((?) = 'ROOT',parentCategoryID IS NULL,TRUE) AND ((?) = 'IGNORE_NAME' OR instr(categoryName, (?)) > 0) AND ((?) = 'IGNORE_CLASS' OR categoryClass = (?)) AND ((?) = 'IGNORE_PARENT_CLASS' OR parentCategoryID = (?)) AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) GROUP BY categoryClass,categoryName,parentCategoryID UNION ALL SELECT c.categoryName,c.categoryClass, c.parentCategoryID FROM CATEGORY c INNER JOIN CategoryCascade ct ON IIF((?) = 'GET_PARENTS', c.categoryClass = ct.parentCategoryID, c.parentCategoryID = ct.categoryClass)) SELECT CATEGORY.categoryClass, CATEGORY.categoryName,CATEGORY.parentCategoryID FROM CATEGORY, CategoryCascade WHERE CategoryCascade.categoryClass = CATEGORY.categoryClass GROUP BY CATEGORY.categoryClass, CATEGORY.categoryName, CATEGORY.parentCategoryID LIMIT 10 OFFSET (? * 10)"
     },
     {
         (char *)
-        "WITH RECURSIVE CategoryCascade AS (SELECT categoryClass, parentCategoryID FROM CATEGORY WHERE IIF((?) = 'ROOT',parentCategoryID IS NULL,categoryClass = (?)) UNION ALL SELECT c.categoryClass, c.parentCategoryID FROM CATEGORY c INNER JOIN CategoryCascade ct ON c.parentCategoryID = ct.categoryClass) SELECT BOOK.serialnum, type, category,categoryName, publisher, booktitle, bookreleaseyear, bookcover, hits FROM (BOOK LEFT JOIN INVENTORY I ON BOOK.serialnum = I.serialnum),CATEGORY, LANGUAGES, AUTHORED, STOCK, CategoryCascade WHERE category = CategoryCascade.categoryClass AND AUTHORED.serialnum = BOOK.serialnum AND LANGUAGES.serialnum = BOOK.serialnum AND STOCK.serialnum = BOOK.serialnum AND CATEGORY.categoryClass = BOOK.category AND ((?) = 'IGNORE_ID' OR BOOK.serialnum = (?)) AND ((?) = 'IGNORE_NAME' OR instr(booktitle, (?))) AND ((?) = 'IGNORE_LANG' OR lang = (?)) AND ((?) = 'IGNORE_AUTHOR' OR instr(author, (?)) > 0) AND ((?) = 'IGNORE_TYPE' OR type = (?)) AND ((?) = 'IGNORE_PUBLISHER' OR instr(publisher, (?)) > 0) AND ((?) = 'IGNORE_CAMPUS' OR campus = (?)) AND ((?) = 'IGNORE_ACCOUNT' OR UUID = (?)) AND ((?) = 'INCLUDE_EMPTY' OR STOCK.instock > 0) AND ((?) = 'IGNORE_FROM_DATE' OR bookreleaseyear >= (?)) AND ((?) = 'IGNORE_TO_DATE' OR bookreleaseyear <= (?)) GROUP BY BOOK.serialnum, hits, booktitle ORDER BY IIF((?) = 'POPULAR', hits, booktitle) DESC LIMIT 10 OFFSET (? * 10)"
+        "SELECT ACCOUNT.UUID, displayname, pwhash, campus, role, perms, frozen FROM ROLE,ACCOUNT LEFT JOIN INVENTORY I on ACCOUNT.UUID = I.UUID LEFT JOIN SESSIONS S on ACCOUNT.UUID = S.account WHERE ACCOUNT.role = ROLE.roleName AND ((?) = 'IGNORE_ID' OR ACCOUNT.UUID = (?)) AND ((?) = 'IGNORE_NAME' OR instr(displayname, (?)) > 0) AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) AND ((?) = 'IGNORE_CAMPUS' OR campus = (?)) AND ((?) = 'IGNORE_ROLE' OR role = (?)) AND ((?) = 'IGNORE_FREEZE' OR frozen = (?)) AND ((?) = 'IGNORE_SESSION' OR sessionID = (?)) GROUP BY ACCOUNT.UUID, displayname, pwhash, campus, perms, frozen ORDER BY displayname LIMIT 10 OFFSET (? * 10)"
     },
     {
         (char *)
-        "SELECT STOCK.serialnum, campus, instock FROM STOCK, BOOK WHERE STOCK.serialnum = BOOK.serialnum AND ((?) = 'IGNORE_BOOK' OR STOCK.serialnum = (?)) AND ((?) = 'IGNORE_CAMPUS' OR campus = (?)) AND IIF((?) = 'AVAILABLE', instock > 0, TRUE) GROUP BY BOOK.serialnum, campus, instock, hits ORDER BY IIF((?) = 'POPULAR', hits, instock) DESC LIMIT 10 OFFSET (? * 10)"
+        "WITH RECURSIVE CategoryCascade AS (SELECT categoryClass, parentCategoryID FROM CATEGORY WHERE IIF((?) = 'ROOT',parentCategoryID IS NULL,categoryClass = (?)) UNION ALL SELECT c.categoryClass, c.parentCategoryID FROM CATEGORY c INNER JOIN CategoryCascade ct ON c.parentCategoryID = ct.categoryClass) SELECT BOOK.serialnum, type, category,categoryName, publisher, booktitle, bookreleaseyear, bookcover, hits FROM (BOOK LEFT JOIN INVENTORY I ON BOOK.serialnum = I.serialnum),CATEGORY, LANGUAGES, AUTHORED, STOCK, CategoryCascade WHERE category = CategoryCascade.categoryClass AND AUTHORED.serialnum = BOOK.serialnum AND LANGUAGES.serialnum = BOOK.serialnum AND STOCK.serialnum = BOOK.serialnum AND CATEGORY.categoryClass = BOOK.category AND ((?) = 'IGNORE_ID' OR BOOK.serialnum = (?)) AND ((?) = 'IGNORE_NAME' OR instr(booktitle, (?))) AND ((?) = 'IGNORE_LANG' OR lang = (?)) AND ((?) = 'IGNORE_AUTHOR' OR instr(author, (?)) > 0) AND ((?) = 'IGNORE_TYPE' OR type = (?)) AND ((?) = 'IGNORE_PUBLISHER' OR instr(publisher, (?)) > 0) AND ((?) = 'IGNORE_CAMPUS' OR campus = (?)) AND ((?) = 'IGNORE_ACCOUNT' OR UUID = (?)) AND ((?) = 'INCLUDE_EMPTY' OR STOCK.instock > 0) AND ((?) = 'IGNORE_FROM_DATE' OR bookreleaseyear >= (?)) AND ((?) = 'IGNORE_TO_DATE' OR bookreleaseyear <= (?)) GROUP BY BOOK.serialnum, type, category, categoryName, publisher, booktitle, bookreleaseyear, bookcover, hits ORDER BY IIF((?) = 'POPULAR', hits, booktitle) DESC LIMIT 10 OFFSET (? * 10)"
     },
     {
         (char *)
-        "SELECT UUID, serialnum, rentduration, rentdate, extended FROM INVENTORY WHERE ((?) = 'IGNORE_ACCOUNT' OR UUID = (?)) AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) ORDER BY rentdate DESC LIMIT 10 OFFSET (? * 10)"
+        "SELECT STOCK.serialnum, campus, instock FROM STOCK, BOOK WHERE STOCK.serialnum = BOOK.serialnum AND ((?) = 'IGNORE_BOOK' OR STOCK.serialnum = (?)) AND ((?) = 'IGNORE_CAMPUS' OR campus = (?)) AND IIF((?) = 'AVAILABLE', instock > 0, TRUE) GROUP BY STOCK.serialnum, campus, instock,hits ORDER BY IIF((?) = 'POPULAR', hits, instock) DESC LIMIT 10 OFFSET (? * 10)"
+    },
+    {
+        (char *)
+        "SELECT UUID, serialnum, rentduration, rentdate, extended FROM INVENTORY WHERE ((?) = 'IGNORE_ACCOUNT' OR UUID = (?)) AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) GROUP BY UUID, serialnum, rentduration, rentdate, extended ORDER BY rentdate DESC LIMIT 10 OFFSET (? * 10)"
     },
     {
 
         (char *)
-        "SELECT UUID,UUID_ISSUER,serialnum,action,actiondate FROM HISTORY WHERE ((?) = 'IGNORE_ACCOUNT' OR UUID = (?)) AND ((?) = 'IGNORE_ISSUER' OR UUID_ISSUER = (?)) AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) AND ((?) = 'IGNORE_ACTION' OR action = (?)) AND ((?) = 'IGNORE_FROM_DATE' OR actiondate >= datetime((?),'unixepoch')) AND ((?) = 'IGNORE_TO_DATE' OR actiondate <= datetime((?),'unixepoch')) ORDER BY actiondate DESC LIMIT 10 OFFSET (? * 10)"
+        "SELECT UUID,UUID_ISSUER,serialnum,action,actiondate FROM HISTORY WHERE ((?) = 'IGNORE_ACCOUNT' OR UUID = (?)) AND ((?) = 'IGNORE_ISSUER' OR UUID_ISSUER = (?)) AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) AND ((?) = 'IGNORE_ACTION' OR action = (?)) AND ((?) = 'IGNORE_FROM_DATE' OR actiondate >= datetime((?),'unixepoch')) AND ((?) = 'IGNORE_TO_DATE' OR actiondate <= datetime((?),'unixepoch')) GROUP BY UUID, UUID_ISSUER, serialnum, action, actiondate ORDER BY actiondate DESC LIMIT 10 OFFSET (? * 10)"
     },
     {
         (char *)
-        "SELECT account,sessionID,expiresAt FROM SESSIONS WHERE ((?) = 'IGNORE_ID' OR sessionID = (?)) AND ((?) = 'IGNORE_ACCOUNT' OR account = (?)) LIMIT 10 OFFSET (? * 10)"
+        "SELECT account,sessionID,expiresAt FROM SESSIONS WHERE ((?) = 'IGNORE_ID' OR sessionID = (?)) AND ((?) = 'IGNORE_ACCOUNT' OR account = (?)) GROUP BY account,sessionID,expiresAt ORDER BY expiresAt DESC LIMIT 10 OFFSET (? * 10)"
     }
 
 };
