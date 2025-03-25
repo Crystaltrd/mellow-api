@@ -369,7 +369,6 @@ void fill_user() {
             curr_usr.UUID = calloc(res->ps[0].sz, sizeof(char));
             strncpy(curr_usr.UUID, res->ps[0].sparm, res->ps[0].sz);
             curr_usr.perms = int_to_accperms((int) res->ps[5].iparm);
-            errx(EXIT_FAILURE,"%d",(int) res->ps[5].iparm);
         }
         sqlbox_finalise(boxctx, stmtid);
     }
