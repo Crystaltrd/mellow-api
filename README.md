@@ -46,11 +46,12 @@
 - ?by_popularity
 
 ```sql
-SELECT DISTINCT publisherName
+SELECT publisherName
 FROM PUBLISHER
          LEFT JOIN BOOK B ON B.publisher = PUBLISHER.publisherName
 WHERE ((?) = 'IGNORE_NAME' OR instr(publisherName, (?)) > 0)
   AND ((?) = 'IGNORE_BOOK' OR serialnum = (?))
+GROUP BY publisherName
 ORDER BY IIF((?) = 'POPULAR', SUM(hits), COUNT()) DESC
 LIMIT 10 OFFSET (? * 10)
 
@@ -77,12 +78,13 @@ LIMIT 10 OFFSET (? * 10)
 - ?by_popularity
 
 ```sql
-SELECT DISTINCT authorName
+SELECT authorName
 FROM AUTHOR
          LEFT JOIN AUTHORED A ON AUTHOR.authorName = A.author
          LEFT JOIN BOOK B ON B.serialnum = A.serialnum
 WHERE ((?) = 'IGNORE_NAME' OR instr(authorName, (?)) > 0)
   AND ((?) = 'IGNORE_BOOK' OR A.serialnum = (?))
+GROUP BY authorName
 ORDER BY IIF((?) = 'POPULAR', SUM(hits), COUNT()) DESC
 LIMIT 10 OFFSET (? * 10)
 ```
@@ -108,12 +110,13 @@ LIMIT 10 OFFSET (? * 10)
 - ?by_popularity
 
 ```sql
-SELECT DISTINCT langCode
+SELECT langCode
 FROM LANG
          LEFT JOIN LANGUAGES A ON LANG.langCode = A.lang
          LEFT JOIN BOOK B ON B.serialnum = A.serialnum
 WHERE ((?) = 'IGNORE_NAME' OR instr(langCode, (?)) > 0)
   AND ((?) = 'IGNORE_BOOK' OR A.serialnum = (?))
+GROUP BY langCode
 ORDER BY IIF((?) = 'POPULAR', SUM(hits), COUNT()) DESC
 LIMIT 10 OFFSET (? * 10)
 ```
@@ -160,11 +163,12 @@ LIMIT 10 OFFSET (? * 10)
 - ?by_popularity
 
 ```sql
-SELECT DISTINCT typeName
+SELECT typeName
 FROM DOCTYPE
          LEFT JOIN BOOK B ON DOCTYPE.typeName = B.type
 WHERE ((?) = 'IGNORE_NAME' OR instr(typeName, (?)) > 0)
   AND ((?) = 'IGNORE_BOOK' OR serialnum = (?))
+GROUP BY typeName
 ORDER BY IIF((?) = 'POPULAR', SUM(hits), COUNT()) DESC
 LIMIT 10 OFFSET (? * 10)
 ```
@@ -190,7 +194,7 @@ LIMIT 10 OFFSET (? * 10)
 - ?by_account
 
 ```sql
-SELECT DISTINCT campusName
+SELECT campusName
 FROM CAMPUS
          LEFT JOIN STOCK S ON CAMPUS.campusName = S.campus
          LEFT JOIN ACCOUNT A on CAMPUS.campusName = A.campus
@@ -222,7 +226,7 @@ LIMIT 10 OFFSET (? * 10)
 - ?by_account
 
 ```sql
-SELECT DISTINCT roleName, perms
+SELECT roleName, perms
 FROM ROLE
          LEFT JOIN ACCOUNT A ON A.role = ROLE.roleName
 WHERE ((?) = 'IGNORE_NAME' OR instr(roleName, (?)) > 0)
@@ -272,7 +276,7 @@ Initial condition:
 - ?by_book
 
 ```sql
-SELECT DISTINCT categoryClass, categoryName, parentCategoryID
+SELECT categoryClass, categoryName, parentCategoryID
 FROM CATEGORY
          LEFT JOIN BOOK B ON CATEGORY.categoryClass = B.category
 WHERE IIF((?) = 'ROOT', parentCategoryID IS NULL, TRUE)
@@ -280,6 +284,7 @@ WHERE IIF((?) = 'ROOT', parentCategoryID IS NULL, TRUE)
   AND ((?) = 'IGNORE_CLASS' OR categoryClass = (?))
   AND ((?) = 'IGNORE_PARENT_CLASS' OR parentCategoryID = (?))
   AND ((?) = 'IGNORE_BOOK' OR serialnum = (?))
+GROUP BY categoryClass
 ORDER BY IIF((?) = 'POPULAR', SUM(hits), COUNT()) DESC
 LIMIT 10 OFFSET (? * 10)
 ```
@@ -305,7 +310,7 @@ ONLY RETURNS THE LEVEL 0 CATEGORIES IF ?by_parent is NOT specified
 - ?get_parents
 
 ```sql
-WITH RECURSIVE CategoryCascade AS (SELECT DISTINCT categoryName, categoryClass, parentCategoryID
+WITH RECURSIVE CategoryCascade AS (SELECT categoryName, categoryClass, parentCategoryID
                                    FROM CATEGORY
                                             LEFT JOIN BOOK B ON CATEGORY.categoryClass = B.category
                                    WHERE IIF((?) = 'ROOT', parentCategoryID IS NULL, TRUE)
@@ -313,6 +318,7 @@ WITH RECURSIVE CategoryCascade AS (SELECT DISTINCT categoryName, categoryClass, 
                                      AND ((?) = 'IGNORE_CLASS' OR categoryClass = (?))
                                      AND ((?) = 'IGNORE_PARENT_CLASS' OR parentCategoryID = (?))
                                      AND ((?) = 'IGNORE_BOOK' OR serialnum = (?))
+                                   GROUP BY categoryClass
                                    UNION ALL
                                    SELECT c.categoryName, c.categoryClass, c.parentCategoryID
                                    FROM CATEGORY c
@@ -320,7 +326,7 @@ WITH RECURSIVE CategoryCascade AS (SELECT DISTINCT categoryName, categoryClass, 
                                                        ON IIF((?) = 'GET_PARENTS',
                                                               c.categoryClass = ct.parentCategoryID,
                                                               c.parentCategoryID = ct.categoryClass))
-SELECT DISTINCT CATEGORY.categoryClass, CATEGORY.categoryName, CATEGORY.parentCategoryID
+SELECT CATEGORY.categoryClass, CATEGORY.categoryName, CATEGORY.parentCategoryID
 FROM CATEGORY,
      CategoryCascade
 WHERE CategoryCascade.categoryClass = CATEGORY.categoryClass
@@ -457,7 +463,7 @@ recursivity baby :3
 - ?frozen
 
 ```sql
-SELECT DISTINCT ACCOUNT.UUID, displayname, pwhash, campus, role, perms, frozen
+SELECT ACCOUNT.UUID, displayname, pwhash, campus, role, perms, frozen
 FROM ROLE,
      ACCOUNT
          LEFT JOIN INVENTORY I on ACCOUNT.UUID = I.UUID
@@ -539,7 +545,7 @@ WITH RECURSIVE CategoryCascade AS (SELECT categoryClass, parentCategoryID
                                    SELECT c.categoryClass, c.parentCategoryID
                                    FROM CATEGORY c
                                             INNER JOIN CategoryCascade ct ON c.parentCategoryID = ct.categoryClass)
-SELECT DISTINCT BOOK.serialnum,
+SELECT BOOK.serialnum,
        type,
        category,
        categoryName,
@@ -570,6 +576,7 @@ WHERE category = CategoryCascade.categoryClass
   AND ((?) = 'INCLUDE_EMPTY' OR STOCK.instock > 0)
   AND ((?) = 'IGNORE_FROM_DATE' OR bookreleaseyear >= (?))
   AND ((?) = 'IGNORE_TO_DATE' OR bookreleaseyear <= (?))
+GROUP BY BOOK.serialnum, hits, booktitle
 ORDER BY IIF((?) = 'POPULAR', hits, booktitle) DESC
 LIMIT 10 OFFSET (? * 10);
 
@@ -679,13 +686,14 @@ LIMIT 10 OFFSET (? * 10);
 * [ ] Done
 
 ```sql
-SELECT DISTINCT STOCK.serialnum, campus, instock
+SELECT STOCK.serialnum, campus, instock
 FROM STOCK,
      BOOK
 WHERE STOCK.serialnum = BOOK.serialnum
   AND ((?) = 'IGNORE_BOOK' OR STOCK.serialnum = (?))
   AND ((?) = 'IGNORE_CAMPUS' OR campus = (?))
   AND IIF((?) = 'AVAILABLE', instock > 0, TRUE)
+GROUP BY BOOK.serialnum, campus, instock, hits
 ORDER BY IIF((?) = 'POPULAR', hits, instock) DESC
 LIMIT 10 OFFSET (? * 10)
 ```
@@ -748,7 +756,7 @@ LIMIT 10 OFFSET (? * 10)
 * [ ] Done
 
 ```sql
-SELECT DISTINCT UUID, serialnum, rentduration, rentdate, extended
+SELECT UUID, serialnum, rentduration, rentdate, extended
 FROM INVENTORY
 WHERE ((?) = 'IGNORE_ACCOUNT' OR UUID = (?))
   AND ((?) = 'IGNORE_BOOK' OR serialnum = (?))
@@ -784,7 +792,7 @@ LIMIT 10 OFFSET (? * 10)
 * [ ] Done
 
 ```sql
-SELECT DISTINCT UUID, UUID_ISSUER, serialnum, action, actiondate
+SELECT UUID, UUID_ISSUER, serialnum, action, actiondate
 FROM HISTORY
 WHERE ((?) = 'IGNORE_ACCOUNT' OR UUID = (?))
   AND ((?) = 'IGNORE_ISSUER' OR UUID_ISSUER = (?))
