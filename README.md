@@ -770,7 +770,15 @@ LIMIT 10 OFFSET (? * 10)
 - Inventory-less user
 - A user with an inventory without the ?me option
 ```json
-
+[
+  {
+    "UUID": "1",
+    "serialnum": "1",
+    "rentduration": 44,
+    "rentdate": "2025-03-25 01:19:52",
+    "extended": 0
+  }
+]
 ```
 ### History:
 
@@ -795,3 +803,30 @@ WHERE ((?) = 'IGNORE_ACCOUNT' OR UUID = (?))
 ORDER BY actiondate DESC
 LIMIT 10 OFFSET (? * 10)
 ```
+
+**This request fails if: (Unless the user is staff, admin, or has monitor_history permissions)**
+
+- Accountless user
+- A user without the ?me option
+
+```json
+[
+  {
+    "UUID": "1",
+    "UUID_ISSUER": "2",
+    "serialnum": "6",
+    "action": "act2",
+    "actiondate": "2028-01-01 15:03:33"
+  },
+  {
+    "UUID": "1",
+    "UUID_ISSUER": null,
+    "serialnum": "5",
+    "action": "act1",
+    "actiondate": "2024-12-09 15:03:33"
+  }
+]
+
+```
+
+NULL in the ISSUER means that the action was done internally(rare but happens)
