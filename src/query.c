@@ -205,7 +205,7 @@ static const char *rows[STMTS__MAX][9] = {
     {"roleName", "perms"},
     {"categoryClass", "categoryName", "parentCategoryID"},
     {"categoryClass", "categoryName", "parentCategoryID"},
-    {"UUID", "displayname", "pwhash", "campus", "role", "perm","frozen"},
+    {"UUID", "displayname", "pwhash", "campus", "role", "perm", "frozen"},
     {"serialnum", "type", "category", "categoryName", "publisher", "booktitle", "bookreleaseyear", "bookcover", "hits"},
     {"serialnum", "campus", "instock"},
     {"UUID", "serialnum", "rentduration", "rentdate", "extended"},
@@ -336,7 +336,7 @@ struct usr {
 struct usr curr_usr = {
     .authorized = false,
     .UUID = NULL,
-    .perms = {0, 0, 0, 0, 0, 0,}
+    .perms = {0, 0, 0, 0, 0, 0, 0}
 };
 
 void fill_user() {
@@ -1164,8 +1164,8 @@ int main(void) {
         if (!curr_usr.perms.admin && !curr_usr.perms.staff) {
             if (!r.fieldmap[KEY_FILTER_ME]) {
                 if (!((curr_usr.perms.monitor_history && STMT == STMTS_HISTORY) || (
-                          curr_usr.perms.manage_inventories && STMT == STMTS_INVENTORY)||
-                          curr_usr.perms.see_accounts && STMT == STMTS_ACCOUNT)) {
+                          curr_usr.perms.manage_inventories && STMT == STMTS_INVENTORY) || (
+                          curr_usr.perms.see_accounts && STMT == STMTS_ACCOUNT))) {
                     errx(EXIT_FAILURE, "Permission2");
                 }
             } else if (STMT == STMTS_INVENTORY && !curr_usr.perms.has_inventory) {
