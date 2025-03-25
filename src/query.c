@@ -357,7 +357,7 @@ void fill_user() {
             {.type = SQLBOX_PARM_STRING, .sparm = "IGNORE_FREEZE"},
             {.type = SQLBOX_PARM_STRING, .sparm = ""},
             {.type = SQLBOX_PARM_STRING, .sparm = "DONT_IGNORE"},
-            {.type = SQLBOX_PARM_INT, .iparm = field->parsed.i},
+            {.type = SQLBOX_PARM_STRING, .sparm = field->parsed.s},
             {.type = SQLBOX_PARM_INT, .iparm = 0}
         };
         if (!(stmtid = sqlbox_prepare_bind(boxctx, dbid, STMTS_ACCOUNT, parmsz, parms, 0)))
