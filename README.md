@@ -461,7 +461,7 @@ recursivity baby :3
 - ?frozen
 
 ```sql
-SELECT ACCOUNT.UUID, displayname, pwhash, campus, role, frozen, perms
+SELECT ACCOUNT.UUID, displayname, pwhash, campus, role, perms, frozen
 FROM ROLE,
      ACCOUNT
          LEFT JOIN INVENTORY I on ACCOUNT.UUID = I.UUID
