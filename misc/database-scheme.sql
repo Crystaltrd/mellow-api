@@ -106,7 +106,7 @@ CREATE TABLE ACCOUNT
 CREATE TABLE SESSIONS
 (
     account   TEXT     NOT NULL,
-    sessionID INTEGER  NOT NULL,
+    sessionID TEXT     NOT NULL UNIQUE,
     expiresAt DATETIME NOT NULL,
     FOREIGN KEY (account) REFERENCES ACCOUNT (UUID) ON UPDATE CASCADE ON DELETE CASCADE
 );
@@ -211,7 +211,8 @@ CREATE TABLE INVENTORY
     FOREIGN KEY (serialnum) REFERENCES BOOK (serialnum) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
-INSERT INTO INVENTORY  VALUES ('1','1',44,datetime('now','localtime'),FALSE);
+INSERT INTO INVENTORY
+VALUES ('1', '1', 44, datetime('now', 'localtime'), FALSE);
 CREATE TABLE HISTORY
 (
     UUID        TEXT     NOT NULL,
@@ -228,3 +229,10 @@ INSERT INTO HISTORY
 VALUES ('1', null, 5, 'act1', '2024-12-09 15:03:33');
 INSERT INTO HISTORY
 VALUES ('1', '2', 6, 'act2', '2028-01-01 15:03:33');
+
+
+
+INSERT INTO SESSIONS
+VALUES ('1', '55', datetime('now')),
+       ('1', '99', datetime('now')),
+       ('2', '11', datetime('now'));

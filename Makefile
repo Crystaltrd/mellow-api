@@ -12,18 +12,23 @@ install: query auth database.db
 	install -o www -g www -m 0600 database.db ${DESTDIR}/db
 	install -o www -g www -m 0500 query ${DESTDIR}/query
 	install -o www -g www -m 0500 auth ${DESTDIR}/auth
+	install -o www -g www -m 0500 deauth ${DESTDIR}/deauth
 install-pubnix: query auth database.db
 	[ -d ${PBNIX_HTML}/db ] ||  mkdir -p ${PBNIX_HTML}/db
 	install -m 0666 database.db ${PBNIX_HTML}/db
 	install -m 0755 query ${PBNIX_HTML}/query.cgi
 	install -m 0755 auth ${PBNIX_HTML}/auth.cgi
-
+	install -m 0755 deauth ${PBNIX_HTML}/deauth.cgi
 auth: auth.o
 	${CC} --static -o auth auth.o ${LDFLAGS}
+deauth: deauth.o
+	${CC} --static -o deauth deauth.o ${LDFLAGS}
 query: query.o
 	${CC} --static -o query query.o ${LDFLAGS}
 auth.o: src/auth.c
 	${CC} ${CFLAGS} -c -o auth.o src/auth.c
+deauth.o: src/deauth.c
+	${CC} ${CFLAGS} -c -o deauth.o src/deauth.c
 query.o: src/query.c
 	${CC} ${CFLAGS} -c -o query.o src/query.c
 database.db: misc/database-scheme.sql
@@ -31,6 +36,7 @@ database.db: misc/database-scheme.sql
 	sqlite3 database.db < misc/database-scheme.sql
 clean:
 	rm auth.o
+	rm deauth.o
 	rm query.o
 	rm query
 	rm auth
