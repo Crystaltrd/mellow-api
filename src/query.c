@@ -203,7 +203,7 @@ static const char *rows[STMTS__MAX][9] = {
     {"roleName", "perms"},
     {"categoryClass", "categoryName", "parentCategoryID"},
     {"categoryClass", "categoryName", "parentCategoryID"},
-    {"UUID", "displayname", "pwhash", "campus", "role", "frozen","perm"},
+    {"UUID", "displayname", "pwhash", "campus", "role", "perm","frozen"},
     {"serialnum", "type", "category", "categoryName", "publisher", "booktitle", "bookreleaseyear", "bookcover", "hits"},
     {"serialnum", "campus", "instock"},
     {"UUID", "serialnum", "rentduration", "rentdate", "extended"},
@@ -369,7 +369,7 @@ void fill_user() {
             curr_usr.UUID = calloc(res->ps[0].sz, sizeof(char));
             strncpy(curr_usr.UUID, res->ps[0].sparm, res->ps[0].sz);
             curr_usr.perms = int_to_accperms((int) res->ps[6].iparm);
-            errx(EXIT_FAILURE,"%d",(int) res->ps[6].iparm);
+            errx(EXIT_FAILURE,"%d",(int) res->ps[5].iparm);
         }
         sqlbox_finalise(boxctx, stmtid);
     }
