@@ -14,7 +14,7 @@ install: query auth database.db
 	install -o www -g www -m 0500 auth ${DESTDIR}/auth
 install-pubnix: query auth database.db
 	[ -d ${PBNIX_HTML}/db ] ||  mkdir -p ${PBNIX_HTML}/db
-	install -m 0655 database.db ${PBNIX_HTML}/db
+	install -m 0666 database.db ${PBNIX_HTML}/db
 	install -m 0755 query ${PBNIX_HTML}/query.cgi
 	install -m 0755 auth ${PBNIX_HTML}/auth.cgi
 
