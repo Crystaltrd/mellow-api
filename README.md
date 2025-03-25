@@ -52,11 +52,10 @@ FROM PUBLISHER
 WHERE ((?) = 'IGNORE_NAME' OR instr(publisherName, (?)) > 0)
   AND ((?) = 'IGNORE_BOOK' OR serialnum = (?))
 GROUP BY publisherName
-ORDER BY IIF((?) = 'POPULAR', SUM(hits), COUNT()) DESC
+ORDER BY IIF((?) = 'POPULAR', SUM(hits), publisherName) DESC
 LIMIT 10 OFFSET (? * 10)
 
 ```
-
 ```json
 [
   {
@@ -85,7 +84,7 @@ FROM AUTHOR
 WHERE ((?) = 'IGNORE_NAME' OR instr(authorName, (?)) > 0)
   AND ((?) = 'IGNORE_BOOK' OR A.serialnum = (?))
 GROUP BY authorName
-ORDER BY IIF((?) = 'POPULAR', SUM(hits), COUNT()) DESC
+ORDER BY IIF((?) = 'POPULAR', SUM(hits), authorName) DESC
 LIMIT 10 OFFSET (? * 10)
 ```
 
@@ -117,7 +116,7 @@ FROM LANG
 WHERE ((?) = 'IGNORE_NAME' OR instr(langCode, (?)) > 0)
   AND ((?) = 'IGNORE_BOOK' OR A.serialnum = (?))
 GROUP BY langCode
-ORDER BY IIF((?) = 'POPULAR', SUM(hits), COUNT()) DESC
+ORDER BY IIF((?) = 'POPULAR', SUM(hits), langCode) DESC
 LIMIT 10 OFFSET (? * 10)
 ```
 
@@ -169,7 +168,7 @@ FROM DOCTYPE
 WHERE ((?) = 'IGNORE_NAME' OR instr(typeName, (?)) > 0)
   AND ((?) = 'IGNORE_BOOK' OR serialnum = (?))
 GROUP BY typeName
-ORDER BY IIF((?) = 'POPULAR', SUM(hits), COUNT()) DESC
+ORDER BY IIF((?) = 'POPULAR', SUM(hits), typeName) DESC
 LIMIT 10 OFFSET (? * 10)
 ```
 
@@ -288,7 +287,7 @@ WHERE IIF((?) = 'ROOT', parentCategoryID IS NULL, TRUE)
   AND ((?) = 'IGNORE_PARENT_CLASS' OR parentCategoryID = (?))
   AND ((?) = 'IGNORE_BOOK' OR serialnum = (?))
 GROUP BY categoryClass, categoryName, parentCategoryID
-ORDER BY IIF((?) = 'POPULAR', SUM(hits), COUNT()) DESC
+ORDER BY IIF((?) = 'POPULAR', SUM(hits), categoryClass) DESC
 LIMIT 10 OFFSET (? * 10)
 ```
 
@@ -334,6 +333,7 @@ FROM CATEGORY,
      CategoryCascade
 WHERE CategoryCascade.categoryClass = CATEGORY.categoryClass
 GROUP BY CATEGORY.categoryClass, CATEGORY.categoryName, CATEGORY.parentCategoryID
+ORDER BY categoryClass
 LIMIT 10 OFFSET (? * 10);
 ```
 
@@ -779,11 +779,7 @@ LIMIT 10 OFFSET (? * 10)
 ```json
 [
   {
-    UUID,
-    UUID_ISSUER,
-    serialnum,
-    action,
-    actiondate
+
     "UUID": "1",
     "serialnum": "1",
     "rentduration": 44,
