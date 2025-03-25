@@ -769,7 +769,9 @@ LIMIT 10 OFFSET (? * 10)
 - Accountless user
 - Inventory-less user
 - A user with an inventory without the ?me option
+```json
 
+```
 ### History:
 
 - ?by_account
