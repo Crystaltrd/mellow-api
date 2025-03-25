@@ -4,6 +4,7 @@
 - Staff: Can manage non-staff accounts
 - Managing Stock: Can manage books and the stock, can create and delete languages, categories...etc
 - Managing Inventories: Can give and take books from other Inventories
+- See Account details: See other accounts details
 - Monitor the History: Can see the entire history
 - Has an Inventory: Can rent books
 
@@ -393,6 +394,7 @@ WHERE parentCategoryID = (?)
 ```
 
 recursivity baby :3
+
 ```json
 
 [
@@ -478,10 +480,43 @@ ORDER BY ACCOUNT.UUID
 LIMIT 10 OFFSET (? * 10)
 
 ```
-**This request fails if: (Unless the user is staff, admin, or has manage_inventories permissions)**
+
+```json
+[
+  {
+    "UUID": "1",
+    "displayname": "Alice",
+    "pwhash": "$2b$10$2HqdewExklOfFFCBhOkTP.ufmT.cq1lQP4QSyRRYHETWRGxs3YTH6",
+    "campus": "El Kseur",
+    "role": "ADMIN",
+    "perm": 63,
+    "frozen": 0
+  },
+  {
+    "UUID": "2",
+    "displayname": "Bob",
+    "pwhash": "pwhash2",
+    "campus": "El Kseur",
+    "role": "LIBRARIAN",
+    "perm": 6,
+    "frozen": 0
+  },
+  {
+    "UUID": "3",
+    "displayname": "Charlie",
+    "pwhash": "pwhash3",
+    "campus": "Aboudaou",
+    "role": "STUDENT",
+    "perm": 1,
+    "frozen": 0
+  }
+]
+```
+
+**This request fails if: (Unless the user is staff, admin, or has access_history permissions)**
+
 - Accountless user
-- Inventory-less user
-- A user with an inventory without the ?me option
+- A user with an account without the ?me option
 
 ### Book:
 
@@ -547,6 +582,100 @@ LIMIT 10 OFFSET (? * 10);
 
 ```
 
+```json
+
+[
+  {
+    "serialnum": "8",
+    "type": "type2",
+    "category": "11",
+    "categoryName": "Sec22",
+    "publisher": "pub1",
+    "booktitle": "Book 8",
+    "bookreleaseyear": 3055,
+    "bookcover": null,
+    "hits": 19
+  },
+  {
+    "serialnum": "7",
+    "type": "type1",
+    "category": "10",
+    "categoryName": "Sec21",
+    "publisher": "pub1",
+    "booktitle": "Book 7",
+    "bookreleaseyear": 2055,
+    "bookcover": null,
+    "hits": 93
+  },
+  {
+    "serialnum": "6",
+    "type": "type1",
+    "category": "00",
+    "categoryName": "Sec11",
+    "publisher": "pub2",
+    "booktitle": "Book 6",
+    "bookreleaseyear": 2001,
+    "bookcover": null,
+    "hits": 95
+  },
+  {
+    "serialnum": "5",
+    "type": "type1",
+    "category": "000",
+    "categoryName": "Sec111",
+    "publisher": "pub1",
+    "booktitle": "Book 5",
+    "bookreleaseyear": 2001,
+    "bookcover": null,
+    "hits": 94
+  },
+  {
+    "serialnum": "4",
+    "type": "type1",
+    "category": "001",
+    "categoryName": "Sec112",
+    "publisher": "pub2",
+    "booktitle": "Book 4",
+    "bookreleaseyear": 2003,
+    "bookcover": null,
+    "hits": 15
+  },
+  {
+    "serialnum": "3",
+    "type": "type2",
+    "category": "01",
+    "categoryName": "Sec12",
+    "publisher": "pub2",
+    "booktitle": "Book 3",
+    "bookreleaseyear": 9999,
+    "bookcover": null,
+    "hits": 7
+  },
+  {
+    "serialnum": "2",
+    "type": "type1",
+    "category": "1",
+    "categoryName": "Primary2",
+    "publisher": "pub2",
+    "booktitle": "Book 2",
+    "bookreleaseyear": 2007,
+    "bookcover": null,
+    "hits": 9
+  },
+  {
+    "serialnum": "1",
+    "type": "type1",
+    "category": "0",
+    "categoryName": "Primary1",
+    "publisher": "pub1",
+    "booktitle": "Book 1",
+    "bookreleaseyear": 1950,
+    "bookcover": null,
+    "hits": 0
+  }
+]
+```
+
 ### Stock:
 
 - ?by_book
@@ -569,9 +698,59 @@ ORDER BY IIF((?) = 'POPULAR', hits, instock) DESC
 LIMIT 10 OFFSET (? * 10)
 ```
 
+```json
+[
+  {
+    "serialnum": "7",
+    "campus": "Targa Ouzemmour",
+    "instock": 74
+  },
+  {
+    "serialnum": "6",
+    "campus": "Aboudaou",
+    "instock": 7
+  },
+  {
+    "serialnum": "6",
+    "campus": "El Kseur",
+    "instock": 7
+  },
+  {
+    "serialnum": "4",
+    "campus": "El Kseur",
+    "instock": 6
+  },
+  {
+    "serialnum": "5",
+    "campus": "El Kseur",
+    "instock": 6
+  },
+  {
+    "serialnum": "3",
+    "campus": "Targa Ouzemmour",
+    "instock": 5
+  },
+  {
+    "serialnum": "1",
+    "campus": "Aboudaou",
+    "instock": 3
+  },
+  {
+    "serialnum": "2",
+    "campus": "El Kseur",
+    "instock": 2
+  },
+  {
+    "serialnum": "8",
+    "campus": "El Kseur",
+    "instock": 1
+  }
+]
+```
+
 ### Inventory:
 
-- ?by_account | ?self (alias to ?by_account with cookie)
+- ?by_account | ?me (alias to ?by_account with cookie)
 - ?by_book
 
 * [ ] Done
@@ -584,6 +763,12 @@ WHERE ((?) = 'IGNORE_ACCOUNT' OR UUID = (?))
 ORDER BY rentdate DESC
 LIMIT 10 OFFSET (? * 10)
 ```
+
+**This request fails if: (Unless the user is staff, admin, or has manage_inventories permissions)**
+
+- Accountless user
+- Inventory-less user
+- A user with an inventory without the ?me option
 
 ### History:
 

@@ -24,16 +24,18 @@ struct accperms {
     bool staff;
     bool manage_stock;
     bool manage_inventories;
+    bool see_accounts;
     bool monitor_history;
     bool has_inventory;
 };
 
 struct accperms int_to_accperms(int perm) {
     struct accperms perms = {
-        .admin = (perm & (1 << 5)),
-        .staff = (perm & (1 << 4)),
-        .manage_stock = (perm & (1 << 3)),
-        .manage_inventories = (perm & (1 << 2)),
+        .admin = (perm & (1 << 6)),
+        .staff = (perm & (1 << 5)),
+        .manage_stock = (perm & (1 << 4)),
+        .manage_inventories = (perm & (1 << 3)),
+        .see_accounts = (perm & (1 << 2)),
         .monitor_history = (perm & (1 << 1)),
         .has_inventory = (perm & 1)
     };
@@ -1088,6 +1090,7 @@ void process(const enum statement STATEMENT) {
                         kjson_putboolp(&req, "staff", perms.staff);
                         kjson_putboolp(&req, "manage_stock", perms.manage_stock);
                         kjson_putboolp(&req, "manage_inventories", perms.manage_inventories);
+                        kjson_putboolp(&req, "see_accounts", perms.see_accounts);
                         kjson_putboolp(&req, "monitor_history", perms.monitor_history);
                         kjson_putboolp(&req, "has_inventory", perms.has_inventory);
                         kjson_obj_close(&req);
@@ -1161,7 +1164,8 @@ int main(void) {
         if (!curr_usr.perms.admin && !curr_usr.perms.staff) {
             if (!r.fieldmap[KEY_FILTER_ME]) {
                 if (!((curr_usr.perms.monitor_history && STMT == STMTS_HISTORY) || (
-                          curr_usr.perms.manage_inventories && STMT == STMTS_INVENTORY))) {
+                          curr_usr.perms.manage_inventories && STMT == STMTS_INVENTORY)||
+                          curr_usr.perms.see_accounts && STMT == STMTS_ACCOUNT)) {
                     errx(EXIT_FAILURE, "Permission2");
                 }
             } else if (STMT == STMTS_INVENTORY && !curr_usr.perms.has_inventory) {
