@@ -257,7 +257,10 @@ static struct sqlbox_pstmt pstmts[STMTS__MAX] = {
         (char *)
         "SELECT langCode FROM LANG LEFT JOIN LANGUAGES A ON LANG.langCode = A.lang LEFT JOIN BOOK B ON B.serialnum = A.serialnum WHERE ((?) = 'IGNORE_NAME' OR instr(langCode, (?)) > 0) AND ((?) = 'IGNORE_BOOK' OR A.serialnum = (?)) GROUP BY langCode ORDER BY IIF((?) = 'POPULAR', SUM(hits), langCode) DESC LIMIT 10 OFFSET (? * 10)"
     },
-    {(char *) "SELECT actionName FROM ACTION WHERE instr(actionName,(?)) > 0 ORDER BY actionName LIMIT 10 OFFSET (? * 10)"},
+    {
+        (char *)
+        "SELECT actionName FROM ACTION WHERE instr(actionName,(?)) > 0 ORDER BY actionName LIMIT 10 OFFSET (? * 10)"
+    },
     {
         (char *)
         "SELECT typeName FROM DOCTYPE  LEFT JOIN BOOK B ON DOCTYPE.typeName = B.type WHERE ((?) = 'IGNORE_NAME' OR instr(typeName, (?)) > 0)  AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) GROUP BY typeName ORDER BY IIF((?) = 'POPULAR', SUM(hits), typeName) DESC LIMIT 10 OFFSET (? * 10)"
@@ -1160,21 +1163,34 @@ int main(void) {
     fill_user();
     if ((STMT == STMTS_HISTORY || STMT == STMTS_ACCOUNT || STMT == STMTS_SESSIONS || STMT == STMTS_INVENTORY)) {
         if (!curr_usr.authorized)
-            errx(EXIT_FAILURE, "Permission1");
+            goto access_denied;
         if (!curr_usr.perms.admin && !curr_usr.perms.staff) {
             if (!r.fieldmap[KEY_FILTER_ME]) {
                 if (!((curr_usr.perms.monitor_history && STMT == STMTS_HISTORY) || (
                           curr_usr.perms.manage_inventories && STMT == STMTS_INVENTORY) || (
                           curr_usr.perms.see_accounts && STMT == STMTS_ACCOUNT))) {
-                    errx(EXIT_FAILURE, "Permission2");
+                    goto access_denied;
                 }
             } else if (STMT == STMTS_INVENTORY && !curr_usr.perms.has_inventory) {
-                errx(EXIT_FAILURE, "Permission3");
+                goto access_denied;
             }
         }
     }
     fill_params(STMT);
     process(STMT);
     sqlbox_free(boxctx);
+    return EXIT_SUCCESS;
+access_denied:
+    khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_403]);
+    khttp_head(&r, kresps[KRESP_CONTENT_TYPE], "%s", kmimetypes[KMIME_TEXT_PLAIN]);
+    khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
+    khttp_head(&r, kresps[KRESP_VARY], "%s", "Origin");
+    khttp_body(&r);
+    kjson_open(&req, &r);
+    kjson_obj_open(&req);
+    kjson_putboolp(&req, "authorized",false);
+    kjson_putstringp(&req, "error", "You don't have the permissions to access this ressource");
+    kjson_obj_close(&req);
+    khttp_free(&r);
     return EXIT_SUCCESS;
 }
