@@ -5,7 +5,7 @@ DESTDIR=/var/www/cgi-bin/mellow
 all: query auth database.db
 
 
-install: query auth database.db
+install: query deauth auth database.db
 	[ -d ${DESTDIR}/db ] ||  mkdir -p ${DESTDIR}/db
 	chown www:www ${DESTDIR}/db
 	chmod 0700 ${DESTDIR}/db
@@ -13,7 +13,7 @@ install: query auth database.db
 	install -o www -g www -m 0500 query ${DESTDIR}/query
 	install -o www -g www -m 0500 auth ${DESTDIR}/auth
 	install -o www -g www -m 0500 deauth ${DESTDIR}/deauth
-install-pubnix: query auth database.db
+install-pubnix: query deauth auth database.db
 	[ -d ${PBNIX_HTML}/db ] ||  mkdir -p ${PBNIX_HTML}/db
 	install -m 0666 database.db ${PBNIX_HTML}/db
 	install -m 0755 query ${PBNIX_HTML}/query.cgi

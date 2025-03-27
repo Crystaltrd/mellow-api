@@ -30,3 +30,8 @@ static struct sqlbox_pstmt pstmts[STMTS__MAX] = {
     {(char *) "DELETE FROM SESSIONS WHERE account = (?)"},
     {(char *) "DELETE FROM SESSIONS WHERE IIF((?) = 'ACCOUNT', account,sessionID) = (?)" }
 };
+
+int main(){
+
+  return 0;
+}
