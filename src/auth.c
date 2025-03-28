@@ -51,20 +51,20 @@ struct sqlbox_src srcs[] = {
         .mode = SQLBOX_SRC_RW
     }
 };
-struct sqlbox *boxctx_data;
-struct sqlbox_cfg cfg_data;
-size_t dbid_data; // Database associated with a config and a context
+struct sqlbox *boxctx;
+struct sqlbox_cfg cfg;
+size_t dbid; // Database associated with a config and a context
 
 void alloc_ctx_cfg() {
-    memset(&cfg_data, 0, sizeof(struct sqlbox_cfg));
-    cfg_data.msg.func_short = warnx;
-    cfg_data.srcs.srcsz = 1;
-    cfg_data.srcs.srcs = srcs;
-    cfg_data.stmts.stmtsz = STMTS__MAX;
-    cfg_data.stmts.stmts = pstmts_data;
-    if ((boxctx_data = sqlbox_alloc(&cfg_data)) == NULL)
+    memset(&cfg, 0, sizeof(struct sqlbox_cfg));
+    cfg.msg.func_short = warnx;
+    cfg.srcs.srcsz = 1;
+    cfg.srcs.srcs = srcs;
+    cfg.stmts.stmtsz = STMTS__MAX;
+    cfg.stmts.stmts = pstmts_data;
+    if ((boxctx = sqlbox_alloc(&cfg)) == NULL)
         errx(EXIT_FAILURE, "sqlbox_alloc");
-    if (!(dbid_data = sqlbox_open(boxctx_data, 0)))
+    if (!(dbid = sqlbox_open(boxctx, 0)))
         errx(EXIT_FAILURE, "sqlbox_open");
 }
 
@@ -102,17 +102,17 @@ int check_passwd() {
             .sparm = r.fieldmap[KEY_UUID]->parsed.s
         }
     };
-    if (!(stmtid = sqlbox_prepare_bind(boxctx_data, dbid_data, STMTS_CHECK, parmsz, parms, 0)))
+    if (!(stmtid = sqlbox_prepare_bind(boxctx, dbid, STMTS_CHECK, parmsz, parms, 0)))
         errx(EXIT_FAILURE, "sqlbox_prepare_bind");
-    if ((res = sqlbox_step(boxctx_data, stmtid)) == NULL)
+    if ((res = sqlbox_step(boxctx, stmtid)) == NULL)
         errx(EXIT_FAILURE, "sqlbox_step");
     if (res->psz == 0) {
-        sqlbox_finalise(boxctx_data, stmtid);
-        sqlbox_close(boxctx_data, dbid_data);
+        sqlbox_finalise(boxctx, stmtid);
+        sqlbox_close(boxctx, dbid);
         return EXIT_FAILURE;
     }
     strncpy(hash, res->ps[0].sparm,_PASSWORD_LEN);
-    sqlbox_finalise(boxctx_data, stmtid);
+    sqlbox_finalise(boxctx, stmtid);
     if (crypt_checkpass(r.fieldmap[KEY_PASSWD]->parsed.s, hash) == 0)
         return EXIT_SUCCESS;
 
@@ -140,7 +140,7 @@ void open_session() {
             .sparm = (r.fieldmap[KEY_REMEMBER]) ? "+7 days" : "+3 hours"
         }
     };
-    if (sqlbox_exec(boxctx_data, dbid_data, STMTS_ADD, parmsz, parms,SQLBOX_STMT_CONSTRAINT) != SQLBOX_CODE_OK)
+    if (sqlbox_exec(boxctx, dbid, STMTS_ADD, parmsz, parms,SQLBOX_STMT_CONSTRAINT) != SQLBOX_CODE_OK)
         errx(EXIT_FAILURE, "sqlbox_exec");
 
     khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
@@ -191,7 +191,7 @@ int main() {
         return 0;
     }
     open_session();
-    sqlbox_close(boxctx_data, dbid_data);
-    sqlbox_free(boxctx_data);
+    sqlbox_close(boxctx, dbid);
+    sqlbox_free(boxctx);
     return EXIT_SUCCESS;
 }
