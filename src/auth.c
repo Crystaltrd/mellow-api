@@ -35,7 +35,7 @@ enum statement {
     STMTS__MAX
 };
 
-static struct sqlbox_pstmt pstmts_data[STMTS__MAX] = {
+static struct sqlbox_pstmt pstmts[STMTS__MAX] = {
     {(char *) "SELECT pwhash FROM ACCOUNT WHERE UUID=(?) LIMIT 1"},
     {(char *) "INSERT INTO SESSIONS VALUES((?),(?),datetime('now',(?),'localtime'))"}
 };
@@ -61,7 +61,7 @@ void alloc_ctx_cfg() {
     cfg.srcs.srcsz = 1;
     cfg.srcs.srcs = srcs;
     cfg.stmts.stmtsz = STMTS__MAX;
-    cfg.stmts.stmts = pstmts_data;
+    cfg.stmts.stmts = pstmts;
     if ((boxctx = sqlbox_alloc(&cfg)) == NULL)
         errx(EXIT_FAILURE, "sqlbox_alloc");
     if (!(dbid = sqlbox_open(boxctx, 0)))
