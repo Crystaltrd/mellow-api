@@ -1014,12 +1014,13 @@ void fill_params(const enum statement STATEMENT) {
 
 
     parms[parmsz - 3] = (struct sqlbox_parm){
-        .type = SQLBOX_PARM_INT, .iparm = ((field = r.fieldmap[KEY_PAGE])) ? field->parsed.i : 0
-    };
-    parms[parmsz - 2] = (struct sqlbox_parm){
         .type = SQLBOX_PARM_INT,
         .iparm = ((field = r.fieldmap[KEY_LIMIT])) ? ((field->parsed.i < 100) ? field->parsed.i : 100) : 20
     };
+    parms[parmsz - 2] = (struct sqlbox_parm){
+        .type = SQLBOX_PARM_INT, .iparm = ((field = r.fieldmap[KEY_PAGE])) ? field->parsed.i : 0
+    };
+
     parms[parmsz - 1] = (struct sqlbox_parm){
         .type = SQLBOX_PARM_INT,
         .iparm = ((field = r.fieldmap[KEY_LIMIT])) ? ((field->parsed.i < 100) ? field->parsed.i : 100) : 20
