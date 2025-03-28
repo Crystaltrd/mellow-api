@@ -1158,8 +1158,8 @@ void process(const enum statement STATEMENT) {
     khttp_head(&r, kresps[KRESP_VARY], "%s", "Origin");
     khttp_body(&r);
     kjson_open(&req, &r);
+    kjson_obj_open(&req);
     kjson_array_open(&req);
-    kjson_putstringp(&req,"foo","bar");
     while ((res = sqlbox_step(boxctx, stmtid)) != NULL && res->code == SQLBOX_CODE_OK && res->psz != 0) {
         kjson_obj_open(&req);
         for (int i = 0; i < (int) res->psz; ++i) {
