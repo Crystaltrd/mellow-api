@@ -317,7 +317,7 @@ static struct sqlbox_pstmt pstmts_data[STMTS__MAX] = {
 static struct sqlbox_pstmt pstmts_count[STMTS__MAX] = {
     {
         (char *)
-        "SELECT COUNT() FROM PUBLISHER LEFT JOIN BOOK B ON B.publisher = PUBLISHER.publisherName WHERE ((?) = 'IGNORE_NAME' OR instr(publisherName, (?)) > 0) AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) GROUP BY publisherName ORDER BY IIF((?) = 'POPULAR', SUM(hits), publisherName) DESC LIMIT (?) OFFSET (? * (?))"
+        "SELECT COUNT(1) FROM PUBLISHER LEFT JOIN BOOK B ON B.publisher = PUBLISHER.publisherName WHERE ((?) = 'IGNORE_NAME' OR instr(publisherName, (?)) > 0) AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) GROUP BY publisherName ORDER BY IIF((?) = 'POPULAR', SUM(hits), publisherName) DESC LIMIT (?) OFFSET (? * (?))"
     },
     {
         (char *)
