@@ -1029,7 +1029,7 @@ void fill_params(const enum statement STATEMENT) {
 
 void get_cat_children(const char *class) {
     size_t stmtid;
-    size_t parmsz2 = 11;
+    size_t parmsz2 = 13;
     const struct sqlbox_parmset *res;
     struct sqlbox_parm parms2[] = {
         {.type = SQLBOX_PARM_STRING, .sparm = "NOT_ROOT"},
