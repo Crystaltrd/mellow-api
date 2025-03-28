@@ -1169,8 +1169,8 @@ void process(const enum statement STATEMENT) {
     const struct sqlbox_parmset *res;
     if (!(stmtid_data = sqlbox_prepare_bind(boxctx_data, dbid_data, STATEMENT, parmsz, parms, SQLBOX_STMT_MULTI)))
         errx(EXIT_FAILURE, "sqlbox_prepare_bind");
-    if (!(stmtid_count = sqlbox_prepare_bind(boxctx_count, dbid_count, STATEMENT, parmsz, parms, SQLBOX_STMT_MULTI)))
-        errx(EXIT_FAILURE, "sqlbox_prepare_bind");
+   // if (!(stmtid_count = sqlbox_prepare_bind(boxctx_count, dbid_count, STATEMENT, parmsz, parms, SQLBOX_STMT_MULTI)))
+     //   errx(EXIT_FAILURE, "sqlbox_prepare_bind");
     khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
     khttp_head(&r, kresps[KRESP_CONTENT_TYPE], "%s", kmimetypes[KMIME_APP_JSON]);
     khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
@@ -1178,11 +1178,11 @@ void process(const enum statement STATEMENT) {
     khttp_body(&r);
     kjson_open(&req, &r);
     kjson_obj_open(&req);
-    if ((res = sqlbox_step(boxctx_count, stmtid_count)) == NULL)
-        errx(EXIT_FAILURE, "sqlbox_step");
-    kjson_putintp(&req, "nbrres", res->ps[0].iparm);
-    if (!sqlbox_finalise(boxctx_count, stmtid_count))
-        errx(EXIT_FAILURE, "sqlbox_finalise");
+    // if ((res = sqlbox_step(boxctx_count, stmtid_count)) == NULL)
+    //     errx(EXIT_FAILURE, "sqlbox_step");
+    // kjson_putintp(&req, "nbrres", res->ps[0].iparm);
+    // if (!sqlbox_finalise(boxctx_count, stmtid_count))
+    //     errx(EXIT_FAILURE, "sqlbox_finalise");
     kjson_arrayp_open(&req, "res");
     while ((res = sqlbox_step(boxctx_data, stmtid_data)) != NULL && res->code == SQLBOX_CODE_OK && res->psz != 0) {
         kjson_obj_open(&req);
