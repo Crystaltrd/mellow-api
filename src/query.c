@@ -1179,7 +1179,7 @@ void process(const enum statement STATEMENT) {
     if ((res = sqlbox_step(boxctx_count, stmtid_count)) == NULL)
         errx(EXIT_FAILURE, "sqlbox_step");
     kjson_putintp(&req, "nbrres", res->ps[0].iparm);
-    if (!sqlbox_finalise(boxctx_count, stmtid_count))
+    if (!sqlbox_finalise(boxctx_data, stmtid_count))
         errx(EXIT_FAILURE, "sqlbox_finalise");
     kjson_arrayp_open(&req, "res");
     while ((res = sqlbox_step(boxctx_data, stmtid_data)) != NULL && res->code == SQLBOX_CODE_OK && res->psz != 0) {
