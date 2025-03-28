@@ -243,9 +243,12 @@ struct sqlbox_src srcs[] = {
         .mode = SQLBOX_SRC_RO
     }
 };
-struct sqlbox *boxctx;
-struct sqlbox_cfg cfg;
-size_t dbid; // Database associated with a config and a context
+struct sqlbox *boxctx_data;
+struct sqlbox_cfg cfg_data;
+struct sqlbox *boxctx_count;
+struct sqlbox_cfg cfg_count;
+size_t dbid_data; // Database associated with a config and a context for query results
+size_t dbid_count; // Database associated with a config and a context for the number of results
 static struct sqlbox_pstmt pstmts_data[STMTS__MAX] = {
     {
         (char *)
@@ -381,15 +384,26 @@ size_t parmsz;
  * Allocates the context and source for the current operations
  */
 void alloc_ctx_cfg() {
-    memset(&cfg, 0, sizeof(struct sqlbox_cfg));
-    cfg.msg.func_short = warnx;
-    cfg.srcs.srcsz = 1;
-    cfg.srcs.srcs = srcs;
-    cfg.stmts.stmtsz = STMTS__MAX;
-    cfg.stmts.stmts = pstmts_data;
-    if ((boxctx = sqlbox_alloc(&cfg)) == NULL)
+    memset(&cfg_data, 0, sizeof(struct sqlbox_cfg));
+    cfg_data.msg.func_short = warnx;
+    cfg_data.srcs.srcsz = 1;
+    cfg_data.srcs.srcs = srcs;
+    cfg_data.stmts.stmtsz = STMTS__MAX;
+    cfg_data.stmts.stmts = pstmts_data;
+    if ((boxctx_data = sqlbox_alloc(&cfg_data)) == NULL)
         errx(EXIT_FAILURE, "sqlbox_alloc");
-    if (!(dbid = sqlbox_open(boxctx, 0)))
+    if (!(dbid_data = sqlbox_open(boxctx_data, 0)))
+        errx(EXIT_FAILURE, "sqlbox_open");
+
+    memset(&cfg_count, 0, sizeof(struct sqlbox_cfg));
+    cfg_count.msg.func_short = warnx;
+    cfg_count.srcs.srcsz = 1;
+    cfg_count.srcs.srcs = srcs;
+    cfg_count.stmts.stmtsz = STMTS__MAX;
+    cfg_count.stmts.stmts = pstmts_count;
+    if ((boxctx_count = sqlbox_alloc(&cfg_count)) == NULL)
+        errx(EXIT_FAILURE, "sqlbox_alloc");
+    if (!(dbid_data = sqlbox_open(boxctx_count, 0)))
         errx(EXIT_FAILURE, "sqlbox_open");
 }
 
@@ -432,9 +446,9 @@ void fill_user() {
             {.type = SQLBOX_PARM_STRING, .sparm = field->parsed.s},
             {.type = SQLBOX_PARM_INT, .iparm = 0}
         };
-        if (!(stmtid = sqlbox_prepare_bind(boxctx, dbid, STMTS_ACCOUNT, parmsz, parms, 0)))
+        if (!(stmtid = sqlbox_prepare_bind(boxctx_data, dbid_data, STMTS_ACCOUNT, parmsz, parms, 0)))
             errx(EXIT_FAILURE, "sqlbox_prepare_bind");
-        if ((res = sqlbox_step(boxctx, stmtid)) == NULL)
+        if ((res = sqlbox_step(boxctx_data, stmtid)) == NULL)
             errx(EXIT_FAILURE, "sqlbox_step");
         if (res->psz != 0) {
             curr_usr.authorized = true;
@@ -442,7 +456,7 @@ void fill_user() {
             strncpy(curr_usr.UUID, res->ps[0].sparm, res->ps[0].sz);
             curr_usr.perms = int_to_accperms((int) res->ps[5].iparm);
         }
-        sqlbox_finalise(boxctx, stmtid);
+        sqlbox_finalise(boxctx_data, stmtid);
     }
 }
 
@@ -1111,9 +1125,9 @@ void get_cat_children(const char *class) {
         {.type = SQLBOX_PARM_INT, .iparm = 0},
         {.type = SQLBOX_PARM_INT, .iparm = 0}
     };
-    if (!(stmtid = sqlbox_prepare_bind(boxctx, dbid, STMTS_CATEGORY, parmsz2, parms2, SQLBOX_STMT_MULTI)))
+    if (!(stmtid = sqlbox_prepare_bind(boxctx_data, dbid_data, STMTS_CATEGORY, parmsz2, parms2, SQLBOX_STMT_MULTI)))
         errx(EXIT_FAILURE, "sqlbox_prepare_bind");
-    while ((res = sqlbox_step(boxctx, stmtid)) != NULL && res->code == SQLBOX_CODE_OK && res->psz != 0) {
+    while ((res = sqlbox_step(boxctx_data, stmtid)) != NULL && res->code == SQLBOX_CODE_OK && res->psz != 0) {
         kjson_obj_open(&req);
         for (int i = 0; i < (int) res->psz; ++i) {
             switch (res->ps[i].type) {
@@ -1143,14 +1157,17 @@ void get_cat_children(const char *class) {
         }
         kjson_obj_close(&req);
     }
-    if (!sqlbox_finalise(boxctx, stmtid))
+    if (!sqlbox_finalise(boxctx_data, stmtid))
         errx(EXIT_FAILURE, "sqlbox_finalise");
 }
 
 void process(const enum statement STATEMENT) {
-    size_t stmtid;
+    size_t stmtid_data;
+    size_t stmtid_count;
     const struct sqlbox_parmset *res;
-    if (!(stmtid = sqlbox_prepare_bind(boxctx, dbid, STATEMENT, parmsz, parms, SQLBOX_STMT_MULTI)))
+    if (!(stmtid_data = sqlbox_prepare_bind(boxctx_data, dbid_data, STATEMENT, parmsz, parms, SQLBOX_STMT_MULTI)))
+        errx(EXIT_FAILURE, "sqlbox_prepare_bind");
+    if (!(stmtid_count = sqlbox_prepare_bind(boxctx_count, dbid_count, STATEMENT, parmsz, parms, SQLBOX_STMT_MULTI)))
         errx(EXIT_FAILURE, "sqlbox_prepare_bind");
     khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
     khttp_head(&r, kresps[KRESP_CONTENT_TYPE], "%s", kmimetypes[KMIME_APP_JSON]);
@@ -1159,8 +1176,10 @@ void process(const enum statement STATEMENT) {
     khttp_body(&r);
     kjson_open(&req, &r);
     kjson_obj_open(&req);
+    if ((res = sqlbox_step(boxctx_count, stmtid_count)) == NULL)
+        errx(EXIT_FAILURE, "sqlbox_step");
     kjson_arrayp_open(&req,"res");
-    while ((res = sqlbox_step(boxctx, stmtid)) != NULL && res->code == SQLBOX_CODE_OK && res->psz != 0) {
+    while ((res = sqlbox_step(boxctx_data, stmtid_data)) != NULL && res->code == SQLBOX_CODE_OK && res->psz != 0) {
         kjson_obj_open(&req);
         for (int i = 0; i < (int) res->psz; ++i) {
             switch (res->ps[i].type) {
@@ -1203,7 +1222,7 @@ void process(const enum statement STATEMENT) {
         }
         kjson_obj_close(&req);
     }
-    if (!sqlbox_finalise(boxctx, stmtid))
+    if (!sqlbox_finalise(boxctx_data, stmtid_data))
         errx(EXIT_FAILURE, "sqlbox_finalise");
     kjson_array_close(&req);
     kjson_obj_close(&req);
@@ -1258,7 +1277,8 @@ int main(void) {
     }
     fill_params(STMT);
     process(STMT);
-    sqlbox_free(boxctx);
+    sqlbox_free(boxctx_data);
+    sqlbox_free(boxctx_count);
     return EXIT_SUCCESS;
 access_denied:
     khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_403]);
