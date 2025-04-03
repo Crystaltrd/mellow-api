@@ -213,7 +213,7 @@ static const char *rows[STMTS__MAX][9] = {
     {"serialnum", "type", "category", "categoryName", "publisher", "booktitle", "bookreleaseyear", "bookcover", "hits"},
     {"serialnum", "campus", "instock"},
     {"UUID", "serialnum", "rentduration", "rentdate", "extended"},
-    {"UUID", "UUID_ISSUER", "serialnum", "action", "actiondate"},
+    {"UUID", "UUID_ISSUER", "serialnum", "action", "actiondate","details"},
     {"account", "sessionID", "expiresAt"}
 };
 /*

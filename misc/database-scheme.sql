@@ -25,9 +25,15 @@ CREATE TABLE ACTION
 );
 
 INSERT INTO ACTION
-VALUES ('act1'),
-       ('act2'),
-       ('ECHOES act3');
+VALUES ('ADD'),
+       ('REMOVE'),
+       ('EDIT'),
+       ('QUERY'),
+       ('LOGIN'),
+       ('LOGOUT'),
+       ('SIGNUP'),
+       ('REMOVE_ACCOUNT'),
+       ('RENT');
 
 CREATE TABLE LANG
 (
@@ -211,28 +217,20 @@ CREATE TABLE INVENTORY
     FOREIGN KEY (serialnum) REFERENCES BOOK (serialnum) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
-INSERT INTO INVENTORY
-VALUES ('1', '1', 44, datetime('now', 'localtime'), FALSE);
+
 CREATE TABLE HISTORY
 (
-    UUID        TEXT     NOT NULL,
+    UUID        TEXT,
     UUID_ISSUER TEXT,
-    serialnum   TEXT     NOT NULL,
+    serialnum   TEXT,
     action      TEXT     NOT NULL,
     actiondate  DATETIME NOT NULL,
+    details     TEXT,
     FOREIGN KEY (UUID) REFERENCES ACCOUNT (UUID) ON UPDATE CASCADE ON DELETE CASCADE,
     FOREIGN KEY (UUID_ISSUER) REFERENCES ACCOUNT (UUID) ON UPDATE CASCADE ON DELETE CASCADE,
     FOREIGN KEY (serialnum) REFERENCES BOOK (serialnum) ON UPDATE CASCADE ON DELETE CASCADE,
     FOREIGN KEY (action) REFERENCES ACTION (actionName) ON UPDATE CASCADE ON DELETE CASCADE
 );
+
 INSERT INTO HISTORY
-VALUES ('1', null, 5, 'act1', '2024-12-09 15:03:33');
-INSERT INTO HISTORY
-VALUES ('1', '2', 6, 'act2', '2028-01-01 15:03:33');
-
-
-
-INSERT INTO SESSIONS
-VALUES ('1', '55', datetime('now')),
-       ('1', '99', datetime('now')),
-       ('2', '11', datetime('now'));
+VALUES (NULL, NULL, NULL, 'QUERY', datetime('now', 'localtime'), 'HELLOOO');
