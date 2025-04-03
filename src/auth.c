@@ -38,7 +38,7 @@ enum statement {
 
 static struct sqlbox_pstmt pstmts_data[STMTS__MAX] = {
     {(char *) "SELECT pwhash FROM ACCOUNT WHERE UUID=(?) LIMIT 1"},
-    {(char *) "INSERT INTO SESSIONS VALUES((?),(?),datetime('now',(?),'localtime'))"},
+    {(char *) "INSERT INTO SESSIONS VALUES((?),(?),datetime('now',(?),'localtime'))"}
     {(char *) "INSERT INTO FOO (bar,baz) VALUES (?,?)"}
 };
 
