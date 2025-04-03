@@ -446,7 +446,7 @@ void fill_user() {
             {.type = SQLBOX_PARM_STRING, .sparm = ""},
             {.type = SQLBOX_PARM_STRING, .sparm = "DONT_IGNORE"},
             {.type = SQLBOX_PARM_STRING, .sparm = field->parsed.s},
-            {.type = SQLBOX_PARM_INT, .iparm = 0}
+            {.type = SQLBOX_PARM_INT, .iparm = 1}
         };
         if (!(stmtid = sqlbox_prepare_bind(boxctx_data, dbid_data, STMTS_ACCOUNT, parmsz, parms, 0)))
             errx(EXIT_FAILURE, "sqlbox_prepare_bind");
