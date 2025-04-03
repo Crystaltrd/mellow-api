@@ -236,3 +236,9 @@ INSERT INTO SESSIONS
 VALUES ('1', '55', datetime('now')),
        ('1', '99', datetime('now')),
        ('2', '11', datetime('now'));
+
+
+CREATE TABLE FOO (
+    bar INTEGER,
+    baz INTEGER
+)

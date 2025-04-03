@@ -32,12 +32,14 @@ struct kjsonreq req;
 enum statement {
     STMTS_CHECK,
     STMTS_ADD,
+    STMTS_TEST
     STMTS__MAX
 };
 
 static struct sqlbox_pstmt pstmts_data[STMTS__MAX] = {
     {(char *) "SELECT pwhash FROM ACCOUNT WHERE UUID=(?) LIMIT 1"},
     {(char *) "INSERT INTO SESSIONS VALUES((?),(?),datetime('now',(?),'localtime'))"}
+    {(char *) "INSERT INTO FOO (bar,baz) VALUES (?,?)"}
 };
 
 /*
@@ -120,7 +122,7 @@ int check_passwd() {
 }
 
 void open_session() {
-    size_t parmsz = 3;
+    size_t parmsz = 1;
     char seed[128],timestamp[64],sessionID[_PASSWORD_LEN+64];
     snprintf(timestamp,64,"%lld",time(NULL));
     arc4random_buf(seed,128);
@@ -128,19 +130,12 @@ void open_session() {
     strlcat(sessionID,timestamp,_PASSWORD_LEN+64);
     struct sqlbox_parm parms[] = {
         {
-            .type = SQLBOX_PARM_STRING,
-            .sparm = r.fieldmap[KEY_UUID]->parsed.s
+            .type = SQLBOX_PARM_INT,
+            .iparm = 10
         },
-        {
-            .type = SQLBOX_PARM_STRING,
-            .sparm = sessionID
-        },
-        {
-            .type = SQLBOX_PARM_STRING,
-            .sparm = (r.fieldmap[KEY_REMEMBER]) ? "+7 days" : "+3 hours"
-        }
+
     };
-    if (sqlbox_exec(boxctx_data, dbid_data, STMTS_ADD, parmsz, parms,SQLBOX_STMT_CONSTRAINT) != SQLBOX_CODE_OK)
+    if (sqlbox_exec(boxctx_data, dbid_data, STMTS_TEST, parmsz, parms,SQLBOX_STMT_CONSTRAINT) != SQLBOX_CODE_OK)
         errx(EXIT_FAILURE, "sqlbox_exec");
 
     khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
