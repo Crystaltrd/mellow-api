@@ -476,64 +476,200 @@ static struct sqlbox_pstmt pstmts_data[STMTS__MAX] = {
 static struct sqlbox_pstmt pstmts_count[STMTS__MAX] = {
     {
         (char *)
-        "SELECT COUNT(DISTINCT publisherName) FROM PUBLISHER LEFT JOIN BOOK B ON B.publisher = PUBLISHER.publisherName WHERE ((?) = 'IGNORE_NAME' OR instr(publisherName, (?)) > 0) AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) ORDER BY IIF((?) = 'POPULAR', SUM(hits), publisherName) DESC LIMIT (?) OFFSET (? * (?) * 0)"
+        "SELECT COUNT(DISTINCT publisherName) "
+        "FROM PUBLISHER "
+        "LEFT JOIN BOOK B ON B.publisher = PUBLISHER.publisherName "
+        "WHERE ((?) = 'IGNORE_NAME' OR instr(publisherName, (?)) > 0) "
+        "AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) "
+        "ORDER BY IIF((?) = 'POPULAR', SUM(hits), publisherName) DESC "
+        "LIMIT (?) OFFSET (? * (?) * 0)"
     },
     {
         (char *)
-        "SELECT COUNT(DISTINCT authorName) FROM AUTHOR LEFT JOIN AUTHORED A ON AUTHOR.authorName = A.author LEFT JOIN BOOK B ON B.serialnum = A.serialnum WHERE ((?) = 'IGNORE_NAME' OR instr(authorName, (?)) > 0) AND ((?) = 'IGNORE_BOOK' OR A.serialnum = (?)) ORDER BY IIF((?) = 'POPULAR', SUM(hits), authorName) DESC LIMIT (?) OFFSET (? * (?) * 0)"
+        "SELECT COUNT(DISTINCT authorName) "
+        "FROM AUTHOR "
+        "LEFT JOIN AUTHORED A ON AUTHOR.authorName = A.author "
+        "LEFT JOIN BOOK B ON B.serialnum = A.serialnum "
+        "WHERE ((?) = 'IGNORE_NAME' OR instr(authorName, (?)) > 0) "
+        "AND ((?) = 'IGNORE_BOOK' OR A.serialnum = (?)) "
+        "ORDER BY IIF((?) = 'POPULAR', SUM(hits), authorName) DESC "
+        "LIMIT (?) OFFSET (? * (?) * 0)"
     },
     {
         (char *)
-        "SELECT COUNT(DISTINCT langCode) FROM LANG LEFT JOIN LANGUAGES A ON LANG.langCode = A.lang LEFT JOIN BOOK B ON B.serialnum = A.serialnum WHERE ((?) = 'IGNORE_NAME' OR instr(langCode, (?)) > 0) AND ((?) = 'IGNORE_BOOK' OR A.serialnum = (?)) ORDER BY IIF((?) = 'POPULAR', SUM(hits), langCode) DESC LIMIT (?) OFFSET (? * (?) * 0)"
+        "SELECT COUNT(DISTINCT langCode) "
+        "FROM LANG "
+        "LEFT JOIN LANGUAGES A ON LANG.langCode = A.lang "
+        "LEFT JOIN BOOK B ON B.serialnum = A.serialnum "
+        "WHERE ((?) = 'IGNORE_NAME' OR instr(langCode, (?)) > 0) "
+        "AND ((?) = 'IGNORE_BOOK' OR A.serialnum = (?)) "
+        "ORDER BY IIF((?) = 'POPULAR', SUM(hits), langCode) DESC "
+        "LIMIT (?) OFFSET (? * (?) * 0)"
     },
     {
         (char *)
-        "SELECT COUNT(DISTINCT actionName) FROM ACTION WHERE instr(actionName,(?)) > 0 LIMIT (?) OFFSET (? * (?))"
+        "SELECT COUNT(DISTINCT actionName) "
+        "FROM ACTION "
+        "WHERE instr(actionName,(?)) > 0 "
+        "LIMIT (?) OFFSET (? * (?))"
     },
     {
         (char *)
-        "SELECT COUNT(DISTINCT typeName) FROM DOCTYPE  LEFT JOIN BOOK B ON DOCTYPE.typeName = B.type WHERE ((?) = 'IGNORE_NAME' OR instr(typeName, (?)) > 0)  AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) ORDER BY IIF((?) = 'POPULAR', SUM(hits), typeName) DESC LIMIT (?) OFFSET (? * (?) * 0)"
+        "SELECT COUNT(DISTINCT typeName) "
+        "FROM DOCTYPE "
+        "LEFT JOIN BOOK B ON DOCTYPE.typeName = B.type "
+        "WHERE ((?) = 'IGNORE_NAME' OR instr(typeName, (?)) > 0) "
+        "AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) "
+        "ORDER BY IIF((?) = 'POPULAR', SUM(hits), typeName) DESC "
+        "LIMIT (?) OFFSET (? * (?) * 0)"
     },
     {
         (char *)
-        "SELECT COUNT(DISTINCT campusName) FROM CAMPUS LEFT JOIN STOCK S ON CAMPUS.campusName = S.campus LEFT JOIN ACCOUNT A on CAMPUS.campusName = A.campus WHERE ((?) = 'IGNORE_NAME' OR instr(campusName, (?)) > 0) AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) AND ((?) = 'IGNORE_ACCOUNT' OR UUID = (?)) LIMIT (?) OFFSET (? * (?) * 0)"
+        "SELECT COUNT(DISTINCT campusName) "
+        "FROM CAMPUS "
+        "LEFT JOIN STOCK S ON CAMPUS.campusName = S.campus "
+        "LEFT JOIN ACCOUNT A on CAMPUS.campusName = A.campus "
+        "WHERE ((?) = 'IGNORE_NAME' OR instr(campusName, (?)) > 0) "
+        "AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) "
+        "AND ((?) = 'IGNORE_ACCOUNT' OR UUID = (?)) "
+        "LIMIT (?) OFFSET (? * (?) * 0)"
     },
     {
         (char *)
-        "SELECT COUNT(DISTINCT roleName) FROM ROLE LEFT JOIN ACCOUNT A ON A.role = ROLE.roleName WHERE ((?) = 'IGNORE_NAME' OR instr(roleName, (?)) > 0) AND ((?) = 'IGNORE_PERMS' OR perms = (?)) AND ((?) = 'IGNORE_ACCOUNT' OR UUID = (?)) LIMIT (?) OFFSET (? * (?) * 0)"
+        "SELECT COUNT(DISTINCT roleName) "
+        "FROM ROLE "
+        "LEFT JOIN ACCOUNT A ON A.role = ROLE.roleName "
+        "WHERE ((?) = 'IGNORE_NAME' OR instr(roleName, (?)) > 0) "
+        "AND ((?) = 'IGNORE_PERMS' OR perms = (?)) "
+        "AND ((?) = 'IGNORE_ACCOUNT' OR UUID = (?)) "
+        "LIMIT (?) OFFSET (? * (?) * 0)"
     },
     {
         (char *)
-        "SELECT COUNT(DISTINCT categoryClass) FROM CATEGORY LEFT JOIN BOOK B ON CATEGORY.categoryClass = B.category WHERE IIF((?) = 'ROOT',parentCategoryID IS NULL,TRUE) AND ((?) = 'IGNORE_NAME' OR instr(categoryName, (?)) > 0) AND ((?) = 'IGNORE_CLASS' OR categoryClass = (?)) AND ((?) = 'IGNORE_PARENT_CLASS' OR parentCategoryID = (?)) AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) ORDER BY IIF((?) = 'POPULAR', SUM(hits), categoryClass) DESC LIMIT (?) OFFSET (? * (?) * 0)"
+        "SELECT COUNT(DISTINCT categoryClass) "
+        "FROM CATEGORY "
+        "LEFT JOIN BOOK B ON CATEGORY.categoryClass = B.category "
+        "WHERE IIF((?) = 'ROOT',parentCategoryID IS NULL,TRUE) "
+        "AND ((?) = 'IGNORE_NAME' OR instr(categoryName, (?)) > 0) "
+        "AND ((?) = 'IGNORE_CLASS' OR categoryClass = (?)) "
+        "AND ((?) = 'IGNORE_PARENT_CLASS' OR parentCategoryID = (?)) "
+        "AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) "
+        "ORDER BY IIF((?) = 'POPULAR', SUM(hits), categoryClass) DESC "
+        "LIMIT (?) OFFSET (? * (?) * 0)"
     },
     {
         (char *)
-        " WITH RECURSIVE CategoryCascade AS (SELECT categoryName,categoryClass, parentCategoryID FROM CATEGORY LEFT JOIN BOOK B ON CATEGORY.categoryClass = B.category WHERE IIF((?) = 'ROOT',parentCategoryID IS NULL,TRUE) AND ((?) = 'IGNORE_NAME' OR instr(categoryName, (?)) > 0) AND ((?) = 'IGNORE_CLASS' OR categoryClass = (?)) AND ((?) = 'IGNORE_PARENT_CLASS' OR parentCategoryID = (?)) AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) GROUP BY categoryClass,categoryName,parentCategoryID UNION ALL SELECT c.categoryName,c.categoryClass, c.parentCategoryID FROM CATEGORY c INNER JOIN CategoryCascade ct ON IIF((?) = 'GET_PARENTS', c.categoryClass = ct.parentCategoryID, c.parentCategoryID = ct.categoryClass)) SELECT COUNT(DISTINCT CATEGORY.categoryClass) FROM CATEGORY, CategoryCascade WHERE CategoryCascade.categoryClass = CATEGORY.categoryClass LIMIT (?) OFFSET (? * (?) * 0)"
+        " WITH RECURSIVE CategoryCascade AS (SELECT categoryName,categoryClass, parentCategoryID "
+        "FROM CATEGORY "
+        "LEFT JOIN BOOK B ON CATEGORY.categoryClass = B.category "
+        "WHERE IIF((?) = 'ROOT',parentCategoryID IS NULL,TRUE) "
+        "AND ((?) = 'IGNORE_NAME' OR instr(categoryName, (?)) > 0) "
+        "AND ((?) = 'IGNORE_CLASS' OR categoryClass = (?)) "
+        "AND ((?) = 'IGNORE_PARENT_CLASS' OR parentCategoryID = (?)) "
+        "AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) "
+        "GROUP BY categoryClass,categoryName,parentCategoryID "
+        "UNION ALL "
+        "SELECT c.categoryName,c.categoryClass, c.parentCategoryID "
+        "FROM CATEGORY c "
+        "INNER JOIN CategoryCascade ct ON IIF((?) = 'GET_PARENTS',"
+        "c.categoryClass = ct.parentCategoryID,"
+        "c.parentCategoryID = ct.categoryClass)) "
+        "SELECT COUNT(DISTINCT CATEGORY.categoryClass) "
+        "FROM CATEGORY, CategoryCascade "
+        "WHERE CategoryCascade.categoryClass = CATEGORY.categoryClass "
+        "LIMIT (?) OFFSET (? * (?) * 0)"
     },
     {
         (char *)
-        "SELECT COUNT(DISTINCT ACCOUNT.UUID) FROM ROLE,ACCOUNT LEFT JOIN INVENTORY I on ACCOUNT.UUID = I.UUID LEFT JOIN SESSIONS S on ACCOUNT.UUID = S.account WHERE ACCOUNT.role = ROLE.roleName AND ((?) = 'IGNORE_ID' OR ACCOUNT.UUID = (?)) AND ((?) = 'IGNORE_NAME' OR instr(displayname, (?)) > 0) AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) AND ((?) = 'IGNORE_CAMPUS' OR campus = (?)) AND ((?) = 'IGNORE_ROLE' OR role = (?)) AND ((?) = 'IGNORE_FREEZE' OR frozen = (?)) AND ((?) = 'IGNORE_SESSION' OR sessionID = (?)) LIMIT (?) OFFSET (? * (?) * 0)"
+        "SELECT COUNT(DISTINCT ACCOUNT.UUID) "
+        "FROM ROLE,ACCOUNT "
+        "LEFT JOIN INVENTORY I on ACCOUNT.UUID = I.UUID "
+        "LEFT JOIN SESSIONS S on ACCOUNT.UUID = S.account "
+        "WHERE ACCOUNT.role = ROLE.roleName "
+        "AND ((?) = 'IGNORE_ID' OR ACCOUNT.UUID = (?)) "
+        "AND ((?) = 'IGNORE_NAME' OR instr(displayname, (?)) > 0) "
+        "AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) "
+        "AND ((?) = 'IGNORE_CAMPUS' OR campus = (?)) "
+        "AND ((?) = 'IGNORE_ROLE' OR role = (?)) "
+        "AND ((?) = 'IGNORE_FREEZE' OR frozen = (?)) "
+        "AND ((?) = 'IGNORE_SESSION' OR sessionID = (?)) "
+        "LIMIT (?) OFFSET (? * (?) * 0)"
     },
     {
         (char *)
-        "WITH RECURSIVE CategoryCascade AS (SELECT categoryClass, parentCategoryID FROM CATEGORY WHERE IIF((?) = 'ROOT',parentCategoryID IS NULL,categoryClass = (?)) UNION ALL SELECT c.categoryClass, c.parentCategoryID FROM CATEGORY c INNER JOIN CategoryCascade ct ON c.parentCategoryID = ct.categoryClass) SELECT COUNT(DISTINCT BOOK.serialnum) FROM (BOOK LEFT JOIN INVENTORY I ON BOOK.serialnum = I.serialnum),CATEGORY, LANGUAGES, AUTHORED, STOCK, CategoryCascade WHERE category = CategoryCascade.categoryClass AND AUTHORED.serialnum = BOOK.serialnum AND LANGUAGES.serialnum = BOOK.serialnum AND STOCK.serialnum = BOOK.serialnum AND CATEGORY.categoryClass = BOOK.category AND ((?) = 'IGNORE_ID' OR BOOK.serialnum = (?)) AND ((?) = 'IGNORE_NAME' OR instr(booktitle, (?))) AND ((?) = 'IGNORE_LANG' OR lang = (?)) AND ((?) = 'IGNORE_AUTHOR' OR instr(author, (?)) > 0) AND ((?) = 'IGNORE_TYPE' OR type = (?)) AND ((?) = 'IGNORE_PUBLISHER' OR instr(publisher, (?)) > 0) AND ((?) = 'IGNORE_CAMPUS' OR campus = (?)) AND ((?) = 'IGNORE_ACCOUNT' OR UUID = (?)) AND ((?) = 'INCLUDE_EMPTY' OR STOCK.instock > 0) AND ((?) = 'IGNORE_FROM_DATE' OR bookreleaseyear >= (?)) AND ((?) = 'IGNORE_TO_DATE' OR bookreleaseyear <= (?)) ORDER BY IIF((?) = 'POPULAR', hits, booktitle) DESC LIMIT (?) OFFSET (? * (?) * 0)"
+        "WITH RECURSIVE CategoryCascade AS (SELECT categoryClass, parentCategoryID "
+        "FROM CATEGORY "
+        "WHERE IIF((?) = 'ROOT',parentCategoryID IS NULL,categoryClass = (?)) "
+        "UNION ALL "
+        "SELECT c.categoryClass, c.parentCategoryID "
+        "FROM CATEGORY c "
+        "INNER JOIN CategoryCascade ct ON c.parentCategoryID = ct.categoryClass) "
+        "SELECT COUNT(DISTINCT BOOK.serialnum) "
+        "FROM (BOOK LEFT JOIN INVENTORY I ON BOOK.serialnum = I.serialnum),"
+        "CATEGORY,"
+        "LANGUAGES,"
+        "AUTHORED,"
+        "STOCK,"
+        "CategoryCascade "
+        "WHERE category = CategoryCascade.categoryClass "
+        "AND AUTHORED.serialnum = BOOK.serialnum "
+        "AND LANGUAGES.serialnum = BOOK.serialnum "
+        "AND STOCK.serialnum = BOOK.serialnum "
+        "AND CATEGORY.categoryClass = BOOK.category "
+        "AND ((?) = 'IGNORE_ID' OR BOOK.serialnum = (?)) "
+        "AND ((?) = 'IGNORE_NAME' OR instr(booktitle, (?))) "
+        "AND ((?) = 'IGNORE_LANG' OR lang = (?)) "
+        "AND ((?) = 'IGNORE_AUTHOR' OR instr(author, (?)) > 0) "
+        "AND ((?) = 'IGNORE_TYPE' OR type = (?)) "
+        "AND ((?) = 'IGNORE_PUBLISHER' OR instr(publisher, (?)) > 0) "
+        "AND ((?) = 'IGNORE_CAMPUS' OR campus = (?)) "
+        "AND ((?) = 'IGNORE_ACCOUNT' OR UUID = (?)) "
+        "AND ((?) = 'INCLUDE_EMPTY' OR STOCK.instock > 0) "
+        "AND ((?) = 'IGNORE_FROM_DATE' OR bookreleaseyear >= (?)) "
+        "AND ((?) = 'IGNORE_TO_DATE' OR bookreleaseyear <= (?)) "
+        "ORDER BY IIF((?) = 'POPULAR', hits, booktitle) DESC "
+        "LIMIT (?) OFFSET (? * (?) * 0)"
     },
     {
         (char *)
-        "SELECT COUNT(DISTINCT COALESCE(STOCK.serialnum, campus)) FROM STOCK, BOOK WHERE STOCK.serialnum = BOOK.serialnum AND ((?) = 'IGNORE_BOOK' OR STOCK.serialnum = (?)) AND ((?) = 'IGNORE_CAMPUS' OR campus = (?)) AND IIF((?) = 'AVAILABLE', instock > 0, TRUE) ORDER BY IIF((?) = 'POPULAR', hits, instock) DESC LIMIT (?) OFFSET (? * (?) * 0)"
+        "SELECT COUNT(DISTINCT COALESCE(STOCK.serialnum, campus)) "
+        "FROM STOCK,"
+        "BOOK "
+        "WHERE STOCK.serialnum = BOOK.serialnum "
+        "AND ((?) = 'IGNORE_BOOK' OR STOCK.serialnum = (?)) "
+        "AND ((?) = 'IGNORE_CAMPUS' OR campus = (?)) "
+        "AND IIF((?) = 'AVAILABLE', instock > 0, TRUE) "
+        "ORDER BY IIF((?) = 'POPULAR', hits, instock) DESC "
+        "LIMIT (?) OFFSET (? * (?) * 0)"
     },
     {
         (char *)
-        "SELECT COUNT(DISTINCT COALESCE(UUID, serialnum, rentduration, rentdate, extended)) FROM INVENTORY WHERE ((?) = 'IGNORE_ACCOUNT' OR UUID = (?)) AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) LIMIT (?) OFFSET (? * (?) * 0)"
+        "SELECT COUNT(DISTINCT COALESCE(UUID, serialnum, rentduration, rentdate, extended)) "
+        "FROM INVENTORY "
+        "WHERE ((?) = 'IGNORE_ACCOUNT' OR UUID = (?)) "
+        "AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) "
+        "LIMIT (?) OFFSET (? * (?) * 0)"
     },
     {
 
         (char *)
-        "SELECT COUNT(DISTINCT COALESCE(UUID,UUID_ISSUER,serialnum,action,actiondate)) FROM HISTORY WHERE ((?) = 'IGNORE_ACCOUNT' OR UUID = (?)) AND ((?) = 'IGNORE_ISSUER' OR UUID_ISSUER = (?)) AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) AND ((?) = 'IGNORE_ACTION' OR action = (?)) AND ((?) = 'IGNORE_FROM_DATE' OR actiondate >= datetime((?),'unixepoch')) AND ((?) = 'IGNORE_TO_DATE' OR actiondate <= datetime((?),'unixepoch')) LIMIT (?) OFFSET (? * (?) * 0)"
+        "SELECT COUNT(DISTINCT COALESCE(UUID,UUID_ISSUER,serialnum,action,actiondate)) "
+        "FROM HISTORY "
+        "WHERE ((?) = 'IGNORE_ACCOUNT' OR UUID = (?)) "
+        "AND ((?) = 'IGNORE_ISSUER' OR UUID_ISSUER = (?)) "
+        "AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) "
+        "AND ((?) = 'IGNORE_ACTION' OR action = (?)) "
+        "AND ((?) = 'IGNORE_FROM_DATE' OR actiondate >= datetime((?),'unixepoch')) "
+        "AND ((?) = 'IGNORE_TO_DATE' OR actiondate <= datetime((?),'unixepoch')) "
+        "LIMIT (?) OFFSET (? * (?) * 0)"
     },
     {
         (char *)
-        "SELECT COUNT(DISTINCT COALESCE(account,sessionID,expiresAt)) FROM SESSIONS WHERE ((?) = 'IGNORE_ID' OR sessionID = (?)) AND ((?) = 'IGNORE_ACCOUNT' OR account = (?)) LIMIT (?) OFFSET (? * (?) * 0)"
+        "SELECT COUNT(DISTINCT COALESCE(account,sessionID,expiresAt)) "
+        "FROM SESSIONS "
+        "WHERE ((?) = 'IGNORE_ID' OR sessionID = (?)) "
+        "AND ((?) = 'IGNORE_ACCOUNT' OR account = (?)) "
+        "LIMIT (?) OFFSET (? * (?) * 0)"
     }
 
 };
