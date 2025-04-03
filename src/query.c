@@ -252,64 +252,220 @@ size_t dbid_count; // Database associated with a config and a context for the nu
 static struct sqlbox_pstmt pstmts_data[STMTS__MAX] = {
     {
         (char *)
-        "SELECT publisherName FROM PUBLISHER LEFT JOIN BOOK B ON B.publisher = PUBLISHER.publisherName WHERE ((?) = 'IGNORE_NAME' OR instr(publisherName, (?)) > 0) AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) GROUP BY publisherName ORDER BY IIF((?) = 'POPULAR', SUM(hits), publisherName) DESC LIMIT (?) OFFSET (? * (?))"
+        "SELECT publisherName "
+        "FROM PUBLISHER "
+        "LEFT JOIN BOOK B ON B.publisher = PUBLISHER.publisherName "
+        "WHERE ((?) = 'IGNORE_NAME' OR instr(publisherName, (?)) > 0) "
+        "AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) "
+        "GROUP BY publisherName "
+        "ORDER BY IIF((?) = 'POPULAR', SUM(hits), publisherName) DESC "
+        "LIMIT (?) OFFSET (? * (?))"
     },
     {
         (char *)
-        "SELECT authorName FROM AUTHOR LEFT JOIN AUTHORED A ON AUTHOR.authorName = A.author LEFT JOIN BOOK B ON B.serialnum = A.serialnum WHERE ((?) = 'IGNORE_NAME' OR instr(authorName, (?)) > 0) AND ((?) = 'IGNORE_BOOK' OR A.serialnum = (?)) GROUP BY authorName ORDER BY IIF((?) = 'POPULAR', SUM(hits), authorName) DESC LIMIT (?) OFFSET (? * (?))"
+        "SELECT authorName "
+        "FROM AUTHOR "
+        "LEFT JOIN AUTHORED A ON AUTHOR.authorName = A.author "
+        "LEFT JOIN BOOK B ON B.serialnum = A.serialnum "
+        "WHERE ((?) = 'IGNORE_NAME' OR instr(authorName, (?)) > 0) "
+        "AND ((?) = 'IGNORE_BOOK' OR A.serialnum = (?)) "
+        "GROUP BY authorName ORDER BY IIF((?) = 'POPULAR', SUM(hits), authorName) DESC "
+        "LIMIT (?) OFFSET (? * (?))"
     },
     {
         (char *)
-        "SELECT langCode FROM LANG LEFT JOIN LANGUAGES A ON LANG.langCode = A.lang LEFT JOIN BOOK B ON B.serialnum = A.serialnum WHERE ((?) = 'IGNORE_NAME' OR instr(langCode, (?)) > 0) AND ((?) = 'IGNORE_BOOK' OR A.serialnum = (?)) GROUP BY langCode ORDER BY IIF((?) = 'POPULAR', SUM(hits), langCode) DESC LIMIT (?) OFFSET (? * (?))"
+        "SELECT langCode "
+        "FROM LANG "
+        "LEFT JOIN LANGUAGES A ON LANG.langCode = A.lang "
+        "LEFT JOIN BOOK B ON B.serialnum = A.serialnum "
+        "WHERE ((?) = 'IGNORE_NAME' OR instr(langCode, (?)) > 0) "
+        "AND ((?) = 'IGNORE_BOOK' OR A.serialnum = (?)) "
+        "GROUP BY langCode "
+        "ORDER BY IIF((?) = 'POPULAR', SUM(hits), langCode) DESC "
+        "LIMIT (?) OFFSET (? * (?))"
     },
     {
         (char *)
-        "SELECT actionName FROM ACTION WHERE instr(actionName,(?)) > 0 ORDER BY actionName LIMIT (?) OFFSET (? * (?))"
+        "SELECT actionName "
+        "FROM ACTION "
+        "WHERE instr(actionName,(?)) > 0 "
+        "ORDER BY actionName "
+        "LIMIT (?) OFFSET (? * (?))"
     },
     {
         (char *)
-        "SELECT typeName FROM DOCTYPE  LEFT JOIN BOOK B ON DOCTYPE.typeName = B.type WHERE ((?) = 'IGNORE_NAME' OR instr(typeName, (?)) > 0)  AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) GROUP BY typeName ORDER BY IIF((?) = 'POPULAR', SUM(hits), typeName) DESC LIMIT (?) OFFSET (? * (?))"
+        "SELECT typeName "
+        "FROM DOCTYPE "
+        "LEFT JOIN BOOK B ON DOCTYPE.typeName = B.type "
+        "WHERE ((?) = 'IGNORE_NAME' OR instr(typeName, (?)) > 0) "
+        "AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) "
+        "GROUP BY typeName "
+        "ORDER BY IIF((?) = 'POPULAR', SUM(hits), typeName) DESC "
+        "LIMIT (?) OFFSET (? * (?))"
     },
     {
         (char *)
-        "SELECT campusName FROM CAMPUS LEFT JOIN STOCK S ON CAMPUS.campusName = S.campus LEFT JOIN ACCOUNT A on CAMPUS.campusName = A.campus WHERE ((?) = 'IGNORE_NAME' OR instr(campusName, (?)) > 0) AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) AND ((?) = 'IGNORE_ACCOUNT' OR UUID = (?)) GROUP BY campusName ORDER BY campusName LIMIT (?) OFFSET (? * (?))"
+        "SELECT campusName "
+        "FROM CAMPUS "
+        "LEFT JOIN STOCK S ON CAMPUS.campusName = S.campus "
+        "LEFT JOIN ACCOUNT A on CAMPUS.campusName = A.campus "
+        "WHERE ((?) = 'IGNORE_NAME' OR instr(campusName, (?)) > 0) "
+        "AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) "
+        "AND ((?) = 'IGNORE_ACCOUNT' OR UUID = (?)) "
+        "GROUP BY campusName "
+        "ORDER BY campusName "
+        "LIMIT (?) OFFSET (? * (?))"
     },
     {
         (char *)
-        "SELECT roleName, perms FROM ROLE LEFT JOIN ACCOUNT A ON A.role = ROLE.roleName WHERE ((?) = 'IGNORE_NAME' OR instr(roleName, (?)) > 0) AND ((?) = 'IGNORE_PERMS' OR perms = (?)) AND ((?) = 'IGNORE_ACCOUNT' OR UUID = (?)) GROUP BY roleName, perms ORDER BY perms DESC LIMIT (?) OFFSET (? * (?))"
+        "SELECT roleName, perms "
+        "FROM ROLE LEFT JOIN ACCOUNT A ON A.role = ROLE.roleName "
+        "WHERE ((?) = 'IGNORE_NAME' OR instr(roleName, (?)) > 0) "
+        "AND ((?) = 'IGNORE_PERMS' OR perms = (?)) "
+        "AND ((?) = 'IGNORE_ACCOUNT' OR UUID = (?)) "
+        "GROUP BY roleName, perms "
+        "ORDER BY perms DESC "
+        "LIMIT (?) OFFSET (? * (?))"
     },
     {
         (char *)
-        "SELECT categoryClass, categoryName, parentCategoryID FROM CATEGORY LEFT JOIN BOOK B ON CATEGORY.categoryClass = B.category WHERE IIF((?) = 'ROOT',parentCategoryID IS NULL,TRUE) AND ((?) = 'IGNORE_NAME' OR instr(categoryName, (?)) > 0) AND ((?) = 'IGNORE_CLASS' OR categoryClass = (?)) AND ((?) = 'IGNORE_PARENT_CLASS' OR parentCategoryID = (?)) AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) GROUP BY categoryClass, categoryName, parentCategoryID ORDER BY IIF((?) = 'POPULAR', SUM(hits), categoryClass) DESC LIMIT (?) OFFSET (? * (?))"
+        "SELECT categoryClass, categoryName, parentCategoryID "
+        "FROM CATEGORY LEFT JOIN BOOK B ON CATEGORY.categoryClass = B.category "
+        "WHERE IIF((?) = 'ROOT',parentCategoryID IS NULL,TRUE) "
+        "AND ((?) = 'IGNORE_NAME' OR instr(categoryName, (?)) > 0) "
+        "AND ((?) = 'IGNORE_CLASS' OR categoryClass = (?)) "
+        "AND ((?) = 'IGNORE_PARENT_CLASS' OR parentCategoryID = (?)) "
+        "AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) "
+        "GROUP BY categoryClass, categoryName, parentCategoryID "
+        "ORDER BY IIF((?) = 'POPULAR', SUM(hits), categoryClass) DESC "
+        "LIMIT (?) OFFSET (? * (?))"
     },
     {
         (char *)
-        " WITH RECURSIVE CategoryCascade AS (SELECT categoryName,categoryClass, parentCategoryID FROM CATEGORY LEFT JOIN BOOK B ON CATEGORY.categoryClass = B.category WHERE IIF((?) = 'ROOT',parentCategoryID IS NULL,TRUE) AND ((?) = 'IGNORE_NAME' OR instr(categoryName, (?)) > 0) AND ((?) = 'IGNORE_CLASS' OR categoryClass = (?)) AND ((?) = 'IGNORE_PARENT_CLASS' OR parentCategoryID = (?)) AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) GROUP BY categoryClass,categoryName,parentCategoryID UNION ALL SELECT c.categoryName,c.categoryClass, c.parentCategoryID FROM CATEGORY c INNER JOIN CategoryCascade ct ON IIF((?) = 'GET_PARENTS', c.categoryClass = ct.parentCategoryID, c.parentCategoryID = ct.categoryClass)) SELECT CATEGORY.categoryClass, CATEGORY.categoryName,CATEGORY.parentCategoryID FROM CATEGORY, CategoryCascade WHERE CategoryCascade.categoryClass = CATEGORY.categoryClass GROUP BY CATEGORY.categoryClass, CATEGORY.categoryName, CATEGORY.parentCategoryID LIMIT (?) OFFSET (? * (?))"
+        "WITH RECURSIVE CategoryCascade AS (SELECT categoryName,categoryClass, parentCategoryID "
+        "FROM CATEGORY "
+        "LEFT JOIN BOOK B ON CATEGORY.categoryClass = B.category "
+        "WHERE IIF((?) = 'ROOT',parentCategoryID IS NULL,TRUE) "
+        "AND ((?) = 'IGNORE_NAME' OR instr(categoryName, (?)) > 0) "
+        "AND ((?) = 'IGNORE_CLASS' OR categoryClass = (?)) "
+        "AND ((?) = 'IGNORE_PARENT_CLASS' OR parentCategoryID = (?)) "
+        "AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) "
+        "GROUP BY categoryClass,categoryName,parentCategoryID "
+        "UNION ALL "
+        "SELECT c.categoryName,c.categoryClass, c.parentCategoryID "
+        "FROM CATEGORY c "
+        "INNER JOIN CategoryCascade ct ON IIF((?) = 'GET_PARENTS',"
+        "c.categoryClass = ct.parentCategoryID,"
+        "c.parentCategoryID = ct.categoryClass)) "
+        "SELECT CATEGORY.categoryClass, CATEGORY.categoryName,CATEGORY.parentCategoryID "
+        "FROM CATEGORY, CategoryCascade "
+        "WHERE CategoryCascade.categoryClass = CATEGORY.categoryClass "
+        "GROUP BY CATEGORY.categoryClass, CATEGORY.categoryName, CATEGORY.parentCategoryID "
+        "LIMIT (?) OFFSET (? * (?))"
     },
     {
         (char *)
-        "SELECT ACCOUNT.UUID, displayname, pwhash, campus, role, perms, frozen FROM ROLE,ACCOUNT LEFT JOIN INVENTORY I on ACCOUNT.UUID = I.UUID LEFT JOIN SESSIONS S on ACCOUNT.UUID = S.account WHERE ACCOUNT.role = ROLE.roleName AND ((?) = 'IGNORE_ID' OR ACCOUNT.UUID = (?)) AND ((?) = 'IGNORE_NAME' OR instr(displayname, (?)) > 0) AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) AND ((?) = 'IGNORE_CAMPUS' OR campus = (?)) AND ((?) = 'IGNORE_ROLE' OR role = (?)) AND ((?) = 'IGNORE_FREEZE' OR frozen = (?)) AND ((?) = 'IGNORE_SESSION' OR sessionID = (?)) GROUP BY ACCOUNT.UUID, displayname, pwhash, campus, perms, frozen ORDER BY displayname LIMIT (?) OFFSET (? * (?))"
+        "SELECT ACCOUNT.UUID, displayname, pwhash, campus, role, perms, frozen "
+        "FROM ROLE,"
+        "ACCOUNT "
+        "LEFT JOIN INVENTORY I on ACCOUNT.UUID = I.UUID "
+        "LEFT JOIN SESSIONS S on ACCOUNT.UUID = S.account "
+        "WHERE ACCOUNT.role = ROLE.roleName "
+        "AND ((?) = 'IGNORE_ID' OR ACCOUNT.UUID = (?)) "
+        "AND ((?) = 'IGNORE_NAME' OR instr(displayname, (?)) > 0) "
+        "AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) "
+        "AND ((?) = 'IGNORE_CAMPUS' OR campus = (?)) "
+        "AND ((?) = 'IGNORE_ROLE' OR role = (?)) "
+        "AND ((?) = 'IGNORE_FREEZE' OR frozen = (?)) "
+        "AND ((?) = 'IGNORE_SESSION' OR sessionID = (?)) "
+        "GROUP BY ACCOUNT.UUID, displayname, pwhash, campus, perms, frozen "
+        "ORDER BY displayname "
+        "LIMIT (?) OFFSET (? * (?))"
     },
     {
         (char *)
-        "WITH RECURSIVE CategoryCascade AS (SELECT categoryClass, parentCategoryID FROM CATEGORY WHERE IIF((?) = 'ROOT',parentCategoryID IS NULL,categoryClass = (?)) UNION ALL SELECT c.categoryClass, c.parentCategoryID FROM CATEGORY c INNER JOIN CategoryCascade ct ON c.parentCategoryID = ct.categoryClass) SELECT BOOK.serialnum, type, category,categoryName, publisher, booktitle, bookreleaseyear, bookcover, hits FROM (BOOK LEFT JOIN INVENTORY I ON BOOK.serialnum = I.serialnum),CATEGORY, LANGUAGES, AUTHORED, STOCK, CategoryCascade WHERE category = CategoryCascade.categoryClass AND AUTHORED.serialnum = BOOK.serialnum AND LANGUAGES.serialnum = BOOK.serialnum AND STOCK.serialnum = BOOK.serialnum AND CATEGORY.categoryClass = BOOK.category AND ((?) = 'IGNORE_ID' OR BOOK.serialnum = (?)) AND ((?) = 'IGNORE_NAME' OR instr(booktitle, (?))) AND ((?) = 'IGNORE_LANG' OR lang = (?)) AND ((?) = 'IGNORE_AUTHOR' OR instr(author, (?)) > 0) AND ((?) = 'IGNORE_TYPE' OR type = (?)) AND ((?) = 'IGNORE_PUBLISHER' OR instr(publisher, (?)) > 0) AND ((?) = 'IGNORE_CAMPUS' OR campus = (?)) AND ((?) = 'IGNORE_ACCOUNT' OR UUID = (?)) AND ((?) = 'INCLUDE_EMPTY' OR STOCK.instock > 0) AND ((?) = 'IGNORE_FROM_DATE' OR bookreleaseyear >= (?)) AND ((?) = 'IGNORE_TO_DATE' OR bookreleaseyear <= (?)) GROUP BY BOOK.serialnum, type, category, categoryName, publisher, booktitle, bookreleaseyear, bookcover, hits ORDER BY IIF((?) = 'POPULAR', hits, booktitle) DESC LIMIT (?) OFFSET (? * (?))"
+        "WITH RECURSIVE CategoryCascade AS (SELECT categoryClass, parentCategoryID "
+        "FROM CATEGORY "
+        "WHERE IIF((?) = 'ROOT',"
+        "parentCategoryID IS NULL,"
+        "categoryClass = (?)) "
+        "UNION ALL "
+        "SELECT c.categoryClass, c.parentCategoryID "
+        "FROM CATEGORY c "
+        "INNER JOIN CategoryCascade ct ON c.parentCategoryID = ct.categoryClass) "
+        "SELECT BOOK.serialnum, type, category,categoryName, publisher, booktitle, bookreleaseyear, bookcover, hits "
+        "FROM (BOOK LEFT JOIN INVENTORY I ON BOOK.serialnum = I.serialnum),"
+        "CATEGORY,"
+        "LANGUAGES,"
+        "AUTHORED,"
+        "STOCK,"
+        "CategoryCascade "
+        "WHERE category = CategoryCascade.categoryClass "
+        "AND AUTHORED.serialnum = BOOK.serialnum "
+        "AND LANGUAGES.serialnum = BOOK.serialnum "
+        "AND STOCK.serialnum = BOOK.serialnum "
+        "AND CATEGORY.categoryClass = BOOK.category "
+        "AND ((?) = 'IGNORE_ID' OR BOOK.serialnum = (?)) "
+        "AND ((?) = 'IGNORE_NAME' OR instr(booktitle, (?))) "
+        "AND ((?) = 'IGNORE_LANG' OR lang = (?)) "
+        "AND ((?) = 'IGNORE_AUTHOR' OR instr(author, (?)) > 0) "
+        "AND ((?) = 'IGNORE_TYPE' OR type = (?)) "
+        "AND ((?) = 'IGNORE_PUBLISHER' OR instr(publisher, (?)) > 0) "
+        "AND ((?) = 'IGNORE_CAMPUS' OR campus = (?)) "
+        "AND ((?) = 'IGNORE_ACCOUNT' OR UUID = (?)) "
+        "AND ((?) = 'INCLUDE_EMPTY' OR STOCK.instock > 0) "
+        "AND ((?) = 'IGNORE_FROM_DATE' OR bookreleaseyear >= (?)) "
+        "AND ((?) = 'IGNORE_TO_DATE' OR bookreleaseyear <= (?)) "
+        "GROUP BY BOOK.serialnum, type, category, categoryName, publisher, booktitle, bookreleaseyear, bookcover, hits "
+        "ORDER BY IIF((?) = 'POPULAR', hits, booktitle) DESC "
+        "LIMIT (?) OFFSET (? * (?))"
     },
     {
         (char *)
-        "SELECT STOCK.serialnum, campus, instock FROM STOCK, BOOK WHERE STOCK.serialnum = BOOK.serialnum AND ((?) = 'IGNORE_BOOK' OR STOCK.serialnum = (?)) AND ((?) = 'IGNORE_CAMPUS' OR campus = (?)) AND IIF((?) = 'AVAILABLE', instock > 0, TRUE) GROUP BY STOCK.serialnum, campus, instock,hits ORDER BY IIF((?) = 'POPULAR', hits, instock) DESC LIMIT (?) OFFSET (? * (?))"
+        "SELECT STOCK.serialnum,campus,instock "
+        "FROM STOCK,BOOK "
+        "WHERE STOCK.serialnum = BOOK.serialnum "
+        "AND ((?) = 'IGNORE_BOOK' OR STOCK.serialnum = (?)) "
+        "AND ((?) = 'IGNORE_CAMPUS' OR campus = (?)) "
+        "AND IIF((?) = 'AVAILABLE', instock > 0, TRUE) "
+        "GROUP BY STOCK.serialnum, campus, instock,hits "
+        "ORDER BY IIF((?) = 'POPULAR', hits, instock) DESC "
+        "LIMIT (?) OFFSET (? * (?))"
     },
     {
         (char *)
-        "SELECT UUID, serialnum, rentduration, rentdate, extended FROM INVENTORY WHERE ((?) = 'IGNORE_ACCOUNT' OR UUID = (?)) AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) GROUP BY UUID, serialnum, rentduration, rentdate, extended ORDER BY rentdate DESC LIMIT (?) OFFSET (? * (?))"
+        "SELECT UUID, serialnum, rentduration, rentdate, extended "
+        "FROM INVENTORY "
+        "WHERE ((?) = 'IGNORE_ACCOUNT' OR UUID = (?)) "
+        "AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) "
+        "GROUP BY UUID, serialnum, rentduration, rentdate, extended "
+        "ORDER BY rentdate DESC "
+        "LIMIT (?) OFFSET (? * (?))"
     },
     {
 
         (char *)
-        "SELECT UUID,UUID_ISSUER,serialnum,action,actiondate FROM HISTORY WHERE ((?) = 'IGNORE_ACCOUNT' OR UUID = (?)) AND ((?) = 'IGNORE_ISSUER' OR UUID_ISSUER = (?)) AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) AND ((?) = 'IGNORE_ACTION' OR action = (?)) AND ((?) = 'IGNORE_FROM_DATE' OR actiondate >= datetime((?),'unixepoch')) AND ((?) = 'IGNORE_TO_DATE' OR actiondate <= datetime((?),'unixepoch')) GROUP BY UUID, UUID_ISSUER, serialnum, action, actiondate ORDER BY actiondate DESC LIMIT (?) OFFSET (? * (?))"
+        "SELECT UUID,UUID_ISSUER,serialnum,action,actiondate "
+        "FROM HISTORY "
+        "WHERE ((?) = 'IGNORE_ACCOUNT' OR UUID = (?)) "
+        "AND ((?) = 'IGNORE_ISSUER' OR UUID_ISSUER = (?)) "
+        "AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) "
+        "AND ((?) = 'IGNORE_ACTION' OR action = (?)) "
+        "AND ((?) = 'IGNORE_FROM_DATE' OR actiondate >= datetime((?),'unixepoch')) "
+        "AND ((?) = 'IGNORE_TO_DATE' OR actiondate <= datetime((?),'unixepoch')) "
+        "GROUP BY UUID, UUID_ISSUER, serialnum, action, actiondate "
+        "ORDER BY actiondate DESC "
+        "LIMIT (?) OFFSET (? * (?))"
     },
     {
         (char *)
-        "SELECT account,sessionID,expiresAt FROM SESSIONS WHERE ((?) = 'IGNORE_ID' OR sessionID = (?)) AND ((?) = 'IGNORE_ACCOUNT' OR account = (?)) GROUP BY account,sessionID,expiresAt ORDER BY expiresAt DESC LIMIT (?) OFFSET (? * (?))"
+        "SELECT account,sessionID,expiresAt "
+        "FROM SESSIONS "
+        "WHERE ((?) = 'IGNORE_ID' OR sessionID = (?)) "
+        "AND ((?) = 'IGNORE_ACCOUNT' OR account = (?)) "
+        "GROUP BY account,sessionID,expiresAt "
+        "ORDER BY expiresAt DESC "
+        "LIMIT (?) OFFSET (? * (?))"
     }
 
 };
@@ -416,11 +572,11 @@ void alloc_ctx_cfg() {
 struct usr {
     char *UUID;
     struct accperms perms;
-    bool authorized;
+    bool authenticated;
 };
 
 struct usr curr_usr = {
-    .authorized = false,
+    .authenticated = false,
     .UUID = NULL,
     .perms = {0, 0, 0, 0, 0, 0, 0}
 };
@@ -453,7 +609,7 @@ void fill_user() {
         if ((res = sqlbox_step(boxctx_data, stmtid)) == NULL)
             errx(EXIT_FAILURE, "sqlbox_step");
         if (res->psz != 0) {
-            curr_usr.authorized = true;
+            curr_usr.authenticated = true;
             curr_usr.UUID = calloc(res->ps[0].sz, sizeof(char));
             strncpy(curr_usr.UUID, res->ps[0].sparm, res->ps[0].sz);
             curr_usr.perms = int_to_accperms((int) res->ps[5].iparm);
@@ -586,7 +742,7 @@ void fill_params(const enum statement STATEMENT) {
             parms[0] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
                 .sparm = (r.fieldmap[KEY_FILTER_TREE] && (!((field = r.fieldmap[KEY_FILTER_BY_PARENT])) || field->valsz
-                          <= 0))
+                                                          <= 0))
                              ? "ROOT"
                              : "DONT_IGNORE"
             };
@@ -697,7 +853,7 @@ void fill_params(const enum statement STATEMENT) {
         case STMTS_ACCOUNT:
             parmsz = 17;
             parms = calloc(parmsz, sizeof(struct sqlbox_parm));
-            if (r.fieldmap[KEY_FILTER_ME] && curr_usr.authorized) {
+            if (r.fieldmap[KEY_FILTER_ME] && curr_usr.authenticated) {
                 parms[0] = (struct sqlbox_parm){
                     .type = SQLBOX_PARM_STRING,
                     .sparm = "DONT_IGNORE"
@@ -940,7 +1096,7 @@ void fill_params(const enum statement STATEMENT) {
             parmsz = 7;
             parms = calloc(parmsz, sizeof(struct sqlbox_parm));
 
-            if (r.fieldmap[KEY_FILTER_ME] && curr_usr.authorized) {
+            if (r.fieldmap[KEY_FILTER_ME] && curr_usr.authenticated) {
                 parms[0] = (struct sqlbox_parm){
                     .type = SQLBOX_PARM_STRING,
                     .sparm = "DONT_IGNORE"
@@ -977,7 +1133,7 @@ void fill_params(const enum statement STATEMENT) {
         case STMTS_HISTORY:
             parmsz = 15;
             parms = calloc(parmsz, sizeof(struct sqlbox_parm));
-            if (r.fieldmap[KEY_FILTER_ME] && curr_usr.authorized) {
+            if (r.fieldmap[KEY_FILTER_ME] && curr_usr.authenticated) {
                 parms[0] = (struct sqlbox_parm){
                     .type = SQLBOX_PARM_STRING,
                     .sparm = "DONT_IGNORE"
@@ -1067,7 +1223,7 @@ void fill_params(const enum statement STATEMENT) {
                 .sparm = ((field = r.fieldmap[KEY_FILTER_BY_ID])) ? field->parsed.s : ""
             };
 
-            if (r.fieldmap[KEY_FILTER_ME] && curr_usr.authorized) {
+            if (r.fieldmap[KEY_FILTER_ME] && curr_usr.authenticated) {
                 parms[2] = (struct sqlbox_parm){
                     .type = SQLBOX_PARM_STRING,
                     .sparm = "DONT_IGNORE"
@@ -1266,7 +1422,7 @@ int main(void) {
     alloc_ctx_cfg();
     fill_user();
     if ((STMT == STMTS_HISTORY || STMT == STMTS_ACCOUNT || STMT == STMTS_SESSIONS || STMT == STMTS_INVENTORY)) {
-        if (!curr_usr.authorized)
+        if (!curr_usr.authenticated)
             goto access_denied;
         if (!curr_usr.perms.admin && !curr_usr.perms.staff) {
             if (!r.fieldmap[KEY_FILTER_ME]) {
@@ -1293,7 +1449,7 @@ access_denied:
     khttp_body(&r);
     kjson_open(&req, &r);
     kjson_obj_open(&req);
-    kjson_putboolp(&req, "authorized",false);
+    kjson_putboolp(&req, "authenticated",curr_usr.authenticated);
     kjson_putstringp(&req, "error", "You don't have the permissions to access this ressource");
     kjson_obj_close(&req);
     khttp_free(&r);
