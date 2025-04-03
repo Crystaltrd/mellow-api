@@ -447,7 +447,7 @@ static struct sqlbox_pstmt pstmts_data[STMTS__MAX] = {
     {
 
         (char *)
-        "SELECT UUID,UUID_ISSUER,serialnum,action,actiondate,details"
+        "SELECT UUID,UUID_ISSUER,serialnum,action,actiondate,details "
         "FROM HISTORY "
         "WHERE ((?) = 'IGNORE_ACCOUNT' OR UUID = (?)) "
         "AND ((?) = 'IGNORE_ISSUER' OR UUID_ISSUER = (?)) "
