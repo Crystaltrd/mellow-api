@@ -447,7 +447,7 @@ static struct sqlbox_pstmt pstmts_data[STMTS__MAX] = {
     {
 
         (char *)
-        "SELECT UUID,UUID_ISSUER,serialnum,action,actiondate "
+        "SELECT UUID,UUID_ISSUER,serialnum,action,actiondate,details"
         "FROM HISTORY "
         "WHERE ((?) = 'IGNORE_ACCOUNT' OR UUID = (?)) "
         "AND ((?) = 'IGNORE_ISSUER' OR UUID_ISSUER = (?)) "
@@ -653,7 +653,7 @@ static struct sqlbox_pstmt pstmts_count[STMTS__MAX] = {
     {
 
         (char *)
-        "SELECT COUNT(DISTINCT COALESCE(UUID,UUID_ISSUER,serialnum,action,actiondate)) "
+        "SELECT COUNT(DISTINCT COALESCE(UUID,UUID_ISSUER,serialnum,action,actiondate,details)) "
         "FROM HISTORY "
         "WHERE ((?) = 'IGNORE_ACCOUNT' OR UUID = (?)) "
         "AND ((?) = 'IGNORE_ISSUER' OR UUID_ISSUER = (?)) "
