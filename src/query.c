@@ -20,6 +20,7 @@ struct kjsonreq req;
  * how it should be interpreted in binary
  */
 struct accperms {
+    int numeric;
     bool admin;
     bool staff;
     bool manage_stock;
@@ -31,6 +32,7 @@ struct accperms {
 
 struct accperms int_to_accperms(int perm) {
     struct accperms perms = {
+        .numeric = perm,
         .admin = (perm & (1 << 6)),
         .staff = (perm & (1 << 5)),
         .manage_stock = (perm & (1 << 4)),
@@ -571,14 +573,22 @@ void alloc_ctx_cfg() {
  */
 struct usr {
     char *UUID;
+    char *disp_name;
+    char *campus;
+    char *role;
     struct accperms perms;
     bool authenticated;
+    bool frozen;
 };
 
 struct usr curr_usr = {
     .authenticated = false,
+    .frozen = false,
     .UUID = NULL,
-    .perms = {0, 0, 0, 0, 0, 0, 0}
+    .disp_name = NULL,
+    .campus = NULL,
+    .role = NULL,
+    .perms = {0, 0, 0, 0, 0, 0, 0, 0}
 };
 
 void fill_user() {
@@ -614,7 +624,19 @@ void fill_user() {
             curr_usr.authenticated = true;
             curr_usr.UUID = calloc(res->ps[0].sz, sizeof(char));
             strncpy(curr_usr.UUID, res->ps[0].sparm, res->ps[0].sz);
+
+            curr_usr.disp_name = calloc(res->ps[1].sz, sizeof(char));
+            strncpy(curr_usr.disp_name, res->ps[1].sparm, res->ps[1].sz);
+
+            curr_usr.campus = calloc(res->ps[3].sz, sizeof(char));
+            strncpy(curr_usr.campus, res->ps[3].sparm, res->ps[3].sz);
+
+            curr_usr.role = calloc(res->ps[4].sz, sizeof(char));
+            strncpy(curr_usr.role, res->ps[4].sparm, res->ps[4].sz);
+
             curr_usr.perms = int_to_accperms((int) res->ps[5].iparm);
+
+            curr_usr.frozen = res->ps[6].iparm;
         }
         sqlbox_finalise(boxctx_data, stmtid);
     }
@@ -1336,8 +1358,27 @@ void process(const enum statement STATEMENT) {
     khttp_body(&r);
     kjson_open(&req, &r);
     kjson_obj_open(&req);
+    kjson_objp_open(&req, "user");
     kjson_putboolp(&req, "authenticated", curr_usr.authenticated);
-    kjson_putstringp(&req, "UUID", curr_usr.UUID);
+    if (curr_usr.authenticated) {
+        kjson_putstringp(&req, "UUID", curr_usr.UUID);
+        kjson_putstringp(&req, "disp_name", curr_usr.disp_name);
+        kjson_putstringp(&req, "campus", curr_usr.campus);
+        kjson_putstringp(&req, "role", curr_usr.role);
+        kjson_putboolp(&req, "frozen", curr_usr.frozen);
+
+        kjson_objp_open(&req, "perms");
+        kjson_putintp(&req, "numeric", curr_usr.perms.numeric);
+        kjson_putboolp(&req, "admin", curr_usr.perms.admin);
+        kjson_putboolp(&req, "staff", curr_usr.perms.staff);
+        kjson_putboolp(&req, "manage_stock", curr_usr.perms.manage_stock);
+        kjson_putboolp(&req, "manage_inventories", curr_usr.perms.manage_inventories);
+        kjson_putboolp(&req, "see_accounts", curr_usr.perms.see_accounts);
+        kjson_putboolp(&req, "monitor_history", curr_usr.perms.monitor_history);
+        kjson_putboolp(&req, "has_inventory", curr_usr.perms.has_inventory);
+        kjson_obj_close(&req);
+    }
+    kjson_obj_close(&req);
     if ((res = sqlbox_step(boxctx_count, stmtid_count)) == NULL)
         errx(EXIT_FAILURE, "sqlbox_step");
     kjson_putintp(&req, "nbrres", res->ps[0].iparm);
@@ -1351,8 +1392,8 @@ void process(const enum statement STATEMENT) {
                 case SQLBOX_PARM_INT:
                     if (STATEMENT == STMTS_ROLE && r.fieldmap[KEY_PERMS_DETAILS]) {
                         struct accperms perms = int_to_accperms((int) res->ps[i].iparm);
-                        kjson_putintp(&req, "numerical", res->ps[i].iparm);
                         kjson_objp_open(&req, rows[STATEMENT][i]);
+                        kjson_putintp(&req, "numerical", res->ps[i].iparm);
                         kjson_putboolp(&req, "admin", perms.admin);
                         kjson_putboolp(&req, "staff", perms.staff);
                         kjson_putboolp(&req, "manage_stock", perms.manage_stock);
@@ -1453,7 +1494,7 @@ access_denied:
     khttp_body(&r);
     kjson_open(&req, &r);
     kjson_obj_open(&req);
-    kjson_putboolp(&req, "authenticated",curr_usr.authenticated);
+    kjson_putboolp(&req, "authenticated", curr_usr.authenticated);
     kjson_putstringp(&req, "error", "You don't have the permissions to access this ressource");
     kjson_obj_close(&req);
     khttp_free(&r);
