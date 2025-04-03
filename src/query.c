@@ -1379,11 +1379,7 @@ void process(const enum statement STATEMENT) {
         kjson_obj_close(&req);
     }
     kjson_obj_close(&req);
-    if ((res = sqlbox_step(boxctx_count, stmtid_count)) == NULL)
-        errx(EXIT_FAILURE, "sqlbox_step");
-    kjson_putintp(&req, "nbrres", res->ps[0].iparm);
-    if (!sqlbox_finalise(boxctx_count, stmtid_count))
-        errx(EXIT_FAILURE, "sqlbox_finalise");
+
     kjson_arrayp_open(&req, "res");
     while ((res = sqlbox_step(boxctx_data, stmtid_data)) != NULL && res->code == SQLBOX_CODE_OK && res->psz != 0) {
         kjson_obj_open(&req);
@@ -1431,6 +1427,11 @@ void process(const enum statement STATEMENT) {
     if (!sqlbox_finalise(boxctx_data, stmtid_data))
         errx(EXIT_FAILURE, "sqlbox_finalise");
     kjson_array_close(&req);
+    if ((res = sqlbox_step(boxctx_count, stmtid_count)) == NULL)
+        errx(EXIT_FAILURE, "sqlbox_step");
+    kjson_putintp(&req, "nbrres", res->ps[0].iparm);
+    if (!sqlbox_finalise(boxctx_count, stmtid_count))
+        errx(EXIT_FAILURE, "sqlbox_finalise");
     kjson_obj_close(&req);
     kjson_close(&req);
     khttp_free(&r);
