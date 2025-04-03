@@ -32,7 +32,7 @@ struct kjsonreq req;
 enum statement {
     STMTS_CHECK,
     STMTS_ADD,
-    STMTS_TEST
+    STMTS_TEST,
     STMTS__MAX
 };
 
