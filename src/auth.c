@@ -153,7 +153,7 @@ void open_session() {
     khttp_body(&r);
     kjson_open(&req, &r);
     kjson_obj_open(&req);
-    kjson_putboolp(&req, "authorized",true);
+    kjson_putboolp(&req, "authenticated",true);
     kjson_putstringp(&req, "UUID", r.fieldmap[KEY_UUID]->parsed.s);
     kjson_putstringp(&req, "sessionid", sessionID);
     kjson_obj_close(&req);
@@ -184,7 +184,7 @@ int main() {
         khttp_body(&r);
         kjson_open(&req, &r);
         kjson_obj_open(&req);
-        kjson_putboolp(&req, "authorized",false);
+        kjson_putboolp(&req, "authenticated",false);
         kjson_putstringp(&req, "error", "The Username or Password that you provided are wrong");
         kjson_obj_close(&req);
         khttp_free(&r);

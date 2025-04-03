@@ -1336,6 +1336,8 @@ void process(const enum statement STATEMENT) {
     khttp_body(&r);
     kjson_open(&req, &r);
     kjson_obj_open(&req);
+    kjson_putboolp(&req, "authenticated", curr_usr.authenticated);
+    kjson_putstringp(&req, "UUID", curr_usr.UUID);
     if ((res = sqlbox_step(boxctx_count, stmtid_count)) == NULL)
         errx(EXIT_FAILURE, "sqlbox_step");
     kjson_putintp(&req, "nbrres", res->ps[0].iparm);
