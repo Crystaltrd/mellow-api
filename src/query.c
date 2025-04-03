@@ -585,7 +585,7 @@ void fill_user() {
     struct kpair *field;
     if ((field = r.cookiemap[COOKIE_SESSIONID])) {
         size_t stmtid;
-        size_t parmsz = 15;
+        size_t parmsz = 17;
         const struct sqlbox_parmset *res;
         struct sqlbox_parm parms[] = {
             {.type = SQLBOX_PARM_STRING, .sparm = "IGNORE_ID"},
@@ -602,7 +602,9 @@ void fill_user() {
             {.type = SQLBOX_PARM_STRING, .sparm = ""},
             {.type = SQLBOX_PARM_STRING, .sparm = "DONT_IGNORE"},
             {.type = SQLBOX_PARM_STRING, .sparm = field->parsed.s},
-            {.type = SQLBOX_PARM_INT, .iparm = 1}
+            {.type = SQLBOX_PARM_INT, .iparm = 1},
+            {.type = SQLBOX_PARM_INT, .iparm = 0},
+            {.type = SQLBOX_PARM_INT, .iparm = 0},
         };
         if (!(stmtid = sqlbox_prepare_bind(boxctx_data, dbid_data, STMTS_ACCOUNT, parmsz, parms, 0)))
             errx(EXIT_FAILURE, "sqlbox_prepare_bind");
