@@ -1613,7 +1613,7 @@ void save(const enum statement STATEMENT) {
         },
         {
             .type = SQLBOX_PARM_STRING,
-            .sparm = r.remote
+            .sparm = "I dont know"
         },
         {
             .type = SQLBOX_PARM_STRING,
