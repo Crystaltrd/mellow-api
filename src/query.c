@@ -1597,7 +1597,8 @@ void save(const enum statement STATEMENT) {
                 kasprintf(&requestDesc, "%s\"%lld,\"", requestDesc, parms[i].iparm);
                 break;
             case SQLBOX_PARM_STRING:
-                kasprintf(&requestDesc, "%s\"%s,\"", requestDesc, parms[i].sparm);
+                if (strlen(parms[i].sparm) > 0)
+                    kasprintf(&requestDesc, "%s\"%s,\"", requestDesc, parms[i].sparm);
                 break;
             case SQLBOX_PARM_FLOAT:
                 kasprintf(&requestDesc, "%s\"%f,\"", requestDesc, parms[i].fparm);
