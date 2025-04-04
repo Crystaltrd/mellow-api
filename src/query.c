@@ -762,16 +762,16 @@ void fill_user() {
             errx(EXIT_FAILURE, "sqlbox_step");
         if (res->psz != 0) {
             curr_usr.authenticated = true;
-            curr_usr.UUID = calloc(res->ps[0].sz, sizeof(char));
+            curr_usr.UUID = kcalloc(res->ps[0].sz, sizeof(char));
             strncpy(curr_usr.UUID, res->ps[0].sparm, res->ps[0].sz);
 
-            curr_usr.disp_name = calloc(res->ps[1].sz, sizeof(char));
+            curr_usr.disp_name = kcalloc(res->ps[1].sz, sizeof(char));
             strncpy(curr_usr.disp_name, res->ps[1].sparm, res->ps[1].sz);
 
-            curr_usr.campus = calloc(res->ps[3].sz, sizeof(char));
+            curr_usr.campus = kcalloc(res->ps[3].sz, sizeof(char));
             strncpy(curr_usr.campus, res->ps[3].sparm, res->ps[3].sz);
 
-            curr_usr.role = calloc(res->ps[4].sz, sizeof(char));
+            curr_usr.role = kcalloc(res->ps[4].sz, sizeof(char));
             strncpy(curr_usr.role, res->ps[4].sparm, res->ps[4].sz);
 
             curr_usr.perms = int_to_accperms((int) res->ps[5].iparm);
@@ -792,7 +792,7 @@ void fill_params(const enum statement STATEMENT) {
     switch (STATEMENT) {
         case STMTS_ACTION:
             parmsz = 4;
-            parms = calloc(parmsz, sizeof(struct sqlbox_parm));
+            parms = kcalloc(parmsz, sizeof(struct sqlbox_parm));
             parms[0] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
                 .sparm = ((field = r.fieldmap[KEY_FILTER_BY_NAME])) ? field->parsed.s : ""
@@ -803,7 +803,7 @@ void fill_params(const enum statement STATEMENT) {
         case STMTS_LANG:
         case STMTS_TYPE:
             parmsz = 8;
-            parms = calloc(parmsz, sizeof(struct sqlbox_parm));
+            parms = kcalloc(parmsz, sizeof(struct sqlbox_parm));
             parms[0] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
                 .sparm = !((field = r.fieldmap[KEY_FILTER_BY_NAME])) || field->valsz <= 0
@@ -831,7 +831,7 @@ void fill_params(const enum statement STATEMENT) {
             break;
         case STMTS_CAMPUS:
             parmsz = 9;
-            parms = calloc(parmsz, sizeof(struct sqlbox_parm));
+            parms = kcalloc(parmsz, sizeof(struct sqlbox_parm));
             parms[0] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
                 .sparm = !((field = r.fieldmap[KEY_FILTER_BY_NAME])) || field->valsz <= 0
@@ -866,7 +866,7 @@ void fill_params(const enum statement STATEMENT) {
             break;
         case STMTS_ROLE:
             parmsz = 9;
-            parms = calloc(parmsz, sizeof(struct sqlbox_parm));
+            parms = kcalloc(parmsz, sizeof(struct sqlbox_parm));
             parms[0] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
                 .sparm = !((field = r.fieldmap[KEY_FILTER_BY_NAME])) || field->valsz <= 0
@@ -901,7 +901,7 @@ void fill_params(const enum statement STATEMENT) {
             break;
         case STMTS_CATEGORY:
             parmsz = 13;
-            parms = calloc(parmsz, sizeof(struct sqlbox_parm));
+            parms = kcalloc(parmsz, sizeof(struct sqlbox_parm));
 
             parms[0] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
@@ -958,7 +958,7 @@ void fill_params(const enum statement STATEMENT) {
             break;
         case STMTS_CATEGORY_CASCADE:
             parmsz = 13;
-            parms = calloc(parmsz, sizeof(struct sqlbox_parm));
+            parms = kcalloc(parmsz, sizeof(struct sqlbox_parm));
 
             parms[0] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
@@ -1016,7 +1016,7 @@ void fill_params(const enum statement STATEMENT) {
             break;
         case STMTS_ACCOUNT:
             parmsz = 17;
-            parms = calloc(parmsz, sizeof(struct sqlbox_parm));
+            parms = kcalloc(parmsz, sizeof(struct sqlbox_parm));
             if (r.fieldmap[KEY_FILTER_ME] && curr_usr.authenticated) {
                 parms[0] = (struct sqlbox_parm){
                     .type = SQLBOX_PARM_STRING,
@@ -1104,7 +1104,7 @@ void fill_params(const enum statement STATEMENT) {
             break;
         case STMTS_BOOK:
             parmsz = 27;
-            parms = calloc(parmsz, sizeof(struct sqlbox_parm));
+            parms = kcalloc(parmsz, sizeof(struct sqlbox_parm));
             parms[0] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
                 .sparm = !((field = r.fieldmap[KEY_FILTER_BY_CATEGORY])) || field->valsz <= 0 ? "ROOT" : "NOT_ROOT"
@@ -1225,7 +1225,7 @@ void fill_params(const enum statement STATEMENT) {
             break;
         case STMTS_STOCK:
             parmsz = 9;
-            parms = calloc(parmsz, sizeof(struct sqlbox_parm));
+            parms = kcalloc(parmsz, sizeof(struct sqlbox_parm));
             parms[0] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
                 .sparm = !((field = r.fieldmap[KEY_FILTER_BY_BOOK])) || field->valsz <= 0
@@ -1258,7 +1258,7 @@ void fill_params(const enum statement STATEMENT) {
             break;
         case STMTS_INVENTORY:
             parmsz = 7;
-            parms = calloc(parmsz, sizeof(struct sqlbox_parm));
+            parms = kcalloc(parmsz, sizeof(struct sqlbox_parm));
 
             if (r.fieldmap[KEY_FILTER_ME] && curr_usr.authenticated) {
                 parms[0] = (struct sqlbox_parm){
@@ -1296,7 +1296,7 @@ void fill_params(const enum statement STATEMENT) {
             break;
         case STMTS_HISTORY:
             parmsz = 15;
-            parms = calloc(parmsz, sizeof(struct sqlbox_parm));
+            parms = kcalloc(parmsz, sizeof(struct sqlbox_parm));
             if (r.fieldmap[KEY_FILTER_ME] && curr_usr.authenticated) {
                 parms[0] = (struct sqlbox_parm){
                     .type = SQLBOX_PARM_STRING,
@@ -1375,7 +1375,7 @@ void fill_params(const enum statement STATEMENT) {
         case STMTS_SESSIONS:
 
             parmsz = 7;
-            parms = calloc(parmsz, sizeof(struct sqlbox_parm));
+            parms = kcalloc(parmsz, sizeof(struct sqlbox_parm));
             parms[0] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
                 .sparm = !((field = r.fieldmap[KEY_FILTER_BY_ID])) || field->valsz <= 0
@@ -1490,8 +1490,37 @@ void process(const enum statement STATEMENT) {
     const struct sqlbox_parmset *res;
     if (!(stmtid_data = sqlbox_prepare_bind(boxctx_data, dbid_data, STATEMENT, parmsz, parms, SQLBOX_STMT_MULTI)))
         errx(EXIT_FAILURE, "sqlbox_prepare_bind");
-    requestDesc = calloc(strlen(statement_string[STATEMENT]) + 2, sizeof(char));
+    requestDesc = kcalloc(strlen(statement_string[STATEMENT]) + 2, sizeof(char));
     strncpy(requestDesc, statement_string[STATEMENT], strlen(statement_string[STATEMENT]) + 2);
+    strncat(requestDesc, ":", 1);
+    for (int i = 0; i < parmsz; ++i) {
+        char buf[40];
+        switch (parms[i].type) {
+            case SQLBOX_PARM_INT:
+                kasprintf(buf, "%lld", parms[i].iparm);
+            // ReSharper disable once CppDFAMemoryLeak
+                requestDesc = krealloc(requestDesc, (strlen(requestDesc) + strlen(buf) + 2) * sizeof(char));
+                strncat(requestDesc, buf, strlen(buf));
+                strncat(requestDesc, ",", 1);
+                break;
+            case SQLBOX_PARM_STRING:
+                // ReSharper disable once CppDFAMemoryLeak
+                requestDesc = krealloc(requestDesc, (strlen(requestDesc) + parms[i].sz + 2) * sizeof(char));
+                strncat(requestDesc, parms[i].sparm, parms[i].sz);
+                strncat(requestDesc, ",", 1);
+                break;
+
+            case SQLBOX_PARM_FLOAT:
+                kasprintf(buf, "%f", parms[i].fparm);
+            // ReSharper disable once CppDFAMemoryLeak
+                requestDesc = krealloc(requestDesc, (strlen(requestDesc) + strlen(buf) + 2) * sizeof(char));
+                strncat(requestDesc, buf, strlen(buf));
+                strncat(requestDesc, ",", 1);
+                break;
+            default:
+                break;
+        }
+    }
     if (!(stmtid_count = sqlbox_prepare_bind(boxctx_count, dbid_count, STATEMENT, parmsz, parms,
                                              SQLBOX_STMT_MULTI)))
         errx(EXIT_FAILURE, "sqlbox_prepare_bind");
