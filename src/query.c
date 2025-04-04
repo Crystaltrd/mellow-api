@@ -1600,7 +1600,7 @@ void save(const enum statement STATEMENT,bool failed) {
                     strcat(requestDesc, buf);
                     break;
                 case SQLBOX_PARM_STRING:
-                    sprintf(buf, "\"%s\",", parms[i].sparm);
+                    sprintf(buf, "\"%s\",", r.fieldmap[KEY_FILTER_BY_ACCOUNT]->parsed.s);
                     strcat(requestDesc, buf);
                     break;
                 case SQLBOX_PARM_FLOAT:
