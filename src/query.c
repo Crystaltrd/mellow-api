@@ -199,6 +199,10 @@ enum statement {
     STMTS__MAX
 };
 
+static const char *statement_string[STMTS__MAX]{
+    "publisher", "author", "lang", "action", "type", "campus", "role", "category", "category_cascade", "account",
+    "book", "stock", "inventory", "history", "sessions"
+};
 static const char *rows[STMTS__MAX][9] = {
     {"publisherName"},
     {"authorName"},
@@ -1482,9 +1486,12 @@ void get_cat_children(const char *class) {
 void process(const enum statement STATEMENT) {
     size_t stmtid_data;
     size_t stmtid_count;
+    char *requestDesc = NULL, *tmp = NULL;
     const struct sqlbox_parmset *res;
     if (!(stmtid_data = sqlbox_prepare_bind(boxctx_data, dbid_data, STATEMENT, parmsz, parms, SQLBOX_STMT_MULTI)))
         errx(EXIT_FAILURE, "sqlbox_prepare_bind");
+    requestDesc = calloc(strlen(statement_string[STATEMENT]) + 2, sizeof(char));
+    strncpy(requestDesc, statement_string[STATEMENT], strlen(statement_string[STATEMENT]) + 2);
     if (!(stmtid_count = sqlbox_prepare_bind(boxctx_count, dbid_count, STATEMENT, parmsz, parms,
                                              SQLBOX_STMT_MULTI)))
         errx(EXIT_FAILURE, "sqlbox_prepare_bind");
@@ -1568,6 +1575,7 @@ void process(const enum statement STATEMENT) {
     if ((res = sqlbox_step(boxctx_count, stmtid_count)) == NULL)
         errx(EXIT_FAILURE, "sqlbox_step");
     kjson_putintp(&req, "nbrres", res->ps[0].iparm);
+    kjson_putstringp(&req, "querydesc", requestDesc);
     if (!sqlbox_finalise(boxctx_count, stmtid_count))
         errx(EXIT_FAILURE, "sqlbox_finalise");
 
