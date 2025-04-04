@@ -1491,7 +1491,7 @@ void process(const enum statement STATEMENT) {
     if (!(stmtid_data = sqlbox_prepare_bind(boxctx_data, dbid_data, STATEMENT, parmsz, parms, SQLBOX_STMT_MULTI)))
         errx(EXIT_FAILURE, "sqlbox_prepare_bind");
     kasprintf(&requestDesc, "Stmt: %s,", statement_string[STATEMENT]);
-    for (int i = 0; i < parmsz; ++i) {
+    for (int i = 0; i < (int) parmsz; ++i) {
         switch (parms[i].type) {
             case SQLBOX_PARM_INT:
                 kasprintf(&requestDesc, "%s%lld,", requestDesc, parms[i].iparm);
