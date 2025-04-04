@@ -223,6 +223,7 @@ CREATE TABLE HISTORY
     UUID        TEXT,
     UUID_ISSUER TEXT,
     serialnum   TEXT,
+    IP          TEXT,
     action      TEXT     NOT NULL,
     actiondate  DATETIME NOT NULL,
     details     TEXT,
@@ -233,4 +234,4 @@ CREATE TABLE HISTORY
 );
 
 INSERT INTO HISTORY
-VALUES (NULL, NULL, NULL, 'QUERY', datetime('now', 'localtime'), 'HELLOOO');
+VALUES (NULL, NULL, NULL,NULL, 'QUERY', datetime('now', 'localtime'), 'HELLOOO');

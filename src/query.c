@@ -213,7 +213,7 @@ static const char *rows[STMTS__MAX][9] = {
     {"serialnum", "type", "category", "categoryName", "publisher", "booktitle", "bookreleaseyear", "bookcover", "hits"},
     {"serialnum", "campus", "instock"},
     {"UUID", "serialnum", "rentduration", "rentdate", "extended"},
-    {"UUID", "UUID_ISSUER", "serialnum", "action", "actiondate", "details"},
+    {"UUID", "UUID_ISSUER", "serialnum", "IP", "action", "actiondate", "details"},
     {"account", "sessionID", "expiresAt"}
 };
 /*
@@ -447,7 +447,7 @@ static struct sqlbox_pstmt pstmts_data[STMTS__MAX] = {
     {
 
         (char *)
-        "SELECT UUID,UUID_ISSUER,serialnum,action,actiondate,details "
+        "SELECT UUID,UUID_ISSUER,serialnum,IP,action,actiondate,details "
         "FROM HISTORY "
         "WHERE ((?) = 'IGNORE_ACCOUNT' OR UUID = (?)) "
         "AND ((?) = 'IGNORE_ISSUER' OR UUID_ISSUER = (?)) "
@@ -1496,6 +1496,7 @@ void process(const enum statement STATEMENT) {
     kjson_open(&req, &r);
     kjson_obj_open(&req);
     kjson_objp_open(&req, "user");
+    kjson_putstringp(&req, "IP", r.remote);
     kjson_putboolp(&req, "authenticated", curr_usr.authenticated);
     if (curr_usr.authenticated) {
         kjson_putstringp(&req, "UUID", curr_usr.UUID);
