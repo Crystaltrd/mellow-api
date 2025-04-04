@@ -1508,6 +1508,7 @@ void process(const enum statement STATEMENT) {
     kjson_open(&req, &r);
     kjson_obj_open(&req);
     kjson_objp_open(&req, "user");
+    kjson_putstringp(&req,"test",r.fieldmap[KEY_FILTER_BY_ACCOUNT]->parsed.s);
     kjson_putstringp(&req, "IP", curr_usr.IP);
     kjson_putboolp(&req, "authenticated", curr_usr.authenticated);
     if (curr_usr.authenticated) {
@@ -1591,7 +1592,7 @@ void process(const enum statement STATEMENT) {
 void save(const enum statement STATEMENT,bool failed) {
     char *requestDesc = NULL;
     if (!failed) {
-        kasprintf(&requestDesc, "STRLEN: %s Stmt:%s, Parms:(",r.fieldmap[KEY_FILTER_BY_ACCOUNT]->parsed.s, statement_string[STATEMENT]);
+        kasprintf(&requestDesc, "Stmt:%s, Parms:(", statement_string[STATEMENT]);
         for (int i = 0; i < (int) parmsz; ++i) {
             switch (parms[i].type) {
                 case SQLBOX_PARM_INT:
