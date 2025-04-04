@@ -2,6 +2,7 @@ CFLAGS=-g -Wall -Wextra `pkg-config --static --cflags kcgi-html kcgi-json sqlbox
 LDFLAGS=`pkg-config --static --libs kcgi-html kcgi-json sqlbox`
 PBNIX_HTML=${HOME}/public_html/mellow
 DESTDIR=/var/www/cgi-bin/mellow
+REPLACEDB=true
 all: query auth database.db
 
 
