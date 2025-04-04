@@ -1508,7 +1508,6 @@ void process(const enum statement STATEMENT) {
     kjson_open(&req, &r);
     kjson_obj_open(&req);
     kjson_objp_open(&req, "user");
-    kjson_putstringp(&req,"test",r.fieldmap[KEY_FILTER_BY_ACCOUNT]->parsed.s);
     kjson_putstringp(&req, "IP", curr_usr.IP);
     kjson_putboolp(&req, "authenticated", curr_usr.authenticated);
     if (curr_usr.authenticated) {
@@ -1590,26 +1589,29 @@ void process(const enum statement STATEMENT) {
 }
 
 void save(const enum statement STATEMENT,bool failed) {
-    char *requestDesc = NULL;
+    char *requestDesc = calloc(2049, sizeof(char));
+    char buf[1024];
     if (!failed) {
-        kasprintf(&requestDesc, "Stmt:%s, Parms:(", statement_string[STATEMENT]);
+        sprintf(requestDesc, "Stmt:%s, Parms:(", statement_string[STATEMENT]);
         for (int i = 0; i < (int) parmsz; ++i) {
             switch (parms[i].type) {
                 case SQLBOX_PARM_INT:
-                    kasprintf(&requestDesc, "%s\"%lld\",", requestDesc, parms[i].iparm);
+                    sprintf(buf, "\"%lld\",", parms[i].iparm);
+                    strcat(requestDesc, buf);
                     break;
                 case SQLBOX_PARM_STRING:
-                    if (strlen(parms[i].sparm) > 0)
-                        kasprintf(&requestDesc, "%s\"%s\",", requestDesc, parms[i].sparm);
+                    sprintf(buf, "\"%s\",", parms[i].sparm);
+                    strcat(requestDesc, buf);
                     break;
                 case SQLBOX_PARM_FLOAT:
-                    kasprintf(&requestDesc, "%s\"%f\",", requestDesc, parms[i].fparm);
+                    sprintf(buf, "\"%f\",", parms[i].fparm);
+                    strcat(requestDesc, buf);
                     break;
                 default:
                     break;
             }
         }
-        kasprintf(&requestDesc, "%s)", requestDesc);
+        strcat(requestDesc,")");
     } else {
         kasprintf(&requestDesc, "Stmt:%s, ACCESS VIOLATION(PERMISSION DENIED)", statement_string[STATEMENT]);
     }
