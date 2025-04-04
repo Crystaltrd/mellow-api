@@ -196,6 +196,7 @@ enum statement {
     STMTS_INVENTORY,
     STMTS_HISTORY,
     STMTS_SESSIONS,
+    __STMT_STORE__,
     STMTS__MAX
 };
 
@@ -246,7 +247,7 @@ enum statement get_stmts() {
 struct sqlbox_src srcs[] = {
     {
         .fname = (char *) "db/database.db",
-        .mode = SQLBOX_SRC_RO
+        .mode = SQLBOX_SRC_RW
     }
 };
 struct sqlbox *boxctx_data;
@@ -472,6 +473,11 @@ static struct sqlbox_pstmt pstmts_data[STMTS__MAX] = {
         "GROUP BY account,sessionID,expiresAt "
         "ORDER BY expiresAt DESC "
         "LIMIT (?) OFFSET (? * (?))"
+    },
+    {
+        (char *)
+        "INSERT INTO HISTORY (UUID, IP, action, actiondate, details) "
+        "VALUES ((?),(?),'QUERY',datetime('now','localtime'),(?))"
     }
 
 };
@@ -1486,26 +1492,10 @@ void get_cat_children(const char *class) {
 void process(const enum statement STATEMENT) {
     size_t stmtid_data;
     size_t stmtid_count;
-    char *requestDesc = NULL;
     const struct sqlbox_parmset *res;
     if (!(stmtid_data = sqlbox_prepare_bind(boxctx_data, dbid_data, STATEMENT, parmsz, parms, SQLBOX_STMT_MULTI)))
         errx(EXIT_FAILURE, "sqlbox_prepare_bind");
-    kasprintf(&requestDesc, "Stmt: %s,", statement_string[STATEMENT]);
-    for (int i = 0; i < (int) parmsz; ++i) {
-        switch (parms[i].type) {
-            case SQLBOX_PARM_INT:
-                kasprintf(&requestDesc, "%s%lld,", requestDesc, parms[i].iparm);
-                break;
-            case SQLBOX_PARM_STRING:
-                kasprintf(&requestDesc, "%s%s,", requestDesc, parms[i].sparm);
-                break;
-            case SQLBOX_PARM_FLOAT:
-                kasprintf(&requestDesc, "%s%f,", requestDesc, parms[i].fparm);
-                break;
-            default:
-                break;
-        }
-    }
+
     if (!(stmtid_count = sqlbox_prepare_bind(boxctx_count, dbid_count, STATEMENT, parmsz, parms,
                                              SQLBOX_STMT_MULTI)))
         errx(EXIT_FAILURE, "sqlbox_prepare_bind");
@@ -1589,17 +1579,51 @@ void process(const enum statement STATEMENT) {
     if ((res = sqlbox_step(boxctx_count, stmtid_count)) == NULL)
         errx(EXIT_FAILURE, "sqlbox_step");
     kjson_putintp(&req, "nbrres", res->ps[0].iparm);
-    kjson_putstringp(&req, "querydesc", requestDesc);
     if (!sqlbox_finalise(boxctx_count, stmtid_count))
         errx(EXIT_FAILURE, "sqlbox_finalise");
 
     kjson_obj_close(&req);
     kjson_close(&req);
     khttp_free(&r);
-    if (res == NULL)
-        errx(EXIT_FAILURE, "sqlbox_step");
 }
 
+void save(const enum statement STATEMENT) {
+    char *requestDesc = NULL;
+    kasprintf(&requestDesc, "Stmt: %s,", statement_string[STATEMENT]);
+    for (int i = 0; i < (int) parmsz; ++i) {
+        switch (parms[i].type) {
+            case SQLBOX_PARM_INT:
+                kasprintf(&requestDesc, "%s%lld,", requestDesc, parms[i].iparm);
+                break;
+            case SQLBOX_PARM_STRING:
+                kasprintf(&requestDesc, "%s%s,", requestDesc, parms[i].sparm);
+                break;
+            case SQLBOX_PARM_FLOAT:
+                kasprintf(&requestDesc, "%s%f,", requestDesc, parms[i].fparm);
+                break;
+            default:
+                break;
+        }
+    }
+    size_t parmsz_save = 3;
+    struct sqlbox_parm parms_save[] = {
+        {
+            .type = (curr_usr.UUID != NULL) ? SQLBOX_PARM_STRING : SQLBOX_PARM_NULL,
+            .sparm = curr_usr.UUID
+        },
+        {
+            .type = SQLBOX_PARM_STRING,
+            .sparm = r.remote
+        },
+        {
+            .type = SQLBOX_PARM_STRING,
+            .sparm = requestDesc
+        },
+    };
+    if (sqlbox_exec(boxctx_data, dbid_data, __STMT_STORE__, parmsz_save, parms_save,SQLBOX_STMT_CONSTRAINT) !=
+        SQLBOX_CODE_OK)
+        errx(EXIT_FAILURE, "sqlbox_exec");
+}
 
 enum khttp sanitize() {
     if (r.method != KMETHOD_GET)
@@ -1645,6 +1669,7 @@ int main(void) {
     }
     fill_params(STMT);
     process(STMT);
+    save(STMT);
     sqlbox_free(boxctx_data);
     sqlbox_free(boxctx_count);
     return EXIT_SUCCESS;
