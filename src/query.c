@@ -1510,6 +1510,7 @@ void process(const enum statement STATEMENT) {
     kjson_objp_open(&req, "user");
     kjson_putstringp(&req, "IP", curr_usr.IP);
     kjson_putboolp(&req, "authenticated", curr_usr.authenticated);
+    char *buf = NULL;
     kjson_arrayp_open(&req, "parms");
     for (int i = 0; i < (int) parmsz; ++i) {
         switch (parms[i].type) {
@@ -1526,6 +1527,8 @@ void process(const enum statement STATEMENT) {
                 break;
         }
     }
+    kasprintf(&buf,"%s",r.fieldmap[KEY_FILTER_BY_ACCOUNT]->parsed.s);
+    kjson_putstring(&req,buf);
     kjson_array_close(&req);
     if (curr_usr.authenticated) {
         kjson_putstringp(&req, "UUID", curr_usr.UUID);
