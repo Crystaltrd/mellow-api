@@ -705,7 +705,7 @@ void alloc_ctx_cfg() {
     cfg_count.msg.func_short = warnx;
     cfg_count.srcs.srcsz = 1;
     cfg_count.srcs.srcs = srcs;
-    cfg_count.stmts.stmtsz = STMTS__MAX-1;
+    cfg_count.stmts.stmtsz = STMTS__MAX - 1;
     cfg_count.stmts.stmts = pstmts_count;
     if ((boxctx_count = sqlbox_alloc(&cfg_count)) == NULL)
         errx(EXIT_FAILURE, "sqlbox_alloc");
@@ -1590,22 +1590,23 @@ void process(const enum statement STATEMENT) {
 
 void save(const enum statement STATEMENT) {
     char *requestDesc = NULL;
-    kasprintf(&requestDesc, "Stmt:%s, Parms:", statement_string[STATEMENT]);
+    kasprintf(&requestDesc, "Stmt:%s, Parms:(", statement_string[STATEMENT]);
     for (int i = 0; i < (int) parmsz; ++i) {
         switch (parms[i].type) {
             case SQLBOX_PARM_INT:
-                kasprintf(&requestDesc, "%s%lld,", requestDesc, parms[i].iparm);
+                kasprintf(&requestDesc, "\"%s%lld,\"", requestDesc, parms[i].iparm);
                 break;
             case SQLBOX_PARM_STRING:
-                kasprintf(&requestDesc, "%s%s,", requestDesc, parms[i].sparm);
+                kasprintf(&requestDesc, "\"%s%s,\"", requestDesc, parms[i].sparm);
                 break;
             case SQLBOX_PARM_FLOAT:
-                kasprintf(&requestDesc, "%s%f,", requestDesc, parms[i].fparm);
+                kasprintf(&requestDesc, "\"%s%f,\"", requestDesc, parms[i].fparm);
                 break;
             default:
                 break;
         }
     }
+    kasprintf(&requestDesc, "%s)", requestDesc);
     size_t parmsz_save = 3;
     struct sqlbox_parm parms_save[] = {
         {
@@ -1652,7 +1653,7 @@ int main(void) {
     }
     const enum statement STMT = get_stmts();
     alloc_ctx_cfg();
-    kasprintf(&curr_usr.IP,"%s",r.remote);
+    kasprintf(&curr_usr.IP, "%s", r.remote);
     fill_user();
     if ((STMT == STMTS_HISTORY || STMT == STMTS_ACCOUNT || STMT == STMTS_SESSIONS || STMT == STMTS_INVENTORY)) {
         if (!curr_usr.authenticated)
