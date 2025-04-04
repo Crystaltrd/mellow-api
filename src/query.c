@@ -1634,6 +1634,7 @@ access_denied:
     khttp_body(&r);
     kjson_open(&req, &r);
     kjson_obj_open(&req);
+    kjson_putstringp(&req, "IP", r.remote);
     kjson_putboolp(&req, "authenticated", curr_usr.authenticated);
     kjson_putstringp(&req, "error", "You don't have the permissions to access this ressource");
     kjson_obj_close(&req);
