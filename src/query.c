@@ -1588,26 +1588,30 @@ void process(const enum statement STATEMENT) {
     khttp_free(&r);
 }
 
-void save(const enum statement STATEMENT) {
+void save(const enum statement STATEMENT,bool failed) {
     char *requestDesc = NULL;
-    kasprintf(&requestDesc, "Stmt:%s, Parms:(", statement_string[STATEMENT]);
-    for (int i = 0; i < (int) parmsz; ++i) {
-        switch (parms[i].type) {
-            case SQLBOX_PARM_INT:
-                kasprintf(&requestDesc, "%s\"%lld\",", requestDesc, parms[i].iparm);
-                break;
-            case SQLBOX_PARM_STRING:
-                if (strlen(parms[i].sparm) > 0)
-                    kasprintf(&requestDesc, "%s\"%s\",", requestDesc, parms[i].sparm);
-                break;
-            case SQLBOX_PARM_FLOAT:
-                kasprintf(&requestDesc, "%s\"%f\",", requestDesc, parms[i].fparm);
-                break;
-            default:
-                break;
+    if (!failed) {
+        kasprintf(&requestDesc, "Stmt:%s, Parms:(", statement_string[STATEMENT]);
+        for (int i = 0; i < (int) parmsz; ++i) {
+            switch (parms[i].type) {
+                case SQLBOX_PARM_INT:
+                    kasprintf(&requestDesc, "%s\"%lld\",", requestDesc, parms[i].iparm);
+                    break;
+                case SQLBOX_PARM_STRING:
+                    if (strlen(parms[i].sparm) > 0)
+                        kasprintf(&requestDesc, "%s\"%s\",", requestDesc, parms[i].sparm);
+                    break;
+                case SQLBOX_PARM_FLOAT:
+                    kasprintf(&requestDesc, "%s\"%f\",", requestDesc, parms[i].fparm);
+                    break;
+                default:
+                    break;
+            }
         }
+        kasprintf(&requestDesc, "%s)", requestDesc);
+    } else {
+        kasprintf(&requestDesc, "Stmt:%s, ACCESS VIOLATION(PERMISSION DENIED)", statement_string[STATEMENT]);
     }
-    kasprintf(&requestDesc, "%s)", requestDesc);
     size_t parmsz_save = 3;
     struct sqlbox_parm parms_save[] = {
         {
@@ -1673,10 +1677,8 @@ int main(void) {
     }
     fill_params(STMT);
     process(STMT);
-    save(STMT);
-    sqlbox_free(boxctx_data);
-    sqlbox_free(boxctx_count);
-    return EXIT_SUCCESS;
+    save(STMT,false);
+    goto cleanup;
 access_denied:
     khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_403]);
     khttp_head(&r, kresps[KRESP_CONTENT_TYPE], "%s", kmimetypes[KMIME_TEXT_PLAIN]);
@@ -1690,5 +1692,9 @@ access_denied:
     kjson_putstringp(&req, "error", "You don't have the permissions to access this ressource");
     kjson_obj_close(&req);
     khttp_free(&r);
+    save(STMT,true);
+cleanup:
+    sqlbox_free(boxctx_data);
+    sqlbox_free(boxctx_count);
     return EXIT_SUCCESS;
 }
