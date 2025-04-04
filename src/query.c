@@ -213,7 +213,7 @@ static const char *rows[STMTS__MAX][9] = {
     {"serialnum", "type", "category", "categoryName", "publisher", "booktitle", "bookreleaseyear", "bookcover", "hits"},
     {"serialnum", "campus", "instock"},
     {"UUID", "serialnum", "rentduration", "rentdate", "extended"},
-    {"UUID", "UUID_ISSUER", "serialnum", "action", "actiondate","details"},
+    {"UUID", "UUID_ISSUER", "serialnum", "action", "actiondate", "details"},
     {"account", "sessionID", "expiresAt"}
 };
 /*
@@ -746,7 +746,7 @@ void fill_user() {
             {.type = SQLBOX_PARM_STRING, .sparm = ""},
             {.type = SQLBOX_PARM_STRING, .sparm = "IGNORE_FREEZE"},
             {.type = SQLBOX_PARM_STRING, .sparm = ""},
-            {.type = SQLBOX_PARM_STRING, .sparm = "DONT_IGNORE"},
+            {.type = SQLBOX_PARM_STRING, .sparm = "SESSION"},
             {.type = SQLBOX_PARM_STRING, .sparm = field->parsed.s},
             {.type = SQLBOX_PARM_INT, .iparm = 1},
             {.type = SQLBOX_PARM_INT, .iparm = 0},
@@ -804,7 +804,7 @@ void fill_params(const enum statement STATEMENT) {
                 .type = SQLBOX_PARM_STRING,
                 .sparm = !((field = r.fieldmap[KEY_FILTER_BY_NAME])) || field->valsz <= 0
                              ? "IGNORE_NAME"
-                             : "DONT_IGNORE"
+                             : "NAME"
             };
             parms[1] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
@@ -814,7 +814,7 @@ void fill_params(const enum statement STATEMENT) {
                 .type = SQLBOX_PARM_STRING,
                 .sparm = !((field = r.fieldmap[KEY_FILTER_BY_BOOK])) || field->valsz <= 0
                              ? "IGNORE_BOOK"
-                             : "DONT_IGNORE"
+                             : "BOOK"
             };
             parms[3] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
@@ -822,7 +822,7 @@ void fill_params(const enum statement STATEMENT) {
             };
             parms[4] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
-                .sparm = (r.fieldmap[KEY_FILTER_BY_POPULARITY]) ? "POPULAR" : "DONT_IGNORE"
+                .sparm = (r.fieldmap[KEY_FILTER_BY_POPULARITY]) ? "POPULAR" : "DEFAULT_SORT"
             };
             break;
         case STMTS_CAMPUS:
@@ -832,7 +832,7 @@ void fill_params(const enum statement STATEMENT) {
                 .type = SQLBOX_PARM_STRING,
                 .sparm = !((field = r.fieldmap[KEY_FILTER_BY_NAME])) || field->valsz <= 0
                              ? "IGNORE_NAME"
-                             : "DONT_IGNORE"
+                             : "NAME"
             };
             parms[1] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
@@ -842,7 +842,7 @@ void fill_params(const enum statement STATEMENT) {
                 .type = SQLBOX_PARM_STRING,
                 .sparm = !((field = r.fieldmap[KEY_FILTER_BY_BOOK])) || field->valsz <= 0
                              ? "IGNORE_BOOK"
-                             : "DONT_IGNORE"
+                             : "BOOK"
 
             };
             parms[3] = (struct sqlbox_parm){
@@ -853,7 +853,7 @@ void fill_params(const enum statement STATEMENT) {
                 .type = SQLBOX_PARM_STRING,
                 .sparm = !((field = r.fieldmap[KEY_FILTER_BY_ACCOUNT])) || field->valsz <= 0
                              ? "IGNORE_ACCOUNT"
-                             : "DONT_IGNORE"
+                             : "ACCOUNT"
             };
             parms[5] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
@@ -867,7 +867,7 @@ void fill_params(const enum statement STATEMENT) {
                 .type = SQLBOX_PARM_STRING,
                 .sparm = !((field = r.fieldmap[KEY_FILTER_BY_NAME])) || field->valsz <= 0
                              ? "IGNORE_NAME"
-                             : "DONT_IGNORE"
+                             : "NAME"
             };
             parms[1] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
@@ -877,7 +877,7 @@ void fill_params(const enum statement STATEMENT) {
                 .type = SQLBOX_PARM_STRING,
                 .sparm = !((field = r.fieldmap[KEY_FILTER_BY_PERM])) || field->valsz <= 0
                              ? "IGNORE_PERMS"
-                             : "DONT_IGNORE"
+                             : "PERMS"
             };
             parms[3] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_INT,
@@ -887,7 +887,7 @@ void fill_params(const enum statement STATEMENT) {
                 .type = SQLBOX_PARM_STRING,
                 .sparm = !((field = r.fieldmap[KEY_FILTER_BY_ACCOUNT])) || field->valsz <= 0
                              ? "IGNORE_ACCOUNT"
-                             : "DONT_IGNORE"
+                             : "ACCOUNT"
             };
             parms[5] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
@@ -904,13 +904,13 @@ void fill_params(const enum statement STATEMENT) {
                 .sparm = (r.fieldmap[KEY_FILTER_TREE] && (!((field = r.fieldmap[KEY_FILTER_BY_PARENT])) || field->valsz
                                                           <= 0))
                              ? "ROOT"
-                             : "DONT_IGNORE"
+                             : "NOT_ROOT"
             };
             parms[1] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
                 .sparm = !((field = r.fieldmap[KEY_FILTER_BY_NAME])) || field->valsz <= 0
                              ? "IGNORE_NAME"
-                             : "DONT_IGNORE"
+                             : "NAME"
             };
             parms[2] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
@@ -920,7 +920,7 @@ void fill_params(const enum statement STATEMENT) {
                 .type = SQLBOX_PARM_STRING,
                 .sparm = !((field = r.fieldmap[KEY_FILTER_BY_CLASS])) || field->valsz <= 0
                              ? "IGNORE_CLASS"
-                             : "DONT_IGNORE"
+                             : "CLASS"
             };
             parms[4] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
@@ -930,7 +930,7 @@ void fill_params(const enum statement STATEMENT) {
                 .type = SQLBOX_PARM_STRING,
                 .sparm = !((field = r.fieldmap[KEY_FILTER_BY_PARENT])) || field->valsz <= 0
                              ? "IGNORE_PARENT_CLASS"
-                             : "DONT_IGNORE"
+                             : "PARENT_CLASS"
             };
             parms[6] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
@@ -940,7 +940,7 @@ void fill_params(const enum statement STATEMENT) {
                 .type = SQLBOX_PARM_STRING,
                 .sparm = !((field = r.fieldmap[KEY_FILTER_BY_BOOK])) || field->valsz <= 0
                              ? "IGNORE_BOOK"
-                             : "DONT_IGNORE"
+                             : "BOOK"
 
             };
             parms[8] = (struct sqlbox_parm){
@@ -949,7 +949,7 @@ void fill_params(const enum statement STATEMENT) {
             };
             parms[9] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
-                .sparm = (r.fieldmap[KEY_FILTER_BY_POPULARITY]) ? "POPULAR" : "DONT_IGNORE"
+                .sparm = (r.fieldmap[KEY_FILTER_BY_POPULARITY]) ? "POPULAR" : "DEFAULT_SORT"
             };
             break;
         case STMTS_CATEGORY_CASCADE:
@@ -961,13 +961,13 @@ void fill_params(const enum statement STATEMENT) {
                 .sparm = !((field = r.fieldmap[KEY_FILTER_BY_PARENT])) || field->valsz
                          <= 0
                              ? "ROOT"
-                             : "DONT_IGNORE"
+                             : "NOT_ROOT"
             };
             parms[1] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
                 .sparm = !((field = r.fieldmap[KEY_FILTER_BY_NAME])) || field->valsz <= 0
                              ? "IGNORE_NAME"
-                             : "DONT_IGNORE"
+                             : "NAME"
             };
             parms[2] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
@@ -977,7 +977,7 @@ void fill_params(const enum statement STATEMENT) {
                 .type = SQLBOX_PARM_STRING,
                 .sparm = !((field = r.fieldmap[KEY_FILTER_BY_CLASS])) || field->valsz <= 0
                              ? "IGNORE_CLASS"
-                             : "DONT_IGNORE"
+                             : "CLASS"
             };
             parms[4] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
@@ -987,7 +987,7 @@ void fill_params(const enum statement STATEMENT) {
                 .type = SQLBOX_PARM_STRING,
                 .sparm = !((field = r.fieldmap[KEY_FILTER_BY_PARENT])) || field->valsz <= 0
                              ? "IGNORE_PARENT_CLASS"
-                             : "DONT_IGNORE"
+                             : "PARENT_CLASS"
             };
             parms[6] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
@@ -998,7 +998,7 @@ void fill_params(const enum statement STATEMENT) {
                 .type = SQLBOX_PARM_STRING,
                 .sparm = !((field = r.fieldmap[KEY_FILTER_BY_BOOK])) || field->valsz <= 0
                              ? "IGNORE_BOOK"
-                             : "DONT_IGNORE"
+                             : "BOOK"
 
             };
             parms[8] = (struct sqlbox_parm){
@@ -1007,7 +1007,7 @@ void fill_params(const enum statement STATEMENT) {
             };
             parms[9] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
-                .sparm = (r.fieldmap[KEY_FILTER_GET_PARENTS]) ? "GET_PARENTS" : "DONT_IGNORE"
+                .sparm = (r.fieldmap[KEY_FILTER_GET_PARENTS]) ? "GET_PARENTS" : "DONT_GET_PARENTS"
             };
             break;
         case STMTS_ACCOUNT:
@@ -1016,7 +1016,7 @@ void fill_params(const enum statement STATEMENT) {
             if (r.fieldmap[KEY_FILTER_ME] && curr_usr.authenticated) {
                 parms[0] = (struct sqlbox_parm){
                     .type = SQLBOX_PARM_STRING,
-                    .sparm = "DONT_IGNORE"
+                    .sparm = "SELF"
                 };
                 parms[1] = (struct sqlbox_parm){
                     .type = SQLBOX_PARM_STRING,
@@ -1027,7 +1027,7 @@ void fill_params(const enum statement STATEMENT) {
                     .type = SQLBOX_PARM_STRING,
                     .sparm = !((field = r.fieldmap[KEY_FILTER_BY_ID])) || field->valsz <= 0
                                  ? "IGNORE_ID"
-                                 : "DONT_IGNORE"
+                                 : "ID"
                 };
                 parms[1] = (struct sqlbox_parm){
                     .type = SQLBOX_PARM_STRING,
@@ -1039,7 +1039,7 @@ void fill_params(const enum statement STATEMENT) {
                 .type = SQLBOX_PARM_STRING,
                 .sparm = !((field = r.fieldmap[KEY_FILTER_BY_NAME])) || field->valsz <= 0
                              ? "IGNORE_NAME"
-                             : "DONT_IGNORE"
+                             : "NAME"
             };
             parms[3] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
@@ -1049,7 +1049,7 @@ void fill_params(const enum statement STATEMENT) {
                 .type = SQLBOX_PARM_STRING,
                 .sparm = !((field = r.fieldmap[KEY_FILTER_BY_BOOK])) || field->valsz <= 0
                              ? "IGNORE_BOOK"
-                             : "DONT_IGNORE"
+                             : "BOOK"
 
             };
             parms[5] = (struct sqlbox_parm){
@@ -1060,7 +1060,7 @@ void fill_params(const enum statement STATEMENT) {
                 .type = SQLBOX_PARM_STRING,
                 .sparm = !((field = r.fieldmap[KEY_FILTER_BY_CAMPUS])) || field->valsz <= 0
                              ? "IGNORE_CAMPUS"
-                             : "DONT_IGNORE"
+                             : "CAMPUS"
             };
             parms[7] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
@@ -1070,7 +1070,7 @@ void fill_params(const enum statement STATEMENT) {
                 .type = SQLBOX_PARM_STRING,
                 .sparm = !((field = r.fieldmap[KEY_FILTER_BY_ROLE])) || field->valsz <= 0
                              ? "IGNORE_ROLE"
-                             : "DONT_IGNORE"
+                             : "ROLE"
             };
             parms[9] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
@@ -1080,7 +1080,7 @@ void fill_params(const enum statement STATEMENT) {
                 .type = SQLBOX_PARM_STRING,
                 .sparm = !((field = r.fieldmap[KEY_FILTER_FROZEN])) || field->valsz <= 0
                              ? "IGNORE_FREEZE"
-                             : "DONT_IGNORE"
+                             : "FREEZE"
             };
             parms[11] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_INT,
@@ -1091,7 +1091,7 @@ void fill_params(const enum statement STATEMENT) {
                 .type = SQLBOX_PARM_STRING,
                 .sparm = !((field = r.fieldmap[KEY_FILTER_BY_SESSION])) || field->valsz <= 0
                              ? "IGNORE_SESSION"
-                             : "DONT_IGNORE"
+                             : "SESSION"
             };
             parms[13] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_INT,
@@ -1103,7 +1103,7 @@ void fill_params(const enum statement STATEMENT) {
             parms = calloc(parmsz, sizeof(struct sqlbox_parm));
             parms[0] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
-                .sparm = !((field = r.fieldmap[KEY_FILTER_BY_CATEGORY])) || field->valsz <= 0 ? "ROOT" : "DONT_IGNORE"
+                .sparm = !((field = r.fieldmap[KEY_FILTER_BY_CATEGORY])) || field->valsz <= 0 ? "ROOT" : "NOT_ROOT"
             };
             parms[1] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
@@ -1112,7 +1112,7 @@ void fill_params(const enum statement STATEMENT) {
 
             parms[2] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
-                .sparm = !((field = r.fieldmap[KEY_FILTER_BY_ID])) || field->valsz <= 0 ? "IGNORE_ID" : "DONT_IGNORE"
+                .sparm = !((field = r.fieldmap[KEY_FILTER_BY_ID])) || field->valsz <= 0 ? "IGNORE_ID" : "ID"
             };
             parms[3] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
@@ -1122,7 +1122,7 @@ void fill_params(const enum statement STATEMENT) {
                 .type = SQLBOX_PARM_STRING,
                 .sparm = !((field = r.fieldmap[KEY_FILTER_BY_NAME])) || field->valsz <= 0
                              ? "IGNORE_NAME"
-                             : "DONT_IGNORE"
+                             : "NAME"
             };
             parms[5] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
@@ -1132,7 +1132,7 @@ void fill_params(const enum statement STATEMENT) {
                 .type = SQLBOX_PARM_STRING,
                 .sparm = !((field = r.fieldmap[KEY_FILTER_BY_LANG])) || field->valsz <= 0
                              ? "IGNORE_LANG"
-                             : "DONT_IGNORE"
+                             : "LANG"
             };
             parms[7] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
@@ -1142,7 +1142,7 @@ void fill_params(const enum statement STATEMENT) {
                 .type = SQLBOX_PARM_STRING,
                 .sparm = !((field = r.fieldmap[KEY_FILTER_BY_AUTHOR])) || field->valsz <= 0
                              ? "IGNORE_AUTHOR"
-                             : "DONT_IGNORE"
+                             : "AUTHOR"
             };
             parms[9] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
@@ -1152,7 +1152,7 @@ void fill_params(const enum statement STATEMENT) {
                 .type = SQLBOX_PARM_STRING,
                 .sparm = !((field = r.fieldmap[KEY_FILTER_BY_TYPE])) || field->valsz <= 0
                              ? "IGNORE_TYPE"
-                             : "DONT_IGNORE"
+                             : "TYPE"
             };
             parms[11] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
@@ -1162,7 +1162,7 @@ void fill_params(const enum statement STATEMENT) {
                 .type = SQLBOX_PARM_STRING,
                 .sparm = !((field = r.fieldmap[KEY_FILTER_BY_PUBLISHER])) || field->valsz <= 0
                              ? "IGNORE_PUBLISHER"
-                             : "DONT_IGNORE"
+                             : "PUBLISHER"
             };
             parms[13] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
@@ -1172,7 +1172,7 @@ void fill_params(const enum statement STATEMENT) {
                 .type = SQLBOX_PARM_STRING,
                 .sparm = !((field = r.fieldmap[KEY_FILTER_BY_CAMPUS])) || field->valsz <= 0
                              ? "IGNORE_CAMPUS"
-                             : "DONT_IGNORE"
+                             : "CAMPUS"
             };
             parms[15] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
@@ -1182,7 +1182,7 @@ void fill_params(const enum statement STATEMENT) {
                 .type = SQLBOX_PARM_STRING,
                 .sparm = !((field = r.fieldmap[KEY_FILTER_BY_ACCOUNT])) || field->valsz <= 0
                              ? "IGNORE_ACCOUNT"
-                             : "DONT_IGNORE"
+                             : "ACCOUNT"
             };
             parms[17] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
@@ -1192,13 +1192,13 @@ void fill_params(const enum statement STATEMENT) {
                 .type = SQLBOX_PARM_STRING,
                 .sparm = !((field = r.fieldmap[KEY_FILTER_IGNORE_EMPTY])) || field->valsz <= 0
                              ? "INCLUDE_EMPTY"
-                             : "DONT_IGNORE"
+                             : "DONT_INCLUDE_EMPTY"
             };
             parms[19] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
                 .sparm = !((field = r.fieldmap[KEY_FILTER_FROM_YEAR])) || field->valsz <= 0
                              ? "IGNORE_FROM_DATE"
-                             : "DONT_IGNORE"
+                             : "FROM_DATE"
             };
             parms[20] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_INT,
@@ -1208,7 +1208,7 @@ void fill_params(const enum statement STATEMENT) {
                 .type = SQLBOX_PARM_STRING,
                 .sparm = !((field = r.fieldmap[KEY_FILTER_TO_YEAR])) || field->valsz <= 0
                              ? "IGNORE_TO_DATE"
-                             : "DONT_IGNORE"
+                             : "TO_DATE"
             };
             parms[22] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_INT,
@@ -1216,7 +1216,7 @@ void fill_params(const enum statement STATEMENT) {
             };
             parms[23] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
-                .sparm = (r.fieldmap[KEY_FILTER_BY_POPULARITY]) ? "POPULAR" : "DONT_IGNORE"
+                .sparm = (r.fieldmap[KEY_FILTER_BY_POPULARITY]) ? "POPULAR" : "DEFAULT_SORT"
             };
             break;
         case STMTS_STOCK:
@@ -1226,7 +1226,7 @@ void fill_params(const enum statement STATEMENT) {
                 .type = SQLBOX_PARM_STRING,
                 .sparm = !((field = r.fieldmap[KEY_FILTER_BY_BOOK])) || field->valsz <= 0
                              ? "IGNORE_BOOK"
-                             : "DONT_IGNORE"
+                             : "BOOK"
 
             };
             parms[1] = (struct sqlbox_parm){
@@ -1237,7 +1237,7 @@ void fill_params(const enum statement STATEMENT) {
                 .type = SQLBOX_PARM_STRING,
                 .sparm = !((field = r.fieldmap[KEY_FILTER_BY_CAMPUS])) || field->valsz <= 0
                              ? "IGNORE_CAMPUS"
-                             : "DONT_IGNORE"
+                             : "CAMPUS"
             };
             parms[3] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
@@ -1245,11 +1245,11 @@ void fill_params(const enum statement STATEMENT) {
             };
             parms[4] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
-                .sparm = (r.fieldmap[KEY_FILTER_IGNORE_EMPTY]) ? "AVAILABLE" : "DONT_IGNORE"
+                .sparm = (r.fieldmap[KEY_FILTER_IGNORE_EMPTY]) ? "AVAILABLE" : "IGNORE_EMPTY"
             };
             parms[5] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
-                .sparm = (r.fieldmap[KEY_FILTER_BY_POPULARITY]) ? "POPULAR" : "DONT_IGNORE"
+                .sparm = (r.fieldmap[KEY_FILTER_BY_POPULARITY]) ? "POPULAR" : "DEFAULT_SORT"
             };
             break;
         case STMTS_INVENTORY:
@@ -1259,7 +1259,7 @@ void fill_params(const enum statement STATEMENT) {
             if (r.fieldmap[KEY_FILTER_ME] && curr_usr.authenticated) {
                 parms[0] = (struct sqlbox_parm){
                     .type = SQLBOX_PARM_STRING,
-                    .sparm = "DONT_IGNORE"
+                    .sparm = "SELF"
                 };
                 parms[1] = (struct sqlbox_parm){
                     .type = SQLBOX_PARM_STRING,
@@ -1270,7 +1270,7 @@ void fill_params(const enum statement STATEMENT) {
                     .type = SQLBOX_PARM_STRING,
                     .sparm = !((field = r.fieldmap[KEY_FILTER_BY_ACCOUNT])) || field->valsz <= 0
                                  ? "IGNORE_ACCOUNT"
-                                 : "DONT_IGNORE"
+                                 : "ACCOUNT"
                 };
                 parms[1] = (struct sqlbox_parm){
                     .type = SQLBOX_PARM_STRING,
@@ -1282,7 +1282,7 @@ void fill_params(const enum statement STATEMENT) {
                 .type = SQLBOX_PARM_STRING,
                 .sparm = !((field = r.fieldmap[KEY_FILTER_BY_BOOK])) || field->valsz <= 0
                              ? "IGNORE_BOOK"
-                             : "DONT_IGNORE"
+                             : "BOOK"
 
             };
             parms[3] = (struct sqlbox_parm){
@@ -1296,7 +1296,7 @@ void fill_params(const enum statement STATEMENT) {
             if (r.fieldmap[KEY_FILTER_ME] && curr_usr.authenticated) {
                 parms[0] = (struct sqlbox_parm){
                     .type = SQLBOX_PARM_STRING,
-                    .sparm = "DONT_IGNORE"
+                    .sparm = "SELF"
                 };
                 parms[1] = (struct sqlbox_parm){
                     .type = SQLBOX_PARM_STRING,
@@ -1307,7 +1307,7 @@ void fill_params(const enum statement STATEMENT) {
                     .type = SQLBOX_PARM_STRING,
                     .sparm = !((field = r.fieldmap[KEY_FILTER_BY_ACCOUNT])) || field->valsz <= 0
                                  ? "IGNORE_ACCOUNT"
-                                 : "DONT_IGNORE"
+                                 : "ACCOUNT"
                 };
                 parms[1] = (struct sqlbox_parm){
                     .type = SQLBOX_PARM_STRING,
@@ -1318,7 +1318,7 @@ void fill_params(const enum statement STATEMENT) {
                 .type = SQLBOX_PARM_STRING,
                 .sparm = !((field = r.fieldmap[KEY_FILTER_BY_ISSUER])) || field->valsz <= 0
                              ? "IGNORE_ISSUER"
-                             : "DONT_IGNORE"
+                             : "ISSUER"
             };
             parms[3] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
@@ -1328,7 +1328,7 @@ void fill_params(const enum statement STATEMENT) {
                 .type = SQLBOX_PARM_STRING,
                 .sparm = !((field = r.fieldmap[KEY_FILTER_BY_BOOK])) || field->valsz <= 0
                              ? "IGNORE_BOOK"
-                             : "DONT_IGNORE"
+                             : "BOOK"
 
             };
             parms[5] = (struct sqlbox_parm){
@@ -1340,7 +1340,7 @@ void fill_params(const enum statement STATEMENT) {
                 .type = SQLBOX_PARM_STRING,
                 .sparm = !((field = r.fieldmap[KEY_FILTER_BY_ACTION])) || field->valsz <= 0
                              ? "IGNORE_ACTION"
-                             : "DONT_IGNORE"
+                             : "ACTION"
 
             };
             parms[7] = (struct sqlbox_parm){
@@ -1351,7 +1351,7 @@ void fill_params(const enum statement STATEMENT) {
                 .type = SQLBOX_PARM_STRING,
                 .sparm = !((field = r.fieldmap[KEY_FILTER_FROM_DATE])) || field->valsz <= 0
                              ? "IGNORE_FROM_DATE"
-                             : "DONT_IGNORE"
+                             : "FROM_DATE"
             };
             parms[9] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_INT,
@@ -1361,7 +1361,7 @@ void fill_params(const enum statement STATEMENT) {
                 .type = SQLBOX_PARM_STRING,
                 .sparm = !((field = r.fieldmap[KEY_FILTER_TO_DATE])) || field->valsz <= 0
                              ? "IGNORE_TO_DATE"
-                             : "DONT_IGNORE"
+                             : "TO_DATE"
             };
             parms[11] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_INT,
@@ -1376,7 +1376,7 @@ void fill_params(const enum statement STATEMENT) {
                 .type = SQLBOX_PARM_STRING,
                 .sparm = !((field = r.fieldmap[KEY_FILTER_BY_ID])) || field->valsz <= 0
                              ? "IGNORE_ID"
-                             : "DONT_IGNORE"
+                             : "ID"
             };
             parms[1] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
@@ -1386,7 +1386,7 @@ void fill_params(const enum statement STATEMENT) {
             if (r.fieldmap[KEY_FILTER_ME] && curr_usr.authenticated) {
                 parms[2] = (struct sqlbox_parm){
                     .type = SQLBOX_PARM_STRING,
-                    .sparm = "DONT_IGNORE"
+                    .sparm = "SELF"
                 };
                 parms[3] = (struct sqlbox_parm){
                     .type = SQLBOX_PARM_STRING,
@@ -1397,7 +1397,7 @@ void fill_params(const enum statement STATEMENT) {
                     .type = SQLBOX_PARM_STRING,
                     .sparm = !((field = r.fieldmap[KEY_FILTER_BY_ACCOUNT])) || field->valsz <= 0
                                  ? "IGNORE_ACCOUNT"
-                                 : "DONT_IGNORE"
+                                 : "ACCOUNT"
                 };
                 parms[3] = (struct sqlbox_parm){
                     .type = SQLBOX_PARM_STRING,
@@ -1485,7 +1485,8 @@ void process(const enum statement STATEMENT) {
     const struct sqlbox_parmset *res;
     if (!(stmtid_data = sqlbox_prepare_bind(boxctx_data, dbid_data, STATEMENT, parmsz, parms, SQLBOX_STMT_MULTI)))
         errx(EXIT_FAILURE, "sqlbox_prepare_bind");
-    if (!(stmtid_count = sqlbox_prepare_bind(boxctx_count, dbid_count, STATEMENT, parmsz, parms, SQLBOX_STMT_MULTI)))
+    if (!(stmtid_count = sqlbox_prepare_bind(boxctx_count, dbid_count, STATEMENT, parmsz, parms,
+                                             SQLBOX_STMT_MULTI)))
         errx(EXIT_FAILURE, "sqlbox_prepare_bind");
     khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
     khttp_head(&r, kresps[KRESP_CONTENT_TYPE], "%s", kmimetypes[KMIME_APP_JSON]);
@@ -1568,6 +1569,7 @@ void process(const enum statement STATEMENT) {
     kjson_putintp(&req, "nbrres", res->ps[0].iparm);
     if (!sqlbox_finalise(boxctx_count, stmtid_count))
         errx(EXIT_FAILURE, "sqlbox_finalise");
+
     kjson_obj_close(&req);
     kjson_close(&req);
     khttp_free(&r);
