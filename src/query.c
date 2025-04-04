@@ -1603,9 +1603,7 @@ void process(const enum statement STATEMENT) {
     if (!sqlbox_finalise(boxctx_count, stmtid_count))
         errx(EXIT_FAILURE, "sqlbox_finalise");
 
-    kjson_obj_close(&req);
-    kjson_close(&req);
-    khttp_free(&r);
+
 }
 
 void save(const enum statement STATEMENT,bool failed) {
@@ -1628,6 +1626,7 @@ void save(const enum statement STATEMENT,bool failed) {
     } else {
         kasprintf(&requestDesc, "Stmt:%s, ACCESS VIOLATION(PERMISSION DENIED)", statement_string[STATEMENT]);
     }
+    kjson_putstringp(&req,"request",requestDesc);
     size_t parmsz_save = 3;
     struct sqlbox_parm parms_save[] = {
         {
@@ -1694,6 +1693,10 @@ int main(void) {
     fill_params(STMT);
     process(STMT);
     save(STMT,false);
+
+    kjson_obj_close(&req);
+    kjson_close(&req);
+    khttp_free(&r);
     goto cleanup;
 access_denied:
     khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_403]);
