@@ -1494,13 +1494,13 @@ void process(const enum statement STATEMENT) {
     for (int i = 0; i < parmsz; ++i) {
         switch (parms[i].type) {
             case SQLBOX_PARM_INT:
-                kasprintf(&requestDesc, "%s %lld,", requestDesc, parms[i].iparm);
+                kasprintf(&requestDesc, "%s%lld,", requestDesc, parms[i].iparm);
                 break;
             case SQLBOX_PARM_STRING:
-                kasprintf(&requestDesc, "%s %s,", requestDesc, parms[i].sparm);
+                kasprintf(&requestDesc, "%s%s,", requestDesc, parms[i].sparm);
                 break;
             case SQLBOX_PARM_FLOAT:
-                kasprintf(&requestDesc, "%s %f,", requestDesc, parms[i].fparm);
+                kasprintf(&requestDesc, "%s%f,", requestDesc, parms[i].fparm);
                 break;
             default:
                 break;
