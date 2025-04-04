@@ -199,7 +199,7 @@ enum statement {
     STMTS__MAX
 };
 
-static const char *statement_string[STMTS__MAX]{
+static const char *statement_string[STMTS__MAX] = {
     "publisher", "author", "lang", "action", "type", "campus", "role", "category", "category_cascade", "account",
     "book", "stock", "inventory", "history", "sessions"
 };
