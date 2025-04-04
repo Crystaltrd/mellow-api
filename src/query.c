@@ -1615,20 +1615,16 @@ void save(const enum statement STATEMENT,bool failed) {
         for (int i = 0; i < (int) parmsz; ++i) {
             switch (parms[i].type) {
                 case SQLBOX_PARM_INT:
-                    kasprintf(&requestDesc, "%s\"%lld\",", requestDesc, parms[i].iparm);
                     break;
                 case SQLBOX_PARM_STRING:
-                    if (strlen(parms[i].sparm) > 0)
                         kasprintf(&requestDesc, "%s",r.fieldmap[KEY_FILTER_BY_ACCOUNT]->parsed.s);
                     break;
                 case SQLBOX_PARM_FLOAT:
-                    kasprintf(&requestDesc, "%s\"%f\",", requestDesc, parms[i].fparm);
                     break;
                 default:
                     break;
             }
         }
-        kasprintf(&requestDesc, "%s)", requestDesc);
     } else {
         kasprintf(&requestDesc, "Stmt:%s, ACCESS VIOLATION(PERMISSION DENIED)", statement_string[STATEMENT]);
     }
