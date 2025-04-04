@@ -1486,36 +1486,21 @@ void get_cat_children(const char *class) {
 void process(const enum statement STATEMENT) {
     size_t stmtid_data;
     size_t stmtid_count;
-    char *requestDesc = NULL, *tmp = NULL;
+    char *requestDesc = NULL;
     const struct sqlbox_parmset *res;
     if (!(stmtid_data = sqlbox_prepare_bind(boxctx_data, dbid_data, STATEMENT, parmsz, parms, SQLBOX_STMT_MULTI)))
         errx(EXIT_FAILURE, "sqlbox_prepare_bind");
-    requestDesc = kcalloc(strlen(statement_string[STATEMENT]) + 2, sizeof(char));
-    strncpy(requestDesc, statement_string[STATEMENT], strlen(statement_string[STATEMENT]) + 2);
-    strncat(requestDesc, ":", 1);
+    kasprintf(&requestDesc, "Stmt: %s,", statement_string[STATEMENT]);
     for (int i = 0; i < parmsz; ++i) {
-        char buf[40];
         switch (parms[i].type) {
             case SQLBOX_PARM_INT:
-                kasprintf(buf, "%lld", parms[i].iparm);
-            // ReSharper disable once CppDFAMemoryLeak
-                requestDesc = krealloc(requestDesc, (strlen(requestDesc) + strlen(buf) + 2) * sizeof(char));
-                strncat(requestDesc, buf, strlen(buf));
-                strncat(requestDesc, ",", 1);
+                kasprintf(&requestDesc, "%s %lld,", requestDesc, parms[i].iparm);
                 break;
             case SQLBOX_PARM_STRING:
-                // ReSharper disable once CppDFAMemoryLeak
-                requestDesc = krealloc(requestDesc, (strlen(requestDesc) + parms[i].sz + 2) * sizeof(char));
-                strncat(requestDesc, parms[i].sparm, parms[i].sz);
-                strncat(requestDesc, ",", 1);
+                kasprintf(&requestDesc, "%s %s,", requestDesc, parms[i].sparm);
                 break;
-
             case SQLBOX_PARM_FLOAT:
-                kasprintf(buf, "%f", parms[i].fparm);
-            // ReSharper disable once CppDFAMemoryLeak
-                requestDesc = krealloc(requestDesc, (strlen(requestDesc) + strlen(buf) + 2) * sizeof(char));
-                strncat(requestDesc, buf, strlen(buf));
-                strncat(requestDesc, ",", 1);
+                kasprintf(&requestDesc, "%s %f,", requestDesc, parms[i].fparm);
                 break;
             default:
                 break;
