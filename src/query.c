@@ -1608,8 +1608,8 @@ void save(const enum statement STATEMENT) {
     size_t parmsz_save = 3;
     struct sqlbox_parm parms_save[] = {
         {
-            .type = SQLBOX_PARM_STRING,
-            .sparm = "FOO"
+            .type = (curr_usr.UUID != NULL) ? SQLBOX_PARM_STRING : SQLBOX_PARM_NULL,
+            .sparm = curr_usr.UUID
         },
         {
             .type = SQLBOX_PARM_STRING,
