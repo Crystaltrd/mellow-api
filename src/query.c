@@ -1510,6 +1510,23 @@ void process(const enum statement STATEMENT) {
     kjson_objp_open(&req, "user");
     kjson_putstringp(&req, "IP", curr_usr.IP);
     kjson_putboolp(&req, "authenticated", curr_usr.authenticated);
+    kjson_arrayp_open(&req, "parms");
+    for (int i = 0; i < (int) parmsz; ++i) {
+        switch (parms[i].type) {
+            case SQLBOX_PARM_INT:
+                kjson_putint(&req, parms[i].iparm);
+                break;
+            case SQLBOX_PARM_STRING:
+                kjson_putstring(&req, parms[i].sparm);
+                break;
+            case SQLBOX_PARM_FLOAT:
+                kjson_putdouble(&req, parms[i].fparm);
+                break;
+            default:
+                break;
+        }
+    }
+    kjson_array_close(&req);
     if (curr_usr.authenticated) {
         kjson_putstringp(&req, "UUID", curr_usr.UUID);
         kjson_putstringp(&req, "disp_name", curr_usr.disp_name);
@@ -1589,29 +1606,26 @@ void process(const enum statement STATEMENT) {
 }
 
 void save(const enum statement STATEMENT,bool failed) {
-    char *requestDesc = calloc(2049, sizeof(char));
-    char buf[1024];
+    char *requestDesc = NULL;
     if (!failed) {
-        sprintf(requestDesc, "Stmt:%s, Parms:(", statement_string[STATEMENT]);
+        kasprintf(&requestDesc, "Stmt:%s, Parms:(", statement_string[STATEMENT]);
         for (int i = 0; i < (int) parmsz; ++i) {
             switch (parms[i].type) {
                 case SQLBOX_PARM_INT:
-                    sprintf(buf, "\"%lld\",", parms[i].iparm);
-                    strcat(requestDesc, buf);
+                    kasprintf(&requestDesc, "%s\"%lld\",", requestDesc, parms[i].iparm);
                     break;
                 case SQLBOX_PARM_STRING:
-                    sprintf(buf, "\"%s\",", r.fieldmap[KEY_FILTER_BY_ACCOUNT]->parsed.s);
-                    strcat(requestDesc, buf);
+                    if (strlen(parms[i].sparm) > 0)
+                        kasprintf(&requestDesc, "%s\"%s\",", requestDesc, parms[i].sparm);
                     break;
                 case SQLBOX_PARM_FLOAT:
-                    sprintf(buf, "\"%f\",", parms[i].fparm);
-                    strcat(requestDesc, buf);
+                    kasprintf(&requestDesc, "%s\"%f\",", requestDesc, parms[i].fparm);
                     break;
                 default:
                     break;
             }
         }
-        strcat(requestDesc,")");
+        kasprintf(&requestDesc, "%s)", requestDesc);
     } else {
         kasprintf(&requestDesc, "Stmt:%s, ACCESS VIOLATION(PERMISSION DENIED)", statement_string[STATEMENT]);
     }
