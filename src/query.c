@@ -1510,26 +1510,6 @@ void process(const enum statement STATEMENT) {
     kjson_objp_open(&req, "user");
     kjson_putstringp(&req, "IP", curr_usr.IP);
     kjson_putboolp(&req, "authenticated", curr_usr.authenticated);
-    char *buf = NULL;
-    kjson_arrayp_open(&req, "parms");
-    for (int i = 0; i < (int) parmsz; ++i) {
-        switch (parms[i].type) {
-            case SQLBOX_PARM_INT:
-                kjson_putint(&req, parms[i].iparm);
-                break;
-            case SQLBOX_PARM_STRING:
-                kjson_putstring(&req, parms[i].sparm);
-                break;
-            case SQLBOX_PARM_FLOAT:
-                kjson_putdouble(&req, parms[i].fparm);
-                break;
-            default:
-                break;
-        }
-    }
-    kasprintf(&buf,"%s",r.fieldmap[KEY_FILTER_BY_ACCOUNT]->parsed.s);
-    kjson_putstring(&req,buf);
-    kjson_array_close(&req);
     if (curr_usr.authenticated) {
         kjson_putstringp(&req, "UUID", curr_usr.UUID);
         kjson_putstringp(&req, "disp_name", curr_usr.disp_name);
@@ -1603,7 +1583,8 @@ void process(const enum statement STATEMENT) {
     if (!sqlbox_finalise(boxctx_count, stmtid_count))
         errx(EXIT_FAILURE, "sqlbox_finalise");
 
-
+    kjson_obj_close(&req);
+    kjson_close(&req);
 }
 
 void save(const enum statement STATEMENT,bool failed) {
@@ -1613,20 +1594,23 @@ void save(const enum statement STATEMENT,bool failed) {
         for (int i = 0; i < (int) parmsz; ++i) {
             switch (parms[i].type) {
                 case SQLBOX_PARM_INT:
+                    kasprintf(&requestDesc, "%s\"%lld\",", requestDesc, parms[i].iparm);
                     break;
                 case SQLBOX_PARM_STRING:
-                        kasprintf(&requestDesc, "%s",r.fieldmap[KEY_FILTER_BY_ACCOUNT]->parsed.s);
+                    if (strlen(parms[i].sparm) > 0)
+                        kasprintf(&requestDesc, "%s\"%s\",", requestDesc, parms[i].sparm);
                     break;
                 case SQLBOX_PARM_FLOAT:
+                    kasprintf(&requestDesc, "%s\"%f\",", requestDesc, parms[i].fparm);
                     break;
                 default:
                     break;
             }
         }
+        kasprintf(&requestDesc, "%s)", requestDesc);
     } else {
         kasprintf(&requestDesc, "Stmt:%s, ACCESS VIOLATION(PERMISSION DENIED)", statement_string[STATEMENT]);
     }
-    kjson_putstringp(&req,"request",requestDesc);
     size_t parmsz_save = 3;
     struct sqlbox_parm parms_save[] = {
         {
@@ -1693,10 +1677,6 @@ int main(void) {
     fill_params(STMT);
     process(STMT);
     save(STMT,false);
-
-    kjson_obj_close(&req);
-    kjson_close(&req);
-    khttp_free(&r);
     goto cleanup;
 access_denied:
     khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_403]);
@@ -1710,9 +1690,9 @@ access_denied:
     kjson_putboolp(&req, "authenticated", curr_usr.authenticated);
     kjson_putstringp(&req, "error", "You don't have the permissions to access this ressource");
     kjson_obj_close(&req);
-    khttp_free(&r);
     save(STMT,true);
 cleanup:
+    khttp_free(&r);
     sqlbox_free(boxctx_data);
     sqlbox_free(boxctx_count);
     return EXIT_SUCCESS;
