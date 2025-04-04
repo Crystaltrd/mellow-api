@@ -1590,7 +1590,7 @@ void process(const enum statement STATEMENT) {
 
 void save(const enum statement STATEMENT) {
     char *requestDesc = NULL;
-    kasprintf(&requestDesc, "Stmt: %s,", statement_string[STATEMENT]);
+    kasprintf(&requestDesc, "Stmt:%s, Parms:", statement_string[STATEMENT]);
     for (int i = 0; i < (int) parmsz; ++i) {
         switch (parms[i].type) {
             case SQLBOX_PARM_INT:
