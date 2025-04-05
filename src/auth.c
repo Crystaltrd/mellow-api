@@ -108,7 +108,6 @@ int check_passwd() {
         errx(EXIT_FAILURE, "sqlbox_step");
     if (res->psz == 0) {
         sqlbox_finalise(boxctx_data, stmtid);
-        sqlbox_close(boxctx_data, dbid_data);
         return EXIT_FAILURE;
     }
     strncpy(hash, res->ps[0].sparm,_PASSWORD_LEN);
@@ -121,11 +120,11 @@ int check_passwd() {
 
 void open_session() {
     size_t parmsz = 3;
-    char seed[128],timestamp[64],sessionID[_PASSWORD_LEN+64];
-    snprintf(timestamp,64,"%lld",time(NULL));
-    arc4random_buf(seed,128);
-    crypt_newhash(seed,"bcrypt,a",sessionID,_PASSWORD_LEN);
-    strlcat(sessionID,timestamp,_PASSWORD_LEN+64);
+    char seed[128], timestamp[64], sessionID[_PASSWORD_LEN + 64];
+    snprintf(timestamp, 64, "%lld", time(NULL));
+    arc4random_buf(seed, 128);
+    crypt_newhash(seed, "bcrypt,a", sessionID,_PASSWORD_LEN);
+    strlcat(sessionID, timestamp,_PASSWORD_LEN + 64);
     struct sqlbox_parm parms[] = {
         {
             .type = SQLBOX_PARM_STRING,
@@ -187,11 +186,13 @@ int main() {
         kjson_putboolp(&req, "authenticated",false);
         kjson_putstringp(&req, "error", "The Username or Password that you provided are wrong");
         kjson_obj_close(&req);
-        khttp_free(&r);
+        goto cleanup;
         return 0;
     }
     open_session();
+cleanup:
     sqlbox_close(boxctx_data, dbid_data);
     sqlbox_free(boxctx_data);
+    khttp_free(&r);
     return EXIT_SUCCESS;
 }
