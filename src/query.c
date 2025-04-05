@@ -722,7 +722,6 @@ struct usr {
     char *disp_name;
     char *campus;
     char *role;
-    char *IP;
     struct accperms perms;
     bool authenticated;
     bool frozen;
@@ -1508,7 +1507,7 @@ void process(const enum statement STATEMENT) {
     kjson_open(&req, &r);
     kjson_obj_open(&req);
     kjson_objp_open(&req, "user");
-    kjson_putstringp(&req, "IP", curr_usr.IP);
+    kjson_putstringp(&req, "IP", r.remote);
     kjson_putboolp(&req, "authenticated", curr_usr.authenticated);
     if (curr_usr.authenticated) {
         kjson_putstringp(&req, "UUID", curr_usr.UUID);
@@ -1619,7 +1618,7 @@ void save(const enum statement STATEMENT,bool failed) {
         },
         {
             .type = SQLBOX_PARM_STRING,
-            .sparm = curr_usr.IP
+            .sparm = r.remote
         },
         {
             .type = SQLBOX_PARM_STRING,
@@ -1657,7 +1656,6 @@ int main(void) {
     }
     const enum statement STMT = get_stmts();
     alloc_ctx_cfg();
-    kasprintf(&curr_usr.IP, "%s", r.remote);
     fill_user();
     if ((STMT == STMTS_HISTORY || STMT == STMTS_ACCOUNT || STMT == STMTS_SESSIONS || STMT == STMTS_INVENTORY)) {
         if (!curr_usr.authenticated)
