@@ -187,7 +187,6 @@ int main() {
         kjson_putstringp(&req, "error", "The Username or Password that you provided are wrong");
         kjson_obj_close(&req);
         goto cleanup;
-        return 0;
     }
     open_session();
 cleanup:
