@@ -17,7 +17,7 @@ install: query deauth auth database.db
 
 install-pubnix: query deauth auth database.db
 	[ -d ${PBNIX_HTML}/db ] ||  mkdir -p ${PBNIX_HTML}/db
-	test ["${REPLACEDB}"="true"] && install -m 0666 database.db ${PBNIX_HTML}/db
+	[ "${REPLACEDB}" = "true" ] && install -m 0666 database.db ${PBNIX_HTML}/db
 	install -m 0755 query ${PBNIX_HTML}/query.cgi
 	install -m 0755 auth ${PBNIX_HTML}/auth.cgi
 	install -m 0755 deauth ${PBNIX_HTML}/deauth.cgi
