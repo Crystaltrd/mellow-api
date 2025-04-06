@@ -32,12 +32,27 @@ struct kjsonreq req;
 enum statement {
     STMTS_CHECK,
     STMTS_ADD,
+    __STMT_STORE__,
     STMTS__MAX
 };
 
 static struct sqlbox_pstmt pstmts_data[STMTS__MAX] = {
-    {(char *) "SELECT pwhash FROM ACCOUNT WHERE UUID=(?) LIMIT 1"},
-    {(char *) "INSERT INTO SESSIONS VALUES((?),(?),datetime('now',(?),'localtime'))"}
+    {
+        (char *) "SELECT pwhash "
+        "FROM ACCOUNT "
+        "WHERE UUID=(?) "
+        "LIMIT 1"
+    },
+    {
+        (char *)
+        "INSERT INTO SESSIONS "
+        "VALUES((?),(?),datetime('now',(?),'localtime'))"
+    },
+    {
+        (char *)
+        "INSERT INTO HISTORY (UUID, IP, action, actiondate, details) "
+        "VALUES ((?),(?),'LOGIN',datetime('now','localtime'),(?))"
+    }
 };
 
 /*
@@ -91,7 +106,7 @@ enum khttp sanitize() {
 }
 
 
-int check_passwd() {
+bool check_passwd() {
     size_t stmtid;
     size_t parmsz = 1;
     char hash[_PASSWORD_LEN];
@@ -108,14 +123,14 @@ int check_passwd() {
         errx(EXIT_FAILURE, "sqlbox_step");
     if (res->psz == 0) {
         sqlbox_finalise(boxctx_data, stmtid);
-        return EXIT_FAILURE;
+        return false;
     }
     strncpy(hash, res->ps[0].sparm,_PASSWORD_LEN);
     sqlbox_finalise(boxctx_data, stmtid);
-    if (crypt_checkpass(r.fieldmap[KEY_PASSWD]->parsed.s, hash) == 0)
-        return EXIT_SUCCESS;
+    if (crypt_checkpass(r.fieldmap[KEY_PASSWD]->parsed.s, hash) != 0)
+        return false;
 
-    return EXIT_FAILURE;
+    return true;
 }
 
 void open_session() {
@@ -158,7 +173,27 @@ void open_session() {
     kjson_obj_close(&req);
     khttp_free(&r);
 }
+void save(const bool failed) {
 
+    size_t parmsz_save = 3;
+    struct sqlbox_parm parms_save[] = {
+        {
+            .type = SQLBOX_PARM_STRING,
+            .sparm = r.fieldmap[KEY_UUID]->parsed.s
+        },
+        {
+            .type = SQLBOX_PARM_STRING,
+            .sparm = r.remote
+        },
+        {
+            .type = SQLBOX_PARM_STRING,
+            .sparm = failed ? "ACCESS VIOLATION(PERMISSION DENIED)" : "LOGIN SUCCESSFUL"
+        },
+    };
+    if (sqlbox_exec(boxctx_data, dbid_data, __STMT_STORE__, parmsz_save, parms_save,SQLBOX_STMT_CONSTRAINT) !=
+        SQLBOX_CODE_OK)
+        errx(EXIT_FAILURE, "sqlbox_exec");
+}
 int main() {
     enum khttp er;
     if (khttp_parse(&r, keys, KEY__MAX, NULL, 0, 0) != KCGI_OK)
@@ -175,7 +210,7 @@ int main() {
         return 0;
     }
     alloc_ctx_cfg();
-    if (check_passwd() == EXIT_FAILURE) {
+    if (check_passwd() == false) {
         khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
         khttp_head(&r, kresps[KRESP_CONTENT_TYPE], "%s", kmimetypes[KMIME_TEXT_PLAIN]);
         khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
@@ -186,9 +221,11 @@ int main() {
         kjson_putboolp(&req, "authenticated",false);
         kjson_putstringp(&req, "error", "The Username or Password that you provided are wrong");
         kjson_obj_close(&req);
+        save(true);
         goto cleanup;
     }
     open_session();
+    save(false);
 cleanup:
     sqlbox_close(boxctx_data, dbid_data);
     sqlbox_free(boxctx_data);

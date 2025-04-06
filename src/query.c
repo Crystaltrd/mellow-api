@@ -1586,7 +1586,7 @@ void process(const enum statement STATEMENT) {
     kjson_close(&req);
 }
 
-void save(const enum statement STATEMENT,bool failed) {
+void save(const enum statement STATEMENT,const bool failed) {
     char *requestDesc = NULL;
     if (!failed) {
         kasprintf(&requestDesc, "Stmt:%s, Parms:(", statement_string[STATEMENT]);
