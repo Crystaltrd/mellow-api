@@ -136,7 +136,7 @@ bool check_passwd() {
 void open_session() {
     size_t parmsz = 3;
     char seed[128], *timestamp, sessionID[_PASSWORD_LEN + 64];
-    kasprintf(&timestamp,"%lld", time(NULL));
+    kasprintf(&timestamp, "%lld", time(NULL));
     arc4random_buf(seed, 128);
     crypt_newhash(seed, "bcrypt,a", sessionID,_PASSWORD_LEN);
     strlcat(sessionID, timestamp,_PASSWORD_LEN + 64);
@@ -172,13 +172,13 @@ void open_session() {
     kjson_putstringp(&req, "sessionid", sessionID);
     kjson_obj_close(&req);
 }
-void save(const bool failed) {
 
+void save(const bool failed) {
     size_t parmsz_save = 3;
     struct sqlbox_parm parms_save[] = {
         {
-            .type = SQLBOX_PARM_STRING,
-            .sparm = r.fieldmap[KEY_UUID]->parsed.s
+            .type = (r.fieldmap[KEY_UUID]) ? SQLBOX_PARM_STRING : SQLBOX_PARM_NULL,
+            .sparm = (r.fieldmap[KEY_UUID]) ? r.fieldmap[KEY_UUID]->parsed.s : NULL
         },
         {
             .type = SQLBOX_PARM_STRING,
@@ -186,17 +186,20 @@ void save(const bool failed) {
         },
         {
             .type = SQLBOX_PARM_STRING,
-            .sparm = failed ? "ACCESS VIOLATION(PERMISSION DENIED)" : "LOGIN SUCCESSFUL"
+            .sparm = failed ? "ACCESS DENIED" : "LOGIN SUCCESSFUL"
         },
     };
     if (sqlbox_exec(boxctx_data, dbid_data, __STMT_STORE__, parmsz_save, parms_save,SQLBOX_STMT_CONSTRAINT) !=
         SQLBOX_CODE_OK)
         errx(EXIT_FAILURE, "sqlbox_exec");
 }
+
 int main() {
     enum khttp er;
     if (khttp_parse(&r, keys, KEY__MAX, NULL, 0, 0) != KCGI_OK)
         return EXIT_FAILURE;
+
+    alloc_ctx_cfg();
     if ((er = sanitize()) != KHTTP_200) {
         khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[er]);
         khttp_head(&r, kresps[KRESP_CONTENT_TYPE], "%s", kmimetypes[KMIME_TEXT_PLAIN]);
@@ -205,10 +208,9 @@ int main() {
         khttp_body(&r);
         if (r.mime == KMIME_TEXT_HTML)
             khttp_puts(&r, "Could not service request.");
-        khttp_free(&r);
-        return 0;
+        save(true);
+        goto cleanup;
     }
-    alloc_ctx_cfg();
     if (check_passwd() == false) {
         khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
         khttp_head(&r, kresps[KRESP_CONTENT_TYPE], "%s", kmimetypes[KMIME_TEXT_PLAIN]);

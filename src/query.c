@@ -1608,7 +1608,7 @@ void save(const enum statement STATEMENT,const bool failed) {
         }
         kasprintf(&requestDesc, "%s)", requestDesc);
     } else {
-        kasprintf(&requestDesc, "Stmt:%s, ACCESS VIOLATION(PERMISSION DENIED)", statement_string[STATEMENT]);
+        kasprintf(&requestDesc, "Stmt:%s, ACCESS DENIED", statement_string[STATEMENT]);
     }
     size_t parmsz_save = 3;
     struct sqlbox_parm parms_save[] = {
