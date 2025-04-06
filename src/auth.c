@@ -171,7 +171,6 @@ void open_session() {
     kjson_putstringp(&req, "UUID", r.fieldmap[KEY_UUID]->parsed.s);
     kjson_putstringp(&req, "sessionid", sessionID);
     kjson_obj_close(&req);
-    khttp_free(&r);
 }
 void save(const bool failed) {
 
