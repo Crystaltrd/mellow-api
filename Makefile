@@ -2,7 +2,7 @@ CFLAGS=-g -Wall -Wextra `pkg-config --static --cflags kcgi-html kcgi-json sqlbox
 LDFLAGS=`pkg-config --static --libs kcgi-html kcgi-json sqlbox`
 PBNIX_HTML=${HOME}/public_html/mellow
 DESTDIR=/var/www/cgi-bin/mellow
-all: query auth deauth database.db
+all: query auth deauth signup database.db
 install: install-noreplace install-db
 install-pubnix: install-pubnix-noreplace install-db-pubnix
 install-noreplace: install-auth install-deauth install-query install-signup
