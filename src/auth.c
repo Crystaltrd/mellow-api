@@ -224,7 +224,7 @@ void open_session() {
     kjson_obj_open(&req);
     kjson_putboolp(&req, "authenticated",true);
     kjson_putstringp(&req, "sessionid", sessionID);
-
+    kjson_objp_open(&req,"user");
     kjson_putstringp(&req, "UUID", curr_usr.UUID);
     kjson_putstringp(&req, "disp_name", curr_usr.disp_name);
     kjson_putstringp(&req, "campus", curr_usr.campus);
@@ -240,6 +240,7 @@ void open_session() {
     kjson_putboolp(&req, "see_accounts", curr_usr.perms.see_accounts);
     kjson_putboolp(&req, "monitor_history", curr_usr.perms.monitor_history);
     kjson_putboolp(&req, "has_inventory", curr_usr.perms.has_inventory);
+    kjson_obj_close(&req);
     kjson_obj_close(&req);
     kjson_obj_close(&req);
 }
