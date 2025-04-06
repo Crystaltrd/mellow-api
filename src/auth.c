@@ -241,6 +241,7 @@ void open_session() {
     kjson_putboolp(&req, "monitor_history", curr_usr.perms.monitor_history);
     kjson_putboolp(&req, "has_inventory", curr_usr.perms.has_inventory);
     kjson_obj_close(&req);
+    kjson_obj_close(&req);
 }
 
 void save(const bool failed) {
