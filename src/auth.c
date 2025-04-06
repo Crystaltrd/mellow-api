@@ -210,7 +210,7 @@ int main() {
             khttp_puts(&r, "Could not service request.");
         save(true);
         goto cleanup;
-    }
+}
     if (check_passwd() == false) {
         khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
         khttp_head(&r, kresps[KRESP_CONTENT_TYPE], "%s", kmimetypes[KMIME_TEXT_PLAIN]);
