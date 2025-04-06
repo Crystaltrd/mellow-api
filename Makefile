@@ -3,10 +3,10 @@ LDFLAGS=`pkg-config --static --libs kcgi-html kcgi-json sqlbox`
 PBNIX_HTML=${HOME}/public_html/mellow
 DESTDIR=/var/www/cgi-bin/mellow
 all: query auth deauth database.db
-install: install-auth install-deauth install-query install-db
-install-pubnix: install-auth-pubnix install-deauth-pubnix install-query-pubnix install-db-pubnix
-install-noreplace: install-auth install-deauth install-query
-install-pubnix-noreplace: install-auth-pubnix install-deauth-pubnix install-query-pubnix
+install: install-noreplace install-db
+install-pubnix: install-pubnix-noreplace install-db-pubnix
+install-noreplace: install-auth install-deauth install-query install-signup
+install-pubnix-noreplace: install-auth-pubnix install-deauth-pubnix install-query-pubnix install-signup-pubnix
 
 auth.o: src/auth.c
 	${CC} ${CFLAGS} -c -o auth.o src/auth.c
@@ -38,6 +38,14 @@ install-query: query
 	install -o www -g www -m 0500 query ${DESTDIR}/query
 
 
+signup.o: src/signup.c
+	${CC} ${CFLAGS} -c -o signup.o src/signup.c
+signup: signup.o
+	${CC} --static -o signup signup.o ${LDFLAGS}
+install-signup-pubnix: signup
+	install -m 0755 signup ${PBNIX_HTML}/signup.cgi
+install-signup: signup
+	install -o www -g www -m 0500 signup ${DESTDIR}/signup
 
 database.db: misc/database-scheme.sql
 	rm database.db
