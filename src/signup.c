@@ -215,7 +215,7 @@ int main() {
         kjson_open(&req, &r);
         kjson_obj_open(&req);
         kjson_putboolp(&req, "account_created",false);
-        kjson_putstringp(&req, "error", "Something went wrong, Review your settings and try again later!");
+        kjson_putstringp(&req, "error", "Something went wrong, Review your parameters and try again later!");
         kjson_obj_close(&req);
         goto cleanup;
     }
