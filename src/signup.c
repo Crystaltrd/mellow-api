@@ -57,7 +57,7 @@ static struct sqlbox_pstmt pstmts_data[STMTS__MAX] = {
     {
         (char *) "SELECT NOT EXISTS(SELECT 1 FROM ACCOUNT WHERE UUID = (?)) AND "
         "EXISTS(SELECT 1 FROM ROLE WHERE roleName = (?) AND perms <= 1) AND "
-        "EXISTS(SELECT 1 FROM CAMPUS WHERE campus = (?))"
+        "EXISTS(SELECT 1 FROM CAMPUS WHERE campusName = (?))"
     },
     {
         (char *)
