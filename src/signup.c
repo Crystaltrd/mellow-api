@@ -193,7 +193,7 @@ void create_acc() {
 
 void save(const bool failed) {
     char *description;
-    kasprintf(&description, "%s, Parms: (UUID: %s,disp_name: %s,role: %s,campus: %s",
+    kasprintf(&description, "%s, Parms: (UUID: %s,disp_name: %s,role: %s,campus: %s)",
               failed ? "SIGNUP FAILED" : "SIGNUP SUCCESSFUL", r.fieldmap[KEY_UUID]->parsed.s,
               r.fieldmap[KEY_NAME]->parsed.s, r.fieldmap[KEY_ROLE]->parsed.s, r.fieldmap[KEY_CAMPUS]->parsed.s);
     size_t parmsz_save = 3;
