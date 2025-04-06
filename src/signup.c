@@ -95,7 +95,7 @@ void alloc_ctx_cfg() {
 }
 
 enum khttp sanitize() {
-    if (r.method != KMETHOD_POST)
+    if (r.method != KMETHOD_GET)
         return KHTTP_405;
     if (!(r.fieldmap[KEY_UUID] && r.fieldmap[KEY_NAME] && r.fieldmap[KEY_PASSWD] && r.fieldmap[KEY_ROLE] && r.fieldmap[
               KEY_CAMPUS]))
