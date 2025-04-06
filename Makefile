@@ -5,8 +5,8 @@ DESTDIR=/var/www/cgi-bin/mellow
 all: query auth deauth database.db
 install: install-auth install-deauth install-query install-db
 install-pubnix: install-auth-pubnix install-deauth-pubnix install-query-pubnix install-db-pubnix
-install-noreplace: install-auth install-deauth install-query install-db
-install-pubnix-noreplace: install-auth-pubnix install-deauth-pubnix install-query-pubnix install-db-pubnix
+install-noreplace: install-auth install-deauth install-query
+install-pubnix-noreplace: install-auth-pubnix install-deauth-pubnix install-query-pubnix
 
 auth.o: src/auth.c
 	${CC} ${CFLAGS} -c -o auth.o src/auth.c
