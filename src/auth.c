@@ -84,7 +84,7 @@ enum statement {
 
 static struct sqlbox_pstmt pstmts_data[STMTS__MAX] = {
     {
-        (char *) "SELECT displayname, campus, role, frozen, perms,pwhash"
+        (char *) "SELECT displayname, campus, role, frozen, perms,pwhash "
         "FROM ACCOUNT,ROLE "
         "WHERE roleName = role "
         "AND UUID=(?) "
