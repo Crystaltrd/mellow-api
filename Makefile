@@ -65,5 +65,8 @@ clean:
 	rm auth.o
 	rm deauth.o
 	rm query.o
+	rm signup.o
 	rm query
+	rm deauth
 	rm auth
+	rm signup

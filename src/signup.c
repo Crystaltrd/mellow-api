@@ -16,16 +16,8 @@
 #include <pwd.h>
 #include <unistd.h>
 
-enum key {
-  KEY_UUID,
-  KEY_DISPLAYNAME,
-  KEY_PASSWD,
-  KEY_CAMPUS,
-  KEY_ROLE,
-  KEY__MAX
-};
-static const struct kvalid keys[KEY__MAX] = {
-    {kvalid_stringne, "UUID"},
-    {kvalid_stringne, "name"},
-    {NULL, "remember"},
-};
+
+int main(){
+
+
+}
