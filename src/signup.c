@@ -241,9 +241,11 @@ int main() {
         kjson_putboolp(&req, "account_created",false);
         kjson_putstringp(&req, "error", "Something went wrong, Review your parameters and try again later!");
         kjson_obj_close(&req);
+        save(true);
         goto cleanup;
     }
     create_acc();
+    save(false);
 cleanup:
     sqlbox_close(boxctx_data, dbid_data);
     sqlbox_free(boxctx_data);
