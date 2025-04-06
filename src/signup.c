@@ -95,7 +95,7 @@ void alloc_ctx_cfg() {
 }
 
 enum khttp sanitize() {
-    if (r.method != KMETHOD_GET)
+    if (r.method != KMETHOD_POST)
         return KHTTP_405;
     if (!(r.fieldmap[KEY_UUID] && r.fieldmap[KEY_NAME] && r.fieldmap[KEY_PASSWD] && r.fieldmap[KEY_ROLE] && r.fieldmap[
               KEY_CAMPUS]))
@@ -169,7 +169,7 @@ void create_acc() {
     kjson_open(&req, &r);
     kjson_obj_open(&req);
     kjson_putboolp(&req, "account_created",true);
-    kjson_objp_open(&req,"user");
+    kjson_objp_open(&req, "user");
     kjson_putstringp(&req, "UUID", r.fieldmap[KEY_UUID]->parsed.s);
     kjson_putstringp(&req, "disp_name", r.fieldmap[KEY_NAME]->parsed.s);
     kjson_putstringp(&req, "campus", r.fieldmap[KEY_CAMPUS]->parsed.s);
@@ -188,6 +188,30 @@ void create_acc() {
 
     kjson_obj_close(&req);
     kjson_obj_close(&req);
+}
+
+void save(const bool failed) {
+    char *description;
+    kasprintf(&description, "%s, Parms: (UUID: %s,disp_name: %s,role: %s,campus: %s",
+              failed ? "SIGNUP FAILED" : "SIGNUP SUCCESSFUL",r.fieldmap[KEY_UUID]->parsed.s,r.fieldmap[KEY_NAME]->parsed.s,r.fieldmap[KEY_ROLE]->parsed.s,r.fieldmap[KEY_CAMPUS]->parsed.s );
+    size_t parmsz_save = 3;
+    struct sqlbox_parm parms_save[] = {
+        {
+            .type = SQLBOX_PARM_STRING,
+            .sparm = r.fieldmap[KEY_UUID]->parsed.s
+        },
+        {
+            .type = SQLBOX_PARM_STRING,
+            .sparm = r.remote
+        },
+        {
+            .type = SQLBOX_PARM_STRING,
+            .sparm = description
+        },
+    };
+    if (sqlbox_exec(boxctx_data, dbid_data, __STMT_STORE__, parmsz_save, parms_save,SQLBOX_STMT_CONSTRAINT) !=
+        SQLBOX_CODE_OK)
+        errx(EXIT_FAILURE, "sqlbox_exec");
 }
 
 int main() {
