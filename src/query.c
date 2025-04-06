@@ -768,17 +768,13 @@ void fill_user() {
             errx(EXIT_FAILURE, "sqlbox_step");
         if (res->psz != 0) {
             curr_usr.authenticated = true;
-            curr_usr.UUID = kcalloc(res->ps[0].sz, sizeof(char));
-            strncpy(curr_usr.UUID, res->ps[0].sparm, res->ps[0].sz);
+            kasprintf(&curr_usr.UUID, "%s",res->ps[0].sparm);
 
-            curr_usr.disp_name = kcalloc(res->ps[1].sz, sizeof(char));
-            strncpy(curr_usr.disp_name, res->ps[1].sparm, res->ps[1].sz);
+            kasprintf(&curr_usr.disp_name,"%s", res->ps[1].sparm);
 
-            curr_usr.campus = kcalloc(res->ps[3].sz, sizeof(char));
-            strncpy(curr_usr.campus, res->ps[3].sparm, res->ps[3].sz);
+            kasprintf(&curr_usr.campus,"%s", res->ps[3].sparm);
 
-            curr_usr.role = kcalloc(res->ps[4].sz, sizeof(char));
-            strncpy(curr_usr.role, res->ps[4].sparm, res->ps[4].sz);
+            kasprintf(&curr_usr.role,"%s", res->ps[4].sparm);
 
             curr_usr.perms = int_to_accperms((int) res->ps[5].iparm);
 

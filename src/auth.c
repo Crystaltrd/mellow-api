@@ -29,6 +29,52 @@ crypt_newhash(const char *password, const char *pref, char *hash,
 struct kreq r;
 struct kjsonreq req;
 
+
+struct accperms {
+    int numeric;
+    bool admin;
+    bool staff;
+    bool manage_stock;
+    bool manage_inventories;
+    bool see_accounts;
+    bool monitor_history;
+    bool has_inventory;
+};
+
+struct accperms int_to_accperms(int perm) {
+    struct accperms perms = {
+        .numeric = perm,
+        .admin = (perm & (1 << 6)),
+        .staff = (perm & (1 << 5)),
+        .manage_stock = (perm & (1 << 4)),
+        .manage_inventories = (perm & (1 << 3)),
+        .see_accounts = (perm & (1 << 2)),
+        .monitor_history = (perm & (1 << 1)),
+        .has_inventory = (perm & 1)
+    };
+    return perms;
+}
+
+struct usr {
+    char *UUID;
+    char *disp_name;
+    char *campus;
+    char *role;
+    struct accperms perms;
+    bool authenticated;
+    bool frozen;
+};
+
+struct usr curr_usr = {
+    .authenticated = false,
+    .frozen = false,
+    .UUID = NULL,
+    .disp_name = NULL,
+    .campus = NULL,
+    .role = NULL,
+    .perms = {0, 0, 0, 0, 0, 0, 0, 0}
+};
+
 enum statement {
     STMTS_CHECK,
     STMTS_ADD,
@@ -38,9 +84,10 @@ enum statement {
 
 static struct sqlbox_pstmt pstmts_data[STMTS__MAX] = {
     {
-        (char *) "SELECT pwhash "
-        "FROM ACCOUNT "
-        "WHERE UUID=(?) "
+        (char *) "SELECT displayname, campus, role, frozen, perms,pwhash"
+        "FROM ACCOUNT,ROLE "
+        "WHERE roleName = role "
+        "AND UUID=(?) "
         "LIMIT 1"
     },
     {
@@ -109,7 +156,7 @@ enum khttp sanitize() {
 bool check_passwd() {
     size_t stmtid;
     size_t parmsz = 1;
-    char hash[_PASSWORD_LEN];
+    char *hash;
     const struct sqlbox_parmset *res;
     struct sqlbox_parm parms[] = {
         {
@@ -125,7 +172,15 @@ bool check_passwd() {
         sqlbox_finalise(boxctx_data, stmtid);
         return false;
     }
-    strncpy(hash, res->ps[0].sparm,_PASSWORD_LEN);
+    curr_usr.authenticated = true;
+    kasprintf(&curr_usr.UUID, "%s", r.fieldmap[KEY_UUID]->parsed.s);
+    kasprintf(&curr_usr.disp_name, "%s", res->ps[0].sparm);
+    kasprintf(&curr_usr.campus, "%s", res->ps[1].sparm);
+    kasprintf(&curr_usr.role, "%s", res->ps[2].sparm);
+    curr_usr.frozen = res->ps[3].iparm;
+    curr_usr.perms = int_to_accperms((int) res->ps[4].iparm);
+    kasprintf(&hash,"%s", res->ps[5].sparm);
+
     sqlbox_finalise(boxctx_data, stmtid);
     if (crypt_checkpass(r.fieldmap[KEY_PASSWD]->parsed.s, hash) != 0)
         return false;
@@ -168,8 +223,23 @@ void open_session() {
     kjson_open(&req, &r);
     kjson_obj_open(&req);
     kjson_putboolp(&req, "authenticated",true);
-    kjson_putstringp(&req, "UUID", r.fieldmap[KEY_UUID]->parsed.s);
     kjson_putstringp(&req, "sessionid", sessionID);
+
+    kjson_putstringp(&req, "UUID", curr_usr.UUID);
+    kjson_putstringp(&req, "disp_name", curr_usr.disp_name);
+    kjson_putstringp(&req, "campus", curr_usr.campus);
+    kjson_putstringp(&req, "role", curr_usr.role);
+    kjson_putboolp(&req, "frozen", curr_usr.frozen);
+
+    kjson_objp_open(&req, "perms");
+    kjson_putintp(&req, "numeric", curr_usr.perms.numeric);
+    kjson_putboolp(&req, "admin", curr_usr.perms.admin);
+    kjson_putboolp(&req, "staff", curr_usr.perms.staff);
+    kjson_putboolp(&req, "manage_stock", curr_usr.perms.manage_stock);
+    kjson_putboolp(&req, "manage_inventories", curr_usr.perms.manage_inventories);
+    kjson_putboolp(&req, "see_accounts", curr_usr.perms.see_accounts);
+    kjson_putboolp(&req, "monitor_history", curr_usr.perms.monitor_history);
+    kjson_putboolp(&req, "has_inventory", curr_usr.perms.has_inventory);
     kjson_obj_close(&req);
 }
 
@@ -210,7 +280,7 @@ int main() {
             khttp_puts(&r, "Could not service request.");
         save(true);
         goto cleanup;
-}
+    }
     if (check_passwd() == false) {
         khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
         khttp_head(&r, kresps[KRESP_CONTENT_TYPE], "%s", kmimetypes[KMIME_TEXT_PLAIN]);
