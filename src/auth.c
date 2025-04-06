@@ -145,7 +145,7 @@ static const struct kvalid keys[KEY__MAX] = {
 
 
 enum khttp sanitize() {
-    if (r.method != KMETHOD_POST)
+    if (r.method != KMETHOD_GET)
         return KHTTP_405;
     if (!r.fieldmap[KEY_UUID] || !r.fieldmap[KEY_PASSWD])
         return KHTTP_406;
