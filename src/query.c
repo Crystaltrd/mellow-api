@@ -768,13 +768,13 @@ void fill_user() {
             errx(EXIT_FAILURE, "sqlbox_step");
         if (res->psz != 0) {
             curr_usr.authenticated = true;
-            kasprintf(&curr_usr.UUID, "%s",res->ps[0].sparm);
+            kasprintf(&curr_usr.UUID, "%s", res->ps[0].sparm);
 
-            kasprintf(&curr_usr.disp_name,"%s", res->ps[1].sparm);
+            kasprintf(&curr_usr.disp_name, "%s", res->ps[1].sparm);
 
-            kasprintf(&curr_usr.campus,"%s", res->ps[3].sparm);
+            kasprintf(&curr_usr.campus, "%s", res->ps[3].sparm);
 
-            kasprintf(&curr_usr.role,"%s", res->ps[4].sparm);
+            kasprintf(&curr_usr.role, "%s", res->ps[4].sparm);
 
             curr_usr.perms = int_to_accperms((int) res->ps[5].iparm);
 
@@ -1582,7 +1582,7 @@ void process(const enum statement STATEMENT) {
     kjson_close(&req);
 }
 
-void save(const enum statement STATEMENT,const bool failed) {
+void save(const enum statement STATEMENT, const bool failed) {
     char *requestDesc = NULL;
     if (!failed) {
         kasprintf(&requestDesc, "Stmt:%s, Parms:(", statement_string[STATEMENT]);
@@ -1674,7 +1674,7 @@ int main(void) {
     goto cleanup;
 access_denied:
     khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_403]);
-    khttp_head(&r, kresps[KRESP_CONTENT_TYPE], "%s", kmimetypes[KMIME_TEXT_PLAIN]);
+    khttp_head(&r, kresps[KRESP_CONTENT_TYPE], "%s", kmimetypes[KMIME_APP_JSON]);
     khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
     khttp_head(&r, kresps[KRESP_VARY], "%s", "Origin");
     khttp_body(&r);

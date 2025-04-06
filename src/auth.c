@@ -179,7 +179,7 @@ bool check_passwd() {
     kasprintf(&curr_usr.role, "%s", res->ps[2].sparm);
     curr_usr.frozen = res->ps[3].iparm;
     curr_usr.perms = int_to_accperms((int) res->ps[4].iparm);
-    kasprintf(&hash,"%s", res->ps[5].sparm);
+    kasprintf(&hash, "%s", res->ps[5].sparm);
 
     sqlbox_finalise(boxctx_data, stmtid);
     if (crypt_checkpass(r.fieldmap[KEY_PASSWD]->parsed.s, hash) != 0)
@@ -213,7 +213,7 @@ void open_session() {
         errx(EXIT_FAILURE, "sqlbox_exec");
 
     khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
-    khttp_head(&r, kresps[KRESP_CONTENT_TYPE], "%s", kmimetypes[KMIME_TEXT_PLAIN]);
+    khttp_head(&r, kresps[KRESP_CONTENT_TYPE], "%s", kmimetypes[KMIME_APP_JSON]);
     khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
     khttp_head(&r, kresps[KRESP_VARY], "%s", "Origin");
     khttp_head(&r, kresps[KRESP_SET_COOKIE],
@@ -224,7 +224,7 @@ void open_session() {
     kjson_obj_open(&req);
     kjson_putboolp(&req, "authenticated",true);
     kjson_putstringp(&req, "sessionid", sessionID);
-    kjson_objp_open(&req,"user");
+    kjson_objp_open(&req, "user");
     kjson_putstringp(&req, "UUID", curr_usr.UUID);
     kjson_putstringp(&req, "disp_name", curr_usr.disp_name);
     kjson_putstringp(&req, "campus", curr_usr.campus);
@@ -285,7 +285,7 @@ int main() {
     }
     if (check_passwd() == false) {
         khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
-        khttp_head(&r, kresps[KRESP_CONTENT_TYPE], "%s", kmimetypes[KMIME_TEXT_PLAIN]);
+        khttp_head(&r, kresps[KRESP_CONTENT_TYPE], "%s", kmimetypes[KMIME_APP_JSON]);
         khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
         khttp_head(&r, kresps[KRESP_VARY], "%s", "Origin");
         khttp_body(&r);

@@ -162,6 +162,7 @@ void create_acc() {
     if (sqlbox_exec(boxctx_data, dbid_data, STMTS_ADD, parmsz, parms,SQLBOX_STMT_CONSTRAINT) != SQLBOX_CODE_OK)
         errx(EXIT_FAILURE, "sqlbox_exec");
     khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
+    khttp_head(&r, kresps[KRESP_CONTENT_TYPE],"%s", kmimetypes[KMIME_APP_JSON]);
     khttp_head(&r, kresps[KRESP_CONTENT_TYPE], "%s", kmimetypes[KMIME_TEXT_PLAIN]);
     khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
     khttp_head(&r, kresps[KRESP_VARY], "%s", "Origin");
@@ -193,7 +194,8 @@ void create_acc() {
 void save(const bool failed) {
     char *description;
     kasprintf(&description, "%s, Parms: (UUID: %s,disp_name: %s,role: %s,campus: %s",
-              failed ? "SIGNUP FAILED" : "SIGNUP SUCCESSFUL",r.fieldmap[KEY_UUID]->parsed.s,r.fieldmap[KEY_NAME]->parsed.s,r.fieldmap[KEY_ROLE]->parsed.s,r.fieldmap[KEY_CAMPUS]->parsed.s );
+              failed ? "SIGNUP FAILED" : "SIGNUP SUCCESSFUL", r.fieldmap[KEY_UUID]->parsed.s,
+              r.fieldmap[KEY_NAME]->parsed.s, r.fieldmap[KEY_ROLE]->parsed.s, r.fieldmap[KEY_CAMPUS]->parsed.s);
     size_t parmsz_save = 3;
     struct sqlbox_parm parms_save[] = {
         {
@@ -232,7 +234,7 @@ int main() {
     }
     if (check() == false) {
         khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
-        khttp_head(&r, kresps[KRESP_CONTENT_TYPE], "%s", kmimetypes[KMIME_TEXT_PLAIN]);
+        khttp_head(&r, kresps[KRESP_CONTENT_TYPE],"%s", kmimetypes[KMIME_APP_JSON]);
         khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
         khttp_head(&r, kresps[KRESP_VARY], "%s", "Origin");
         khttp_body(&r);
