@@ -321,10 +321,16 @@ int main() {
         khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
         khttp_head(&r, kresps[KRESP_VARY], "%s", "Origin");
         khttp_body(&r);
-        if (r.mime == KMIME_TEXT_HTML){
+        if (r.mime == KMIME_TEXT_HTML) {
             khttp_puts(&r, "Could not service request. Second pass");
             khttp_puts(&r, pstmts_bottom[STMT].stmt);
-    }
+            char *buf;
+            for (int i = 0; bottom_keys[STMT][i] != KEY__MAX; ++i) {
+                kasprintf(&buf,"KEY: %d ----", bottom_keys[STMT][i]);
+                if (!(r.fieldmap[bottom_keys[STMT][i]]))
+                    khttp_puts(&r,buf);
+            }
+        }
         khttp_free(&r);
         return 0;
     }
