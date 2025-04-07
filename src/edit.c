@@ -290,10 +290,12 @@ enum khttp second_pass(enum statement STMT) {
 }
 
 enum statement get_stmts() {
+    if (r.page != PG__MAX)
+        return (enum statement) r.page;
     enum key i;
     for (i = KEY_PG_PUBLISHER; i < KEY_SEL_PUBLISHERNAME && !(r.fieldmap[i]); i++) {
     }
-    return i;
+    return (enum statement) i;
 }
 
 int main() {
