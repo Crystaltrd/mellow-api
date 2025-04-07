@@ -85,6 +85,8 @@ enum statement {
     STMTS_CATEGORY,
     STMTS_ACCOUNT,
     STMTS_BOOK,
+    STMTS_LANGUAGES,
+    STMTS_AUTHORED,
     STMTS_STOCK,
     STMTS_INVENTORY,
     __STMT_STORE__,
@@ -93,7 +95,7 @@ enum statement {
 
 static const char *statement_string[STMTS__MAX] = {
     "publisher", "author", "lang", "action", "type", "campus", "role", "category", "account",
-    "book", "stock", "inventory"
+    "book", "booklang", "bookauthor", "stock", "inventory"
 };
 
 static struct sqlbox_pstmt pstmts_top[STMTS__MAX] = {
@@ -107,9 +109,17 @@ static struct sqlbox_pstmt pstmts_top[STMTS__MAX] = {
     {(char *) "UPDATE CATEGORY SET "},
     {(char *) "UPDATE ACCOUNT SET "},
     {(char *) "UPDATE BOOK SET "},
+    {(char *) "UPDATE LANGUAGES SET "},
+    {(char *) "UPDATE AUTHORED SET "},
+    {(char *) "UPDATE STOCK SET "},
+    {(char *) "UPDATE INVENTORY SET "},
+    { (char *)
+        "INSERT INTO HISTORY (UUID, IP, action, actiondate, details) "
+        "VALUES ((?),(?),'EDIT',datetime('now','localtime'),(?))"
+    }
 };
 
-static struct sqlbox_pstmt pstmts_middleware[STMTS__MAX][7] = {
+static struct sqlbox_pstmt pstmts_middleware[STMTS__MAX-1][7] = {
     {{(char *) "publisherName = (?) "}},
     {{(char *) "authorName = (?) "}},
     {{(char *) "actionName = (?) "}},
@@ -127,8 +137,15 @@ static struct sqlbox_pstmt pstmts_middleware[STMTS__MAX][7] = {
         {(char *) "booktitle = (?)"}, {(char *) "bookreleaseyear = (?)"}, {(char *) "bookcover = (?)"},
         {(char *) "hits = (?)"}
     },
+    {{(char *) "serialnum = (?) "}, {(char *) "lang = (?) "}},
+    {{(char *) "serialnum = (?) "}, {(char *) "author = (?) "}},
+    {{(char *) "serialnum = (?) "}, {(char *) "campus = (?) "}, {(char *) "instock = (?) "}}
+    {
+        {(char *) "UUID = (?) "}, {(char *) "serialnum = (?) "}, {(char *) "rentduration = (?) "},
+        {(char *) "rentdate = (?)"}, {(char *) "extended = (?) "}
+    }
 };
-static struct sqlbox_pstmt pstmts_bottom[STMTS__MAX] = {
+static struct sqlbox_pstmt pstmts_bottom[STMTS__MAX-1] = {
     {(char *) "WHERE publisherName = (?)"},
     {(char *) "WHERE authorName = (?)"},
     {(char *) "WHERE actionName = (?)"},
@@ -139,6 +156,10 @@ static struct sqlbox_pstmt pstmts_bottom[STMTS__MAX] = {
     {(char *) "WHERE categoryClass = (?) "},
     {(char *) "WHERE UUID = (?) "},
     {(char *) "WHERE serialnum = (?) "},
+    {(char *) "WHERE serialnum = (?) AND lang = (?) "},
+    {(char *) "WHERE serialnum = (?) AND author = (?) "},
+    {(char *) "WHERE serialnum = (?) AND campus = (?) "},
+    {(char *) "WHERE UUID = (?) AND serialnum = (?) "}
 };
 
 int main() {

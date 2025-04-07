@@ -199,6 +199,7 @@ enum statement {
     __STMT_STORE__,
     __STMT_BOOK_AUTHORED__,
     __STMT_BOOK_LANGUAGES__,
+    __STMT_BOOK_STOCK__,
     STMTS__MAX
 };
 
@@ -494,6 +495,12 @@ static struct sqlbox_pstmt pstmts_data[STMTS__MAX] = {
         "WHERE serialnum = (?)"
     },
 
+    {
+        (char *)
+        "SELECT campus,instock "
+        "FROM STOCK "
+        "WHERE serialnum = (?)"
+    },
 };
 
 
@@ -719,7 +726,7 @@ void alloc_ctx_cfg() {
     cfg_count.msg.func_short = warnx;
     cfg_count.srcs.srcsz = 1;
     cfg_count.srcs.srcs = srcs;
-    cfg_count.stmts.stmtsz = STMTS__MAX - 3; // 3 is the number of reserved statements, without count
+    cfg_count.stmts.stmtsz = STMTS__MAX - 4; // 3 is the number of reserved statements, without count
     cfg_count.stmts.stmts = pstmts_count;
     if ((boxctx_count = sqlbox_alloc(&cfg_count)) == NULL)
         errx(EXIT_FAILURE, "sqlbox_alloc");
@@ -1611,6 +1618,24 @@ void process(const enum statement STATEMENT) {
             while ((res_book = sqlbox_step(boxctx_data, stmtid_book_data)) != NULL && res_book->code == SQLBOX_CODE_OK
                    && res_book->psz != 0)
                 kjson_putstring(&req, res_book->ps[0].sparm);
+            kjson_array_close(&req);
+
+            if (!sqlbox_finalise(boxctx_data, stmtid_book_data))
+                errx(EXIT_FAILURE, "sqlbox_finalise");
+
+            if (!(stmtid_book_data =
+                  sqlbox_prepare_bind(boxctx_data, dbid_data, __STMT_BOOK_STOCK__, parmsz_book, parms_book,
+                                      SQLBOX_STMT_MULTI)))
+                errx(EXIT_FAILURE, "sqlbox_prepare_bind");
+
+            kjson_arrayp_open(&req, "stock");
+            while ((res_book = sqlbox_step(boxctx_data, stmtid_book_data)) != NULL && res_book->code == SQLBOX_CODE_OK
+                   && res_book->psz != 0) {
+                kjson_obj_open(&req);
+                kjson_putstringp(&req,"campus", res_book->ps[0].sparm);
+                kjson_putintp(&req,"stock", res_book->ps[1].iparm);
+                kjson_obj_close(&req);
+            }
             kjson_array_close(&req);
 
             if (!sqlbox_finalise(boxctx_data, stmtid_book_data))
