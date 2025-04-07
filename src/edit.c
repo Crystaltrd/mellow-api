@@ -56,28 +56,44 @@ enum key {
     KEY_PG_INVENTORY,
     KEY_PG_HISTORY,
     KEY_PG_SESSIONS,
-    KEY_NAME,
-    KEY_PERMS,
-    KEY_CLASS,
-    KEY_PARENTID,
-    KEY_UUID,
-    KEY_PASSWORD,
-    KEY_CAMPUS,
-    KEY_ROLE,
-    KEY_FROZEN,
-    KEY_SERIALNUM,
-    KEY_TYPE,
-    KEY_CATEGORY,
-    KEY_PUBLISHER,
-    KEY_YEAR,
-    KEY_COVER,
-    KEY_HITS,
-    KEY_LANG,
-    KEY_AUTHOR,
-    KEY_STOCK,
-    KEY_DURATION,
-    KEY_DATE,
-    KEY_EXTENDED,
+};
+
+enum key_sels {
+    KEY_SEL_PUBLISHERNAME = KEY_PG_SESSIONS + 1,
+    KEY_SEL_AUTHORNAME,
+    KEY_SEL_ACTIONAME,
+    KEY_SEL_LANGCODE,
+    KEY_SEL_TYPENAME,
+    KEY_SEL_CAMPUSNAME,
+    KEY_SEL_ROLENAME,
+    KEY_SEL_CATEGORYCLASS,
+    KEY_SEL_UUID,
+    KEY_SEL_SERIALNUM,
+};
+
+enum key_mods {
+    KEY_MOD_NAME = KEY_SEL_SERIALNUM + 1,
+    KEY_MOD_PERMS,
+    KEY_MOD_CLASS,
+    KEY_MOD_PARENT,
+    KEY_MOD_UUID,
+    KEY_MOD_PW,
+    KEY_MOD_CAMPUS,
+    KEY_MOD_ROLE,
+    KEY_MOD_FROZEN,
+    KEY_MOD_SERIALNUM,
+    KEY_MOD_TYPE,
+    KEY_MOD_CATEGORY,
+    KEY_MOD_PUBLISHER,
+    KEY_MOD_YEAR,
+    KEY_MOD_COVER,
+    KEY_MOD_HITS,
+    KEY_MOD_LANG,
+    KEY_MOD_AUTHOR,
+    KEY_MOD_STOCK,
+    KEY_MOD_DURATION,
+    KEY_MOD_DATE,
+    KEY_MOD_EXTENDED,
     KEY__MAX
 };
 
@@ -168,6 +184,25 @@ static struct sqlbox_pstmt pstmts_switches[STMTS__MAX - 1][8] = {
         {(char *) "rentdate = (?)"}, {(char *) "extended = (?) "}
     }
 };
+static enum key_mods switch_keys[STMTS__MAX - 1][9] = {
+    {KEY_MOD_NAME, KEY__MAX},
+    {KEY_MOD_NAME, KEY__MAX},
+    {KEY_MOD_NAME, KEY__MAX},
+    {KEY_MOD_NAME, KEY__MAX},
+    {KEY_MOD_NAME, KEY__MAX},
+    {KEY_MOD_NAME, KEY__MAX},
+    {KEY_MOD_NAME, KEY_MOD_PERMS, KEY__MAX},
+    {KEY_MOD_CLASS, KEY_MOD_NAME, KEY_MOD_PARENT, KEY__MAX},
+    {KEY_MOD_UUID, KEY_MOD_NAME, KEY_MOD_PW, KEY_MOD_CAMPUS, KEY_MOD_ROLE, KEY_MOD_FROZEN, KEY__MAX},
+    {
+        KEY_MOD_SERIALNUM, KEY_MOD_TYPE, KEY_MOD_CATEGORY, KEY_MOD_PUBLISHER, KEY_MOD_NAME, KEY_MOD_YEAR, KEY_MOD_COVER,
+        KEY_MOD_HITS, KEY__MAX
+    },
+    {KEY_MOD_SERIALNUM, KEY_MOD_LANG, KEY__MAX},
+    {KEY_MOD_SERIALNUM, KEY_MOD_AUTHOR, KEY__MAX},
+    {KEY_MOD_SERIALNUM, KEY_MOD_CAMPUS, KEY_MOD_STOCK, KEY__MAX},
+    {KEY_MOD_UUID, KEY_MOD_SERIALNUM, KEY_MOD_DURATION, KEY_MOD_DATE, KEY_MOD_EXTENDED, KEY__MAX}
+};
 static struct sqlbox_pstmt pstmts_bottom[STMTS__MAX - 1] = {
     {(char *) "WHERE publisherName = (?)"},
     {(char *) "WHERE authorName = (?)"},
@@ -185,17 +220,40 @@ static struct sqlbox_pstmt pstmts_bottom[STMTS__MAX - 1] = {
     {(char *) "WHERE UUID = (?) AND serialnum = (?) "}
 };
 
+static enum key_sels bottom_keys[STMTS__MAX - 1][3] = {
+    {KEY_SEL_PUBLISHERNAME, KEY__MAX},
+    {KEY_SEL_AUTHORNAME, KEY__MAX},
+    {KEY_SEL_ACTIONAME, KEY__MAX},
+    {KEY_SEL_LANGCODE, KEY__MAX},
+    {KEY_SEL_TYPENAME, KEY__MAX},
+    {KEY_SEL_CAMPUSNAME, KEY__MAX},
+    {KEY_SEL_ROLENAME, KEY__MAX},
+    {KEY_SEL_CATEGORYCLASS, KEY__MAX},
+    {KEY_SEL_UUID, KEY__MAX},
+    {KEY_SEL_SERIALNUM, KEY__MAX},
+    {KEY_SEL_SERIALNUM, KEY_SEL_LANGCODE, KEY__MAX},
+    {KEY_MOD_SERIALNUM, KEY_SEL_AUTHORNAME, KEY__MAX},
+    {KEY_MOD_SERIALNUM, KEY_SEL_CAMPUSNAME, KEY__MAX},
+    {KEY_SEL_UUID, KEY_SEL_SERIALNUM, KEY__MAX}
+};
+
 enum khttp sanitize() {
-    if (r.method != KMETHOD_GET)
+    if (r.method != KMETHOD_PUT) //TODO: SET TO PUT
         return KHTTP_405;
     if (r.page == PG__MAX)
         return KHTTP_404;
     return KHTTP_200;
 }
-
+enum khttp second_pass(enum statement STMT) {
+    for (int i = 0; bottom_keys[STMT][i] != KEY__MAX; ++i) {
+        if (!(r.fieldmap[bottom_keys[STMT][i]]))
+            return KHTTP_400;
+    }
+    return KHTTP_200;
+}
 enum statement get_stmts() {
     enum key i;
-    for (i = KEY_PG_PUBLISHER; i < KEY_NAME && !(r.fieldmap[i]); i++) {
+    for (i = KEY_PG_PUBLISHER; i < KEY_SEL_PUBLISHERNAME && !(r.fieldmap[i]); i++) {
     }
     return i;
 }
@@ -204,7 +262,7 @@ int main() {
     enum khttp er;
     // Parse the http request and match the keys to the keys, and pages to the pages, default to
     // querying the INVENTORY if no page was found
-    if (khttp_parse(&r, keys, KEY_NAME, pages, PG__MAX, PG__MAX) != KCGI_OK)
+    if (khttp_parse(&r, keys, KEY__MAX, pages, PG__MAX, PG__MAX) != KCGI_OK)
         return EXIT_FAILURE;
 
     if ((er = sanitize()) != KHTTP_200) {
@@ -218,11 +276,16 @@ int main() {
         return 0;
     }
     const enum statement STMT = get_stmts();
-    khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
-    khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
-    khttp_head(&r, kresps[KRESP_VARY], "%s", "Origin");
-    khttp_body(&r);
-    khttp_puts(&r, pstmts_top[STMT].stmt);
-    khttp_free(&r);
+
+    if ((er = second_pass(STMT)) != KHTTP_200) {
+        khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[er]);
+        khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
+        khttp_head(&r, kresps[KRESP_VARY], "%s", "Origin");
+        khttp_body(&r);
+        if (r.mime == KMIME_TEXT_HTML)
+            khttp_puts(&r, "Could not service request.");
+        khttp_free(&r);
+        return 0;
+    }
     return 0;
 }
