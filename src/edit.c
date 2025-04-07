@@ -270,7 +270,7 @@ static enum key_sels bottom_keys[STMTS__MAX - 1][3] = {
 };
 
 enum khttp sanitize() {
-    if (r.method != KMETHOD_PUT) //TODO: SET TO PUT
+    if (r.method != KMETHOD_GET) //TODO: SET TO PUT
         return KHTTP_405;
     if (r.page == PG__MAX)
         return KHTTP_404;
