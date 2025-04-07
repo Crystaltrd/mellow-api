@@ -186,7 +186,7 @@ static struct sqlbox_pstmt pstmts_bottom[STMTS__MAX - 1] = {
 };
 
 enum khttp sanitize() {
-    if (r.method != KMETHOD_PUT)
+    if (r.method != KMETHOD_GET)
         return KHTTP_405;
     if (r.page == PG__MAX)
         return KHTTP_404;
