@@ -4,11 +4,11 @@ PBNIX_HTML=${HOME}/public_html/mellow
 DESTDIR=/var/www/cgi-bin/mellow
 
 
-all: query auth deauth signup database.db
+all: edit query auth deauth signup database.db
 install: install-noreplace install-db
 install-pubnix: install-pubnix-noreplace install-db-pubnix
-install-noreplace: install-auth install-deauth install-query install-signup
-install-pubnix-noreplace: install-auth-pubnix install-deauth-pubnix install-query-pubnix install-signup-pubnix
+install-noreplace: install-edit install-auth install-deauth install-query install-signup
+install-pubnix-noreplace: install-edit-pubnix install-auth-pubnix install-deauth-pubnix install-query-pubnix install-signup-pubnix
 
 auth.o: src/auth.c
 	${CC} ${CFLAGS} -c -o auth.o src/auth.c
@@ -29,6 +29,15 @@ install-deauth-pubnix: deauth
 install-deauth: deauth
 	install -o www -g www -m 0500 deauth ${DESTDIR}/deauth
 
+
+edit.o: src/edit.c
+	${CC} ${CFLAGS} -c -o edit.o src/edit.c
+edit: edit.o
+	${CC} --static -o edit edit.o ${LDFLAGS}
+install-edit-pubnix: edit
+	install -m 0755 edit ${PBNIX_HTML}/edit.cgi
+install-edit: edit
+	install -o www -g www -m 0500 edit ${DESTDIR}/edit
 
 query.o: src/query.c
 	${CC} ${CFLAGS} -c -o query.o src/query.c
