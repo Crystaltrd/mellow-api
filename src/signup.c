@@ -1,11 +1,7 @@
-#include <ctype.h>
 #include <sys/types.h> /* size_t, ssize_t */
 #include <stdarg.h> /* va_list */
-#include <stddef.h> /* NULL */
 #include <stdint.h> /* int64_t */
-#include <unistd.h> /* pledge() */
 #include <err.h> /* err(), warnx() */
-#include <inttypes.h>
 #include <stdlib.h> /* EXIT_FAILURE */
 #include <string.h> /* memset() */
 #include <kcgi.h>
@@ -13,8 +9,6 @@
 #include <sqlbox.h>
 #include <stdbool.h>
 #include <stdio.h>
-#include <time.h>
-#include <pwd.h>
 #include <unistd.h>
 #ifndef __BSD_VISIBLE
 #define	_PASSWORD_LEN		128
@@ -101,9 +95,6 @@ enum khttp sanitize() {
     if (!(r.fieldmap[KEY_UUID] && r.fieldmap[KEY_NAME] && r.fieldmap[KEY_PASSWD] && r.fieldmap[KEY_ROLE] && r.fieldmap[
               KEY_CAMPUS]))
         return KHTTP_406;
-    if (!isalnum(r.fieldmap[KEY_UUID]->parsed.s))
-        return KHTTP_406;
-
     return KHTTP_200;
 }
 
