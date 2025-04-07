@@ -719,7 +719,7 @@ void alloc_ctx_cfg() {
     cfg_count.msg.func_short = warnx;
     cfg_count.srcs.srcsz = 1;
     cfg_count.srcs.srcs = srcs;
-    cfg_count.stmts.stmtsz = STMTS__MAX - 1;
+    cfg_count.stmts.stmtsz = STMTS__MAX - 2; // -2 is the number of reserved statements, without count
     cfg_count.stmts.stmts = pstmts_count;
     if ((boxctx_count = sqlbox_alloc(&cfg_count)) == NULL)
         errx(EXIT_FAILURE, "sqlbox_alloc");
