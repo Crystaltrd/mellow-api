@@ -329,7 +329,7 @@ int main() {
     khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
     khttp_head(&r, kresps[KRESP_VARY], "%s", "Origin");
     khttp_body(&r);
-    khttp_puts(&r, "Serviced");
+    khttp_puts(&r,pstmts_top[STMT].stmt);
     for (int i = 0; switch_keys[STMT][i] != KEY__MAX; ++i) {
         if (r.fieldmap[switch_keys[STMT][i]]) {
             if (i != 0)
@@ -337,9 +337,9 @@ int main() {
             khttp_puts(&r, pstmts_switches[STMT][i].stmt);
         }else {
 
-            khttp_puts(&r, "ANYTHING");
         }
     }
+    khttp_puts(&r,pstmts_bottom[STMT].stmt);
     khttp_free(&r);
     return 0;
 }
