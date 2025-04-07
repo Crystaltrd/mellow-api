@@ -113,13 +113,14 @@ static struct sqlbox_pstmt pstmts_top[STMTS__MAX] = {
     {(char *) "UPDATE AUTHORED SET "},
     {(char *) "UPDATE STOCK SET "},
     {(char *) "UPDATE INVENTORY SET "},
-    { (char *)
+    {
+        (char *)
         "INSERT INTO HISTORY (UUID, IP, action, actiondate, details) "
         "VALUES ((?),(?),'EDIT',datetime('now','localtime'),(?))"
     }
 };
 
-static struct sqlbox_pstmt pstmts_middleware[STMTS__MAX-1][7] = {
+static struct sqlbox_pstmt pstmts_middleware[STMTS__MAX - 1][7] = {
     {{(char *) "publisherName = (?) "}},
     {{(char *) "authorName = (?) "}},
     {{(char *) "actionName = (?) "}},
@@ -139,13 +140,13 @@ static struct sqlbox_pstmt pstmts_middleware[STMTS__MAX-1][7] = {
     },
     {{(char *) "serialnum = (?) "}, {(char *) "lang = (?) "}},
     {{(char *) "serialnum = (?) "}, {(char *) "author = (?) "}},
-    {{(char *) "serialnum = (?) "}, {(char *) "campus = (?) "}, {(char *) "instock = (?) "}}
+    {{(char *) "serialnum = (?) "}, {(char *) "campus = (?) "}, {(char *) "instock = (?) "}},
     {
         {(char *) "UUID = (?) "}, {(char *) "serialnum = (?) "}, {(char *) "rentduration = (?) "},
         {(char *) "rentdate = (?)"}, {(char *) "extended = (?) "}
     }
 };
-static struct sqlbox_pstmt pstmts_bottom[STMTS__MAX-1] = {
+static struct sqlbox_pstmt pstmts_bottom[STMTS__MAX - 1] = {
     {(char *) "WHERE publisherName = (?)"},
     {(char *) "WHERE authorName = (?)"},
     {(char *) "WHERE actionName = (?)"},
