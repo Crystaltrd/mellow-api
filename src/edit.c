@@ -310,37 +310,11 @@ int main() {
     }
     const enum statement STMT = get_stmts();
 
-    if ((er = second_pass(STMT)) != KHTTP_200) {
-        khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[er]);
-        khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
-        khttp_head(&r, kresps[KRESP_VARY], "%s", "Origin");
-        khttp_body(&r);
-        char *buf;
-        for (int i = 0; bottom_keys[STMT][i] != KEY__MAX; ++i) {
-            if (!(r.fieldmap[bottom_keys[STMT][i]])) {
-                kasprintf(&buf, "STMT: %s, KEY: %d", pstmts_bottom[STMT].stmt, bottom_keys[STMT][i]);
-                break;
-            }
-        }
-        if (r.mime == KMIME_TEXT_HTML)
-            khttp_puts(&r, buf);
-
-        khttp_free(&r);
-        return 0;
-    }
-
     khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[er]);
     khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
     khttp_head(&r, kresps[KRESP_VARY], "%s", "Origin");
     khttp_body(&r);
-    for (int i = 0; switch_keys[STMT][i] != KEY__MAX; ++i) {
-        if (r.fieldmap[switch_keys[STMT][i]]) {
-            if (i != 0)
-                khttp_puts(&r, ",");
-            khttp_puts(&r, pstmts_switches[STMT][i].stmt);
-        }
-    }
-
+    khttp_puts(&r,pstmts_bottom[STMT].stmt);
     khttp_free(&r);
     return 0;
 }
