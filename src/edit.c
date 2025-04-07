@@ -316,12 +316,28 @@ int main() {
         return 0;
     }
     const enum statement STMT = get_stmts();
-
-    khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[er]);
+    if ((er = second_pass(STMT)) != KHTTP_200) {
+        khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[er]);
+        khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
+        khttp_head(&r, kresps[KRESP_VARY], "%s", "Origin");
+        khttp_body(&r);
+        if (r.mime == KMIME_TEXT_HTML)
+            khttp_puts(&r, "Could not service request. Second pass");
+        khttp_free(&r);
+        return 0;
+    }
+    khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
     khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
     khttp_head(&r, kresps[KRESP_VARY], "%s", "Origin");
     khttp_body(&r);
-    khttp_puts(&r, pstmts_bottom[STMT].stmt);
+    for (int i = 0; switch_keys[STMT][i] != KEY__MAX; ++i) {
+        if (r.fieldmap[switch_keys[STMT][i]]) {
+            if (i != 0)
+                khttp_puts(&r, ",");
+            khttp_puts(&r, pstmts_switches[STMT][i].stmt);
+        }
+    }
+
     khttp_free(&r);
     return 0;
 }
