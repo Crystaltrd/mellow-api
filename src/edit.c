@@ -335,6 +335,9 @@ int main() {
             if (i != 0)
                 khttp_puts(&r, ",");
             khttp_puts(&r, pstmts_switches[STMT][i].stmt);
+        }else {
+
+            khttp_puts(&r, "ANYTHING");
         }
     }
     khttp_free(&r);
