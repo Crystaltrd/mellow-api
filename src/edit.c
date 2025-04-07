@@ -57,7 +57,7 @@ enum key {
 };
 
 enum key_sels {
-    KEY_SEL_PUBLISHERNAME = KEY_PG_INVENTORY + 1,
+    KEY_SEL_PUBLISHERNAME = KEY_PG_HISTORY + 1,
     KEY_SEL_AUTHORNAME,
     KEY_SEL_ACTIONAME,
     KEY_SEL_LANGCODE,
@@ -314,19 +314,28 @@ int main() {
         khttp_free(&r);
         return 0;
     }
-
+    const enum statement STMT = get_stmts();
+    if ((er = second_pass(STMT)) != KHTTP_200) {
         khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[er]);
         khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
         khttp_head(&r, kresps[KRESP_VARY], "%s", "Origin");
         khttp_body(&r);
-    for (int i = 0; i < KEY__MAX; ++i) {
-        char *buf;
-        kasprintf(&buf,"%d    ",i);
-       if (r.fieldmap[i]) {
-           khttp_puts(&r,buf);
-       }
+        if (r.mime == KMIME_TEXT_HTML)
+            khttp_puts(&r, "Could not service request. Second pass");
+        khttp_free(&r);
+        return 0;
     }
-
+    khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
+    khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
+    khttp_head(&r, kresps[KRESP_VARY], "%s", "Origin");
+    khttp_body(&r);
+    for (int i = 0; switch_keys[STMT][i] != KEY__MAX; ++i) {
+        if (r.fieldmap[switch_keys[STMT][i]]) {
+            if (i != 0)
+                khttp_puts(&r, ",");
+            khttp_puts(&r, pstmts_switches[STMT][i].stmt);
+        }
+    }
     khttp_free(&r);
     return 0;
 }
