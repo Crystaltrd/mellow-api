@@ -317,7 +317,7 @@ int main() {
         khttp_head(&r, kresps[KRESP_VARY], "%s", "Origin");
         khttp_body(&r);
         if (r.mime == KMIME_TEXT_HTML)
-            khttp_puts(&r, "Could not service request.");
+            khttp_puts(&r, "Could not service request. Second pass");
         khttp_free(&r);
         return 0;
     }
