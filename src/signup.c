@@ -1,3 +1,4 @@
+#include <ctype.h>
 #include <sys/types.h> /* size_t, ssize_t */
 #include <stdarg.h> /* va_list */
 #include <stddef.h> /* NULL */
@@ -100,6 +101,9 @@ enum khttp sanitize() {
     if (!(r.fieldmap[KEY_UUID] && r.fieldmap[KEY_NAME] && r.fieldmap[KEY_PASSWD] && r.fieldmap[KEY_ROLE] && r.fieldmap[
               KEY_CAMPUS]))
         return KHTTP_406;
+    if (!isalnum(r.fieldmap[KEY_UUID]->parsed.s))
+        return KHTTP_406;
+
     return KHTTP_200;
 }
 
