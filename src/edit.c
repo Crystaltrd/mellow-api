@@ -271,8 +271,13 @@ static enum key_sels bottom_keys[STMTS__MAX - 1][3] = {
 enum khttp sanitize() {
     if (r.method != KMETHOD_GET) //TODO: SET TO PUT
         return KHTTP_405;
-    if (r.page == PG__MAX)
-        return KHTTP_404;
+    if (r.page == PG__MAX) {
+        enum key i;
+        for (i = KEY_PG_PUBLISHER; i < KEY_SEL_PUBLISHERNAME && !(r.fieldmap[i]); i++) {
+        }
+        if (i == KEY_SEL_PUBLISHERNAME)
+            return KHTTP_404;
+    }
     return KHTTP_200;
 }
 
@@ -314,7 +319,7 @@ int main() {
     khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
     khttp_head(&r, kresps[KRESP_VARY], "%s", "Origin");
     khttp_body(&r);
-    khttp_puts(&r,pstmts_bottom[STMT].stmt);
+    khttp_puts(&r, pstmts_bottom[STMT].stmt);
     khttp_free(&r);
     return 0;
 }
