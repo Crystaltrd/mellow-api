@@ -109,7 +109,7 @@ static const struct kvalid keys[KEY__MAX] = {
     {NULL, "book"},
     {NULL, "stock"},
     {NULL, "inventory"},
-    {kvalid_stringne, "select_pub"},
+    {kvalid_stringne, "select_publishername"},
     {kvalid_stringne, "select_authorname"},
     {kvalid_stringne, "select_actioname"},
     {kvalid_stringne, "select_langcode"},
@@ -315,38 +315,17 @@ int main() {
         khttp_free(&r);
         return 0;
     }
-    const enum statement STMT = get_stmts();
-    if ((er = second_pass(STMT)) != KHTTP_200) {
+
         khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[er]);
         khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
         khttp_head(&r, kresps[KRESP_VARY], "%s", "Origin");
         khttp_body(&r);
-        if (r.mime == KMIME_TEXT_HTML) {
-            khttp_puts(&r, "Could not service request. Second pass");
-            khttp_puts(&r, pstmts_bottom[STMT].stmt);
-            char *buf;
-            for (int i = 0; bottom_keys[STMT][i] != KEY__MAX; ++i) {
-                kasprintf(&buf,"KEY: %d ----", bottom_keys[STMT][i]);
-                if (!(r.fieldmap[bottom_keys[STMT][i]]))
-                    khttp_puts(&r,buf);
-            }
-            if (r.fieldmap[KEY_SEL_PUBLISHERNAME]) {
-                khttp_puts(&r,"FOUND");
-            }
-        }
-        khttp_free(&r);
-        return 0;
-    }
-    khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
-    khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
-    khttp_head(&r, kresps[KRESP_VARY], "%s", "Origin");
-    khttp_body(&r);
-    for (int i = 0; switch_keys[STMT][i] != KEY__MAX; ++i) {
-        if (r.fieldmap[switch_keys[STMT][i]]) {
-            if (i != 0)
-                khttp_puts(&r, ",");
-            khttp_puts(&r, pstmts_switches[STMT][i].stmt);
-        }
+    for (int i = 0; i < KEY__MAX; ++i) {
+        char *buf;
+        kasprintf(&buf,"%d    ",i);
+       if (r.fieldmap[i]) {
+           khttp_puts(&r,buf);
+       }
     }
 
     khttp_free(&r);
