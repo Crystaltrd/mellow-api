@@ -110,6 +110,38 @@ static const struct kvalid keys[KEY__MAX] = {
     {NULL, "book"},
     {NULL, "stock"},
     {NULL, "inventory"},
+    {kvalid_stringne, "select_publishername"},
+    {kvalid_stringne, "select_authorname"},
+    {kvalid_stringne, "select_actioname"},
+    {kvalid_stringne, "select_langcode"},
+    {kvalid_stringne, "select_typename"},
+    {kvalid_stringne, "select_campusname"},
+    {kvalid_stringne, "select_rolename"},
+    {kvalid_stringne, "select_categoryclass"},
+    {kvalid_stringne, "select_uuid"},
+    {kvalid_stringne, "select_serialnum"},
+    {kvalid_stringne, "name"},
+    {kvalid_stringne, "perms"},
+    {kvalid_stringne, "class"},
+    {kvalid_stringne, "parent"},
+    {kvalid_stringne, "uuid"},
+    {kvalid_stringne, "pw"},
+    {kvalid_stringne, "campus"},
+    {kvalid_stringne, "role"},
+    {kvalid_stringne, "frozen"},
+    {kvalid_stringne, "serialnum"},
+    {kvalid_stringne, "type"},
+    {kvalid_stringne, "category"},
+    {kvalid_stringne, "publisher"},
+    {kvalid_stringne, "year"},
+    {kvalid_stringne, "cover"},
+    {kvalid_stringne, "hits"},
+    {kvalid_stringne, "lang"},
+    {kvalid_stringne, "author"},
+    {kvalid_stringne, "stock"},
+    {kvalid_stringne, "duration"},
+    {kvalid_stringne, "date"},
+    {kvalid_stringne, "extended"},
 };
 
 enum statement {
@@ -244,6 +276,7 @@ enum khttp sanitize() {
         return KHTTP_404;
     return KHTTP_200;
 }
+
 enum khttp second_pass(enum statement STMT) {
     for (int i = 0; bottom_keys[STMT][i] != KEY__MAX; ++i) {
         if (!(r.fieldmap[bottom_keys[STMT][i]]))
@@ -251,6 +284,7 @@ enum khttp second_pass(enum statement STMT) {
     }
     return KHTTP_200;
 }
+
 enum statement get_stmts() {
     enum key i;
     for (i = KEY_PG_PUBLISHER; i < KEY_SEL_PUBLISHERNAME && !(r.fieldmap[i]); i++) {
@@ -287,5 +321,19 @@ int main() {
         khttp_free(&r);
         return 0;
     }
+
+    khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[er]);
+    khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
+    khttp_head(&r, kresps[KRESP_VARY], "%s", "Origin");
+    khttp_body(&r);
+    for (int i = 0; switch_keys[STMT][i] != KEY__MAX; ++i) {
+        if (r.fieldmap[switch_keys[STMT][i]]) {
+            if (i != 0)
+                khttp_puts(&r, ",");
+            khttp_puts(&r, pstmts_switches[STMT][i].stmt);
+        }
+    }
+
+    khttp_free(&r);
     return 0;
 }
