@@ -317,7 +317,7 @@ int main() {
         khttp_head(&r, kresps[KRESP_VARY], "%s", "Origin");
         khttp_body(&r);
         char *buf;
-        for (int i = 0; bottom_keys[STMT][i] != KEY__MAX; ++i) {
+        for (int i = bottom_keys[STMT][0]; bottom_keys[STMT][i] != KEY__MAX; ++i) {
             if (!(r.fieldmap[bottom_keys[STMT][i]])) {
                 kasprintf(&buf, "STMT: %s, KEY: %d", pstmts_bottom[STMT].stmt, i);
                 break;
