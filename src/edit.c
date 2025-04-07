@@ -327,7 +327,7 @@ int main() {
             char *buf;
             for (int i = 0; bottom_keys[STMT][i] != KEY__MAX; ++i) {
                 kasprintf(&buf,"KEY: %d ----", bottom_keys[STMT][i]);
-                if (r.fieldmap[bottom_keys[STMT][i]])
+                if (!(r.fieldmap[bottom_keys[STMT][i]]))
                     khttp_puts(&r,buf);
             }
             if (r.fieldmap[KEY_SEL_PUBLISHERNAME]) {
