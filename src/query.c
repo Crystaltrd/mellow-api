@@ -197,6 +197,8 @@ enum statement {
     STMTS_HISTORY,
     STMTS_SESSIONS,
     __STMT_STORE__,
+    __STMT_BOOK_AUTHORED__,
+    __STMT_BOOK_LANGUAGES__,
     STMTS__MAX
 };
 
@@ -478,7 +480,19 @@ static struct sqlbox_pstmt pstmts_data[STMTS__MAX] = {
         (char *)
         "INSERT INTO HISTORY (UUID, IP, action, actiondate, details) "
         "VALUES ((?),(?),'QUERY',datetime('now','localtime'),(?))"
-    }
+    },
+    {
+        (char *)
+        "SELECT author "
+        "FROM AUTHORED "
+        "WHERE serialnum = (?)"
+    },
+    {
+        (char *)
+        "SELECT lang "
+        "FROM LANGUAGES "
+        "WHERE serialnum = (?)"
+    },
 
 };
 
@@ -1566,6 +1580,41 @@ void process(const enum statement STATEMENT) {
             kjson_arrayp_open(&req, "children");
             get_cat_children(res->ps[0].sparm);
             kjson_array_close(&req);
+        }
+        if (STATEMENT == STMTS_BOOK) {
+            size_t stmtid_book_data;
+            size_t parmsz_book = 1;
+            const struct sqlbox_parmset *res_book;
+            struct sqlbox_parm parms_book[] = {
+                {.type = SQLBOX_PARM_STRING, .sparm = res->ps[0].sparm},
+            };
+            if (!(stmtid_book_data =
+                  sqlbox_prepare_bind(boxctx_data, dbid_data, __STMT_BOOK_AUTHORED__, parmsz_book, parms_book,
+                                      SQLBOX_STMT_MULTI)))
+                errx(EXIT_FAILURE, "sqlbox_prepare_bind");
+
+            kjson_arrayp_open(&req, "authors");
+            while ((res_book = sqlbox_step(boxctx_data, stmtid_book_data)) != NULL && res_book->code == SQLBOX_CODE_OK
+                   && res_book->psz != 0)
+                kjson_putstring(&req, res_book->ps[0].sparm);
+            kjson_array_close(&req);
+
+            if (!sqlbox_finalise(boxctx_data, stmtid_book_data))
+                errx(EXIT_FAILURE, "sqlbox_finalise");
+
+            if (!(stmtid_book_data =
+                  sqlbox_prepare_bind(boxctx_data, dbid_data, __STMT_BOOK_LANGUAGES__, parmsz_book, parms_book,
+                                      SQLBOX_STMT_MULTI)))
+                errx(EXIT_FAILURE, "sqlbox_prepare_bind");
+
+            kjson_arrayp_open(&req, "langs");
+            while ((res_book = sqlbox_step(boxctx_data, stmtid_book_data)) != NULL && res_book->code == SQLBOX_CODE_OK
+                   && res_book->psz != 0)
+                kjson_putstring(&req, res_book->ps[0].sparm);
+            kjson_array_close(&req);
+
+            if (!sqlbox_finalise(boxctx_data, stmtid_book_data))
+                errx(EXIT_FAILURE, "sqlbox_finalise");
         }
         kjson_obj_close(&req);
     }
