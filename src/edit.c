@@ -278,6 +278,7 @@ enum statement {
     STMT_EDIT,
     __STMT_SAVE__,
     __STMT_LOGIN__,
+    __STMT_COUNT__,
     STMT__REAL__MAX
 };
 
@@ -298,6 +299,7 @@ static struct sqlbox_pstmt pstmts[STMT__REAL__MAX] = {
         "AND sessionID = (?) "
         "GROUP BY ACCOUNT.UUID, displayname, pwhash, campus, perms, frozen "
     },
+    {(char *) "SELECT changes()"}
 };
 
 
