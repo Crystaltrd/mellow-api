@@ -191,29 +191,29 @@ static struct sqlbox_pstmt pstmts_top[STMTS__MAX] = {
 
 
 static struct sqlbox_pstmt pstmts_switches[STMTS__MAX][8] = {
-    {{(char *) "publisherName = (?) "}},
-    {{(char *) "authorName = (?) "}},
-    {{(char *) "actionName = (?) "}},
-    {{(char *) "langcode = (?) "}},
-    {{(char *) "typeName = (?) "}},
-    {{(char *) "campusName = (?) "}},
-    {{(char *) "roleName = (?) "}, {(char *) "perms = (?) "}},
-    {{(char *) "categoryClass = (?) "}, {(char *) "categoryName = (?) "}, {(char *) "parentCategoryID = (?) "}},
+    {{(char *) "publisherName = (?)"}},
+    {{(char *) "authorName = (?)"}},
+    {{(char *) "actionName = (?)"}},
+    {{(char *) "langcode = (?)"}},
+    {{(char *) "typeName = (?)"}},
+    {{(char *) "campusName = (?)"}},
+    {{(char *) "roleName = (?)"}, {(char *) "perms = (?)"}},
+    {{(char *) "categoryClass = (?)"}, {(char *) "categoryName = (?)"}, {(char *) "parentCategoryID = (?)"}},
     {
-        {(char *) "UUID = (?) "}, {(char *) "displayname = (?) "}, {(char *) "pwhash = (?) "},
-        {(char *) "campus = (?) "}, {(char *) "role = (?) "}, {(char *) "frozen = (?) "}
+        {(char *) "UUID = (?)"}, {(char *) "displayname = (?)"}, {(char *) "pwhash = (?)"},
+        {(char *) "campus = (?)"}, {(char *) "role = (?)"}, {(char *) "frozen = (?)"}
     },
     {
-        {(char *) "serialnum = (?) "}, {(char *) "type = (?) "}, {(char *) "category = (?) "},
-        {(char *) "publisher = (?) "}, {(char *) "booktitle = (?) "}, {(char *) "bookreleaseyear = (?) "},
-        {(char *) "bookcover = (?) "}, {(char *) "hits = (?) "}
+        {(char *) "serialnum = (?)"}, {(char *) "type = (?)"}, {(char *) "category = (?)"},
+        {(char *) "publisher = (?)"}, {(char *) "booktitle = (?)"}, {(char *) "bookreleaseyear = (?)"},
+        {(char *) "bookcover = (?)"}, {(char *) "hits = (?)"}
     },
-    {{(char *) "serialnum = (?) "}, {(char *) "lang = (?) "}},
-    {{(char *) "serialnum = (?) "}, {(char *) "author = (?) "}},
-    {{(char *) "serialnum = (?) "}, {(char *) "campus = (?) "}, {(char *) "instock = (?) "}},
+    {{(char *) "serialnum = (?)"}, {(char *) "lang = (?)"}},
+    {{(char *) "serialnum = (?)"}, {(char *) "author = (?)"}},
+    {{(char *) "serialnum = (?)"}, {(char *) "campus = (?)"}, {(char *) "instock = (?)"}},
     {
-        {(char *) "UUID = (?) "}, {(char *) "serialnum = (?) "}, {(char *) "rentduration = (?) "},
-        {(char *) "rentdate = (?)"}, {(char *) "extended = (?) "}
+        {(char *) "UUID = (?)"}, {(char *) "serialnum = (?)"}, {(char *) "rentduration = (?)"},
+        {(char *) "rentdate = (?)"}, {(char *) "extended = (?)"}
     }
 };
 static enum key_mods switch_keys[STMTS__MAX][9] = {
@@ -315,7 +315,7 @@ enum khttp third_pass(enum statement_comp STMT) {
             kasprintf(&pstmts[STMT_EDIT].stmt, "%s,%s", pstmts[STMT_EDIT].stmt, pstmts_switches[STMT][i].stmt);
         }
     }
-    kasprintf(&pstmts[STMT_EDIT].stmt, "%s%s", pstmts[STMT_EDIT].stmt, pstmts_bottom[STMT].stmt);
+    kasprintf(&pstmts[STMT_EDIT].stmt, "%s %s", pstmts[STMT_EDIT].stmt, pstmts_bottom[STMT].stmt);
     return KHTTP_200;
 }
 
