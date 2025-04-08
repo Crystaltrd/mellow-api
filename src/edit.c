@@ -454,6 +454,7 @@ int main() {
     if ((er = second_pass(STMT)) != KHTTP_200) goto error;
     if ((er = third_pass(STMT)) != KHTTP_200) goto error;
     alloc_ctx_cfg();
+    fill_user();
     khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
     khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
     khttp_head(&r, kresps[KRESP_VARY], "%s", "Origin");
