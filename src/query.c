@@ -174,7 +174,7 @@ static const struct kvalid keys[KEY__MAX] = {
     {kvalid_date, "from_date"},
     {kvalid_date, "to_date"},
     {kvalid_int, "by_session"},
-    {kvalid_string, "sessionID"},
+    {kvalid_stringne, "sessionID"},
     {NULL, "details"},
 };
 /*
@@ -1758,6 +1758,7 @@ access_denied:
     kjson_putboolp(&req, "authenticated", curr_usr.authenticated);
     kjson_putstringp(&req, "error", "You don't have the permissions to access this ressource");
     kjson_obj_close(&req);
+    kjson_close(&req);
     save(STMT,true);
 cleanup:
     khttp_free(&r);

@@ -40,8 +40,7 @@ enum pg {
 
 static const char *pages[PG__MAX] = {
     "publisher", "author", "lang", "action", "doctype", "campus", "role", "category", "account", "book", "languages",
-    "authored", "stock",
-    "inventory"
+    "authored", "stock", "inventory"
 };
 
 enum key {
@@ -61,8 +60,12 @@ enum key {
     KEY_PG_INVENTORY,
 };
 
+enum key_cookie {
+    COOKIE_SESSIONID = KEY_PG_INVENTORY + 1,
+};
+
 enum key_sels {
-    KEY_SEL_PUBLISHERNAME = KEY_PG_INVENTORY + 1,
+    KEY_SEL_PUBLISHERNAME = COOKIE_SESSIONID + 1,
     KEY_SEL_AUTHORNAME,
     KEY_SEL_ACTIONAME,
     KEY_SEL_LANGCODE,
@@ -115,6 +118,7 @@ static const struct kvalid keys[KEY__MAX] = {
     {NULL, "authored"},
     {NULL, "stock"},
     {NULL, "inventory"},
+    {kvalid_stringne, "sessionID"},
     {kvalid_stringne, "select_publishername"},
     {kvalid_stringne, "select_authorname"},
     {kvalid_stringne, "select_actioname"},
@@ -274,26 +278,135 @@ enum statement {
     STMT_EDIT,
     __STMT_SAVE__,
     __STMT_LOGIN__,
-    STMT__MAX
+    STMT__REAL__MAX
 };
 
-static struct sqlbox_pstmt pstmts[STMT__MAX] = {
+static struct sqlbox_pstmt pstmts[STMT__REAL__MAX] = {
     {NULL},
     {
         (char *)
         "INSERT INTO HISTORY (UUID, IP, action, actiondate, details) "
         "VALUES ((?),(?),'EDIT',datetime('now','localtime'),(?))"
+    },
+    {
+        (char *)
+        "SELECT ACCOUNT.UUID, displayname, pwhash, campus, role, perms, frozen "
+        "FROM ROLE,"
+        "ACCOUNT "
+        "LEFT JOIN SESSIONS S on ACCOUNT.UUID = S.account "
+        "WHERE ACCOUNT.role = ROLE.roleName "
+        "AND sessionID = (?) "
+        "GROUP BY ACCOUNT.UUID, displayname, pwhash, campus, perms, frozen "
+    },
+};
+
+
+struct sqlbox_src srcs[] = {
+    {
+        .fname = (char *) "db/database.db",
+        .mode = SQLBOX_SRC_RW
     }
 };
+struct sqlbox *boxctx_data;
+struct sqlbox_cfg cfg_data;
+size_t dbid_data; // Database associated with a config and a context for query results
+void alloc_ctx_cfg() {
+    memset(&cfg_data, 0, sizeof(struct sqlbox_cfg));
+    cfg_data.msg.func_short = warnx;
+    cfg_data.srcs.srcsz = 1;
+    cfg_data.srcs.srcs = srcs;
+    cfg_data.stmts.stmtsz = STMT__REAL__MAX;
+    cfg_data.stmts.stmts = pstmts;
+    if ((boxctx_data = sqlbox_alloc(&cfg_data)) == NULL)
+        errx(EXIT_FAILURE, "sqlbox_alloc");
+    if (!(dbid_data = sqlbox_open(boxctx_data, 0)))
+        errx(EXIT_FAILURE, "sqlbox_open");
+}
+
+struct accperms {
+    int numeric;
+    bool admin;
+    bool staff;
+    bool manage_stock;
+    bool manage_inventories;
+    bool see_accounts;
+    bool monitor_history;
+    bool has_inventory;
+};
+
+struct accperms int_to_accperms(int perm) {
+    struct accperms perms = {
+        .numeric = perm,
+        .admin = (perm & (1 << 6)),
+        .staff = (perm & (1 << 5)),
+        .manage_stock = (perm & (1 << 4)),
+        .manage_inventories = (perm & (1 << 3)),
+        .see_accounts = (perm & (1 << 2)),
+        .monitor_history = (perm & (1 << 1)),
+        .has_inventory = (perm & 1)
+    };
+    return perms;
+}
+
+struct usr {
+    char *UUID;
+    char *disp_name;
+    char *campus;
+    char *role;
+    struct accperms perms;
+    bool authenticated;
+    bool frozen;
+};
+
+struct usr curr_usr = {
+    .authenticated = false,
+    .frozen = false,
+    .UUID = NULL,
+    .disp_name = NULL,
+    .campus = NULL,
+    .role = NULL,
+    .perms = {0, 0, 0, 0, 0, 0, 0, 0}
+};
+
+void fill_user() {
+    struct kpair *field;
+    if ((field = r.cookiemap[COOKIE_SESSIONID])) {
+        size_t stmtid;
+        size_t parmsz = 1;
+        const struct sqlbox_parmset *res;
+        struct sqlbox_parm parms[] = {
+            {.type = SQLBOX_PARM_STRING, .sparm = field->parsed.s},
+        };
+        if (!(stmtid = sqlbox_prepare_bind(boxctx_data, dbid_data, STMT_EDIT, parmsz, parms, 0)))
+            errx(EXIT_FAILURE, "sqlbox_prepare_bind");
+        if ((res = sqlbox_step(boxctx_data, stmtid)) == NULL)
+            errx(EXIT_FAILURE, "sqlbox_step");
+        if (res->psz != 0) {
+            curr_usr.authenticated = true;
+            kasprintf(&curr_usr.UUID, "%s", res->ps[0].sparm);
+
+            kasprintf(&curr_usr.disp_name, "%s", res->ps[1].sparm);
+
+            kasprintf(&curr_usr.campus, "%s", res->ps[3].sparm);
+
+            kasprintf(&curr_usr.role, "%s", res->ps[4].sparm);
+
+            curr_usr.perms = int_to_accperms((int) res->ps[5].iparm);
+
+            curr_usr.frozen = res->ps[6].iparm;
+        }
+        sqlbox_finalise(boxctx_data, stmtid);
+    }
+}
 
 enum khttp sanitize() {
     if (r.method != KMETHOD_GET) //TODO: SET TO PUT
         return KHTTP_405;
     if (r.page == PG__MAX) {
         enum key i;
-        for (i = KEY_PG_PUBLISHER; i < KEY_SEL_PUBLISHERNAME && !(r.fieldmap[i]); i++) {
+        for (i = KEY_PG_PUBLISHER; i < COOKIE_SESSIONID && !(r.fieldmap[i]); i++) {
         }
-        if (i == KEY_SEL_PUBLISHERNAME)
+        if (i == COOKIE_SESSIONID)
             return KHTTP_404;
     }
     return KHTTP_200;
@@ -310,20 +423,22 @@ enum khttp second_pass(enum statement_comp STMT) {
 enum khttp third_pass(enum statement_comp STMT) {
     kasprintf(&pstmts[STMT_EDIT].stmt, "%s", pstmts_top[STMT].stmt);
     kasprintf(&pstmts[STMT_EDIT].stmt, "%s%s", pstmts[STMT_EDIT].stmt, pstmts_switches[STMT][0].stmt);
+    bool found = false;
     for (int i = 1; switch_keys[STMT][i] != KEY__MAX; ++i) {
         if (r.fieldmap[switch_keys[STMT][i]]) {
+            found = true;
             kasprintf(&pstmts[STMT_EDIT].stmt, "%s,%s", pstmts[STMT_EDIT].stmt, pstmts_switches[STMT][i].stmt);
         }
     }
     kasprintf(&pstmts[STMT_EDIT].stmt, "%s %s", pstmts[STMT_EDIT].stmt, pstmts_bottom[STMT].stmt);
-    return KHTTP_200;
+    return (found) ? KHTTP_200 : KHTTP_400;
 }
 
 enum statement_comp get_stmts() {
     if (r.page != PG__MAX)
         return (enum statement_comp) r.page;
     enum key i;
-    for (i = KEY_PG_PUBLISHER; i < KEY_SEL_PUBLISHERNAME && !(r.fieldmap[i]); i++) {
+    for (i = KEY_PG_PUBLISHER; i < COOKIE_SESSIONID && !(r.fieldmap[i]); i++) {
     }
     return (enum statement_comp) i;
 }
@@ -334,19 +449,44 @@ int main() {
     // querying the PG__MAX if no page was found
     if (khttp_parse(&r, keys, KEY__MAX, pages, PG__MAX, PG__MAX) != KCGI_OK)
         return EXIT_FAILURE;
-    if ((er = sanitize()) != KHTTP_200) goto cleanup;
+    if ((er = sanitize()) != KHTTP_200) goto error;
     const enum statement_comp STMT = get_stmts();
-    if ((er = second_pass(STMT)) != KHTTP_200) goto cleanup;
-    if ((er = third_pass(STMT)) != KHTTP_200) goto cleanup;
+    if ((er = second_pass(STMT)) != KHTTP_200) goto error;
+    if ((er = third_pass(STMT)) != KHTTP_200) goto error;
+    alloc_ctx_cfg();
     khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
     khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
     khttp_head(&r, kresps[KRESP_VARY], "%s", "Origin");
     khttp_body(&r);
-    khttp_puts(&r, pstmts[STMT_EDIT].stmt);
+    kjson_open(&req, &r);
+    kjson_obj_open(&req);
+    kjson_putstringp(&req, "IP", r.remote);
+    kjson_putboolp(&req, "authenticated", curr_usr.authenticated);
+    if (curr_usr.authenticated) {
+        kjson_putstringp(&req, "UUID", curr_usr.UUID);
+        kjson_putstringp(&req, "disp_name", curr_usr.disp_name);
+        kjson_putstringp(&req, "campus", curr_usr.campus);
+        kjson_putstringp(&req, "role", curr_usr.role);
+        kjson_putboolp(&req, "frozen", curr_usr.frozen);
 
-    khttp_free(&r);
-    return 0;
+        kjson_objp_open(&req, "perms");
+        kjson_putintp(&req, "numeric", curr_usr.perms.numeric);
+        kjson_putboolp(&req, "admin", curr_usr.perms.admin);
+        kjson_putboolp(&req, "staff", curr_usr.perms.staff);
+        kjson_putboolp(&req, "manage_stock", curr_usr.perms.manage_stock);
+        kjson_putboolp(&req, "manage_inventories", curr_usr.perms.manage_inventories);
+        kjson_putboolp(&req, "see_accounts", curr_usr.perms.see_accounts);
+        kjson_putboolp(&req, "monitor_history", curr_usr.perms.monitor_history);
+        kjson_putboolp(&req, "has_inventory", curr_usr.perms.has_inventory);
+        kjson_obj_close(&req);
+    }
+    kjson_obj_close(&req);
+    kjson_close(&req);
 cleanup:
+    khttp_free(&r);
+    sqlbox_free(boxctx_data);
+    return 0;
+error:
     khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[er]);
     khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
     khttp_head(&r, kresps[KRESP_VARY], "%s", "Origin");
