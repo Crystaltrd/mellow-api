@@ -65,20 +65,12 @@ enum key_cookie {
 };
 
 enum key_sels {
-    KEY_SEL_PUBLISHERNAME = COOKIE_SESSIONID + 1,
-    KEY_SEL_AUTHORNAME,
-    KEY_SEL_ACTIONAME,
-    KEY_SEL_LANGCODE,
-    KEY_SEL_TYPENAME,
-    KEY_SEL_CAMPUSNAME,
-    KEY_SEL_ROLENAME,
-    KEY_SEL_CATEGORYCLASS,
-    KEY_SEL_UUID,
-    KEY_SEL_SERIALNUM,
+    KEY_SEL_PK = COOKIE_SESSIONID + 1,
+    KEY_SEL_PK2
 };
 
 enum key_mods {
-    KEY_MOD_NAME = KEY_SEL_SERIALNUM + 1,
+    KEY_MOD_NAME = KEY_SEL_PK2 + 1,
     KEY_MOD_PERMS,
     KEY_MOD_CLASS,
     KEY_MOD_PARENT,
@@ -119,16 +111,7 @@ static const struct kvalid keys[KEY__MAX] = {
     {NULL, "stock"},
     {NULL, "inventory"},
     {kvalid_stringne, "sessionID"},
-    {kvalid_stringne, "select_publishername"},
-    {kvalid_stringne, "select_authorname"},
-    {kvalid_stringne, "select_actioname"},
-    {kvalid_stringne, "select_langcode"},
-    {kvalid_stringne, "select_typename"},
-    {kvalid_stringne, "select_campusname"},
-    {kvalid_stringne, "select_rolename"},
-    {kvalid_stringne, "select_categoryclass"},
-    {kvalid_stringne, "select_uuid"},
-    {kvalid_stringne, "select_serialnum"},
+    {kvalid_stringne, "pk"},
     {kvalid_stringne, "mod_name"},
     {kvalid_int, "mod_perms"},
     {kvalid_stringne, "mod_class"},
@@ -202,21 +185,26 @@ static struct sqlbox_pstmt pstmts_switches[STMTS__MAX][8] = {
     {{(char *) "typeName = (?)"}},
     {{(char *) "campusName = (?)"}},
     {{(char *) "roleName = (?)"}, {(char *) "perms = (?)"}},
-    {{(char *) "categoryClass = (?)"}, {(char *) "categoryName = (?)"}, {(char *) "parentCategoryID = (?)"}},
+    {
+        {(char *) "categoryClass = (?)"}, {(char *) "categoryName = (?)"},
+        {(char *) "parentCategoryID = (?)"}
+    },
     {
         {(char *) "UUID = (?)"}, {(char *) "displayname = (?)"}, {(char *) "pwhash = (?)"},
         {(char *) "campus = (?)"}, {(char *) "role = (?)"}, {(char *) "frozen = (?)"}
     },
     {
         {(char *) "serialnum = (?)"}, {(char *) "type = (?)"}, {(char *) "category = (?)"},
-        {(char *) "publisher = (?)"}, {(char *) "booktitle = (?)"}, {(char *) "bookreleaseyear = (?)"},
+        {(char *) "publisher = (?)"}, {(char *) "booktitle = (?)"},
+        {(char *) "bookreleaseyear = (?)"},
         {(char *) "bookcover = (?)"}, {(char *) "hits = (?)"}
     },
     {{(char *) "serialnum = (?)"}, {(char *) "lang = (?)"}},
     {{(char *) "serialnum = (?)"}, {(char *) "author = (?)"}},
     {{(char *) "serialnum = (?)"}, {(char *) "campus = (?)"}, {(char *) "instock = (?)"}},
     {
-        {(char *) "UUID = (?)"}, {(char *) "serialnum = (?)"}, {(char *) "rentduration = (?)"},
+        {(char *) "UUID = (?)"}, {(char *) "serialnum = (?)"},
+        {(char *) "rentduration = (?)"},
         {(char *) "rentdate = (?)"}, {(char *) "extended = (?)"}
     }
 };
@@ -229,9 +217,13 @@ static enum key_mods switch_keys[STMTS__MAX][9] = {
     {KEY_MOD_NAME, KEY__MAX},
     {KEY_MOD_NAME, KEY_MOD_PERMS, KEY__MAX},
     {KEY_MOD_CLASS, KEY_MOD_NAME, KEY_MOD_PARENT, KEY__MAX},
-    {KEY_MOD_UUID, KEY_MOD_NAME, KEY_MOD_PW, KEY_MOD_CAMPUS, KEY_MOD_ROLE, KEY_MOD_FROZEN, KEY__MAX},
     {
-        KEY_MOD_SERIALNUM, KEY_MOD_TYPE, KEY_MOD_CATEGORY, KEY_MOD_PUBLISHER, KEY_MOD_NAME, KEY_MOD_YEAR, KEY_MOD_COVER,
+        KEY_MOD_UUID, KEY_MOD_NAME, KEY_MOD_PW, KEY_MOD_CAMPUS, KEY_MOD_ROLE, KEY_MOD_FROZEN,
+        KEY__MAX
+    },
+    {
+        KEY_MOD_SERIALNUM, KEY_MOD_TYPE, KEY_MOD_CATEGORY, KEY_MOD_PUBLISHER, KEY_MOD_NAME,
+        KEY_MOD_YEAR, KEY_MOD_COVER,
         KEY_MOD_HITS, KEY__MAX
     },
     {KEY_MOD_SERIALNUM, KEY_MOD_LANG, KEY__MAX},
@@ -258,20 +250,20 @@ static struct sqlbox_pstmt pstmts_bottom[STMTS__MAX] = {
 
 
 static enum key_sels bottom_keys[STMTS__MAX][3] = {
-    {KEY_SEL_PUBLISHERNAME, (enum key_sels) KEY__MAX},
-    {KEY_SEL_AUTHORNAME, (enum key_sels) KEY__MAX},
-    {KEY_SEL_ACTIONAME, (enum key_sels) KEY__MAX},
-    {KEY_SEL_LANGCODE, (enum key_sels) KEY__MAX},
-    {KEY_SEL_TYPENAME, (enum key_sels) KEY__MAX},
-    {KEY_SEL_CAMPUSNAME, (enum key_sels) KEY__MAX},
-    {KEY_SEL_ROLENAME, (enum key_sels) KEY__MAX},
-    {KEY_SEL_CATEGORYCLASS, (enum key_sels) KEY__MAX},
-    {KEY_SEL_UUID, (enum key_sels) KEY__MAX},
-    {KEY_SEL_SERIALNUM, (enum key_sels) KEY__MAX},
-    {KEY_SEL_SERIALNUM, KEY_SEL_LANGCODE, (enum key_sels) KEY__MAX},
-    {KEY_SEL_SERIALNUM, KEY_SEL_AUTHORNAME, (enum key_sels) KEY__MAX},
-    {KEY_SEL_SERIALNUM, KEY_SEL_CAMPUSNAME, (enum key_sels) KEY__MAX},
-    {KEY_SEL_UUID, KEY_SEL_SERIALNUM, (enum key_sels) KEY__MAX}
+    {KEY_SEL_PK, (enum key_sels) KEY__MAX},
+    {KEY_SEL_PK, (enum key_sels) KEY__MAX},
+    {KEY_SEL_PK, (enum key_sels) KEY__MAX},
+    {KEY_SEL_PK, (enum key_sels) KEY__MAX},
+    {KEY_SEL_PK, (enum key_sels) KEY__MAX},
+    {KEY_SEL_PK, (enum key_sels) KEY__MAX},
+    {KEY_SEL_PK, (enum key_sels) KEY__MAX},
+    {KEY_SEL_PK, (enum key_sels) KEY__MAX},
+    {KEY_SEL_PK, (enum key_sels) KEY__MAX},
+    {KEY_SEL_PK, (enum key_sels) KEY__MAX},
+    {KEY_SEL_PK, KEY_SEL_PK2, (enum key_sels) KEY__MAX},
+    {KEY_SEL_PK, KEY_SEL_PK2, (enum key_sels) KEY__MAX},
+    {KEY_SEL_PK, KEY_SEL_PK2, (enum key_sels) KEY__MAX},
+    {KEY_SEL_PK, KEY_SEL_PK2, (enum key_sels) KEY__MAX}
 };
 
 enum statement {
@@ -458,13 +450,13 @@ enum khttp forth_pass(enum statement_comp STMT) {
             curr_usr.perms.manage_inventories || curr_usr.perms.admin || curr_usr.perms.staff))
         return KHTTP_200;
     if (STMT == STMTS_ACCOUNT && (curr_usr.perms.admin || curr_usr.perms.staff) && !r.fieldmap[KEY_MOD_ROLE] && strcmp(
-            r.fieldmap[KEY_SEL_UUID]->parsed.s, curr_usr.UUID) == 0)
+            r.fieldmap[KEY_SEL_PK]->parsed.s, curr_usr.UUID) == 0)
         return KHTTP_200;
     if (STMT == STMTS_ACCOUNT && (curr_usr.perms.admin || curr_usr.perms.staff) && r.fieldmap[KEY_MOD_ROLE] && strcmp(
-            r.fieldmap[KEY_SEL_UUID]->parsed.s, curr_usr.UUID) != 0)
+            r.fieldmap[KEY_SEL_PK]->parsed.s, curr_usr.UUID) != 0)
         return KHTTP_200;
     if (STMT == STMTS_ACCOUNT && !r.fieldmap[KEY_MOD_ROLE] && strcmp(
-            r.fieldmap[KEY_SEL_UUID]->parsed.s, curr_usr.UUID) == 0)
+            r.fieldmap[KEY_SEL_PK]->parsed.s, curr_usr.UUID) == 0)
         return KHTTP_200;
 
 
@@ -569,7 +561,7 @@ void save(const enum statement_comp STMT, const bool failed, const int affected)
             }
         }
 
-        kasprintf(&requestDesc, "%s). Affected: %d", requestDesc,affected);
+        kasprintf(&requestDesc, "%s). Affected: %d", requestDesc, affected);
     } else {
         kasprintf(&requestDesc, "Stmt:%s, ACCESS DENIED", statement_string[STMT]);
     }
@@ -599,14 +591,14 @@ int main() {
     // querying the PG__MAX if no page was found
     if (khttp_parse(&r, keys, KEY__MAX, pages, PG__MAX, PG__MAX) != KCGI_OK)
         return EXIT_FAILURE;
-    if ((er = sanitize()) != KHTTP_200) goto error;
+    if ((er = sanitize()) != KHTTP_200)goto error;
     const enum statement_comp STMT = get_stmts();
     int nbr_parms = 0;
-    if ((er = second_pass(STMT, &nbr_parms)) != KHTTP_200) goto error;
-    if ((er = third_pass(STMT, &nbr_parms)) != KHTTP_200) goto error;
+    if ((er = second_pass(STMT, &nbr_parms)) != KHTTP_200)goto error;
+    if ((er = third_pass(STMT, &nbr_parms)) != KHTTP_200)goto error;
     alloc_ctx_cfg();
     fill_user();
-    if ((er = forth_pass(STMT)) != KHTTP_200) goto access_denied;
+    if ((er = forth_pass(STMT)) != KHTTP_200)goto access_denied;
     khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
     khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
     khttp_head(&r, kresps[KRESP_VARY], "%s", "Origin");
@@ -635,11 +627,11 @@ int main() {
         kjson_obj_close(&req);
     }
     kjson_obj_close(&req);
-    const int affected = process(STMT,nbr_parms);
+    const int affected = process(STMT, nbr_parms);
     kjson_putintp(&req, "changes", affected);
     kjson_obj_close(&req);
     kjson_close(&req);
-    save(STMT,false,affected);
+    save(STMT,false, affected);
     goto cleanup;
 access_denied:
     khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[er]);
@@ -654,7 +646,7 @@ access_denied:
     kjson_putstringp(&req, "error", "You don't have the permissions to edit this ressource");
     kjson_obj_close(&req);
     kjson_close(&req);
-    save(STMT,true,0);
+    save(STMT,true, 0);
 cleanup:
     khttp_free(&r);
     sqlbox_free(boxctx_data);

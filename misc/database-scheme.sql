@@ -83,8 +83,7 @@ CREATE TABLE CATEGORY
 (
     categoryClass    TEXT PRIMARY KEY,
     categoryName     TEXT UNIQUE NOT NULL,
-    parentCategoryID TEXT,
-    FOREIGN KEY (parentCategoryID) REFERENCES CATEGORY (categoryClass) ON UPDATE CASCADE ON DELETE CASCADE
+    parentCategoryID TEXT REFERENCES CATEGORY (categoryClass) ON UPDATE CASCADE ON DELETE CASCADE
 );
 INSERT INTO CATEGORY
 VALUES ('0', 'Primary1', null),
@@ -103,18 +102,15 @@ CREATE TABLE ACCOUNT
     UUID        TEXT PRIMARY KEY NOT NULL,
     displayname TEXT             NOT NULL,
     pwhash      TEXT             NOT NULL,
-    campus      TEXT             NOT NULL,
-    role        TEXT             NOT NULL,
-    frozen      BOOLEAN DEFAULT FALSE,
-    FOREIGN KEY (campus) REFERENCES CAMPUS (campusName) ON UPDATE CASCADE ON DELETE CASCADE,
-    FOREIGN KEY (role) REFERENCES ROLE (roleName) ON UPDATE CASCADE ON DELETE CASCADE
+    campus      TEXT             NOT NULL REFERENCES CAMPUS (campusName) ON UPDATE CASCADE ON DELETE CASCADE,
+    role        TEXT             NOT NULL REFERENCES ROLE (roleName) ON UPDATE CASCADE ON DELETE CASCADE,
+    frozen      BOOLEAN DEFAULT FALSE
 );
 CREATE TABLE SESSIONS
 (
-    account   TEXT     NOT NULL,
+    account   TEXT     NOT NULL REFERENCES ACCOUNT (UUID) ON UPDATE CASCADE ON DELETE CASCADE,
     sessionID TEXT     NOT NULL UNIQUE,
-    expiresAt DATETIME NOT NULL,
-    FOREIGN KEY (account) REFERENCES ACCOUNT (UUID) ON UPDATE CASCADE ON DELETE CASCADE
+    expiresAt DATETIME NOT NULL
 );
 INSERT INTO ACCOUNT
 VALUES ('1', 'Alice', '$2b$10$2HqdewExklOfFFCBhOkTP.ufmT.cq1lQP4QSyRRYHETWRGxs3YTH6', 'El Kseur', 'ADMIN', FALSE),
@@ -124,16 +120,13 @@ VALUES ('1', 'Alice', '$2b$10$2HqdewExklOfFFCBhOkTP.ufmT.cq1lQP4QSyRRYHETWRGxs3Y
 CREATE TABLE BOOK
 (
     serialnum       TEXT PRIMARY KEY NOT NULL,
-    type            TEXT             NOT NULL,
-    category        TEXT             NOT NULL,
-    publisher       TEXT             NOT NULL,
+    type            TEXT             NOT NULL REFERENCES DOCTYPE (typeName) ON UPDATE CASCADE ON DELETE CASCADE,
+    category        TEXT             NOT NULL REFERENCES CATEGORY (categoryClass) ON UPDATE CASCADE ON DELETE CASCADE,
+    publisher       TEXT             NOT NULL REFERENCES PUBLISHER (publisherName) ON UPDATE CASCADE ON DELETE CASCADE,
     booktitle       TEXT             NOT NULL,
     bookreleaseyear INTEGER          NOT NULL,
     bookcover       TEXT,
-    hits            INTEGER DEFAULT 0 CHECK (hits >= 0),
-    FOREIGN KEY (type) REFERENCES DOCTYPE (typeName) ON UPDATE CASCADE ON DELETE CASCADE,
-    FOREIGN KEY (category) REFERENCES CATEGORY (categoryClass) ON UPDATE CASCADE ON DELETE CASCADE,
-    FOREIGN KEY (publisher) REFERENCES PUBLISHER (publisherName) ON UPDATE CASCADE ON DELETE CASCADE
+    hits            INTEGER DEFAULT 0 CHECK (hits >= 0)
 );
 INSERT INTO BOOK
 VALUES ('1', 'type1', '0', 'pub1', 'Book 1', 1950, null, 0),
@@ -147,10 +140,8 @@ VALUES ('1', 'type1', '0', 'pub1', 'Book 1', 1950, null, 0),
 
 CREATE TABLE LANGUAGES
 (
-    serialnum TEXT NOT NULL,
-    lang      TEXT NOT NULL,
-    FOREIGN KEY (lang) REFERENCES LANG (langCode) ON UPDATE CASCADE ON DELETE CASCADE,
-    FOREIGN KEY (serialnum) REFERENCES BOOK (serialnum) ON UPDATE CASCADE ON DELETE CASCADE,
+    serialnum TEXT NOT NULL REFERENCES BOOK (serialnum) ON UPDATE CASCADE ON DELETE CASCADE,
+    lang      TEXT NOT NULL REFERENCES LANG (langCode) ON UPDATE CASCADE ON DELETE CASCADE,
     UNIQUE (serialnum, lang)
 );
 INSERT INTO LANGUAGES
@@ -166,10 +157,8 @@ VALUES ('1', 'lang1'),
        ('8', 'lang2');
 CREATE TABLE AUTHORED
 (
-    serialnum TEXT NOT NULL,
-    author    TEXT NOT NULL,
-    FOREIGN KEY (author) REFERENCES AUTHOR (authorName) ON UPDATE CASCADE ON DELETE CASCADE,
-    FOREIGN KEY (serialnum) REFERENCES BOOK (serialnum) ON UPDATE CASCADE ON DELETE CASCADE,
+    serialnum TEXT NOT NULL REFERENCES AUTHOR (authorName) ON UPDATE CASCADE ON DELETE CASCADE,
+    author    TEXT NOT NULL REFERENCES BOOK (serialnum) ON UPDATE CASCADE ON DELETE CASCADE,
     PRIMARY KEY (serialnum, author)
 );
 
