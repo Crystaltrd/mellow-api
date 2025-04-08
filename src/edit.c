@@ -142,7 +142,7 @@ static const struct kvalid keys[KEY__MAX] = {
     {kvalid_int, "mod_extended"},
 };
 
-enum statement {
+enum statement_comp {
     STMTS_PUBLISHER,
     STMTS_AUTHOR,
     STMTS_LANG,
@@ -157,7 +157,6 @@ enum statement {
     STMTS_AUTHORED,
     STMTS_STOCK,
     STMTS_INVENTORY,
-    __STMT_STORE__,
     STMTS__MAX
 };
 
@@ -180,15 +179,11 @@ static struct sqlbox_pstmt pstmts_top[STMTS__MAX] = {
     {(char *) "UPDATE AUTHORED SET "},
     {(char *) "UPDATE STOCK SET "},
     {(char *) "UPDATE INVENTORY SET "},
-    {
-        (char *)
-        "INSERT INTO HISTORY (UUID, IP, action, actiondate, details) "
-        "VALUES ((?),(?),'EDIT',datetime('now','localtime'),(?))"
-    }
+
 };
 
 
-static struct sqlbox_pstmt pstmts_switches[STMTS__MAX - 1][8] = {
+static struct sqlbox_pstmt pstmts_switches[STMTS__MAX][8] = {
     {{(char *) "publisherName = (?) "}},
     {{(char *) "authorName = (?) "}},
     {{(char *) "actionName = (?) "}},
@@ -214,7 +209,7 @@ static struct sqlbox_pstmt pstmts_switches[STMTS__MAX - 1][8] = {
         {(char *) "rentdate = (?)"}, {(char *) "extended = (?) "}
     }
 };
-static enum key_mods switch_keys[STMTS__MAX - 1][9] = {
+static enum key_mods switch_keys[STMTS__MAX][9] = {
     {KEY_MOD_NAME, KEY__MAX},
     {KEY_MOD_NAME, KEY__MAX},
     {KEY_MOD_NAME, KEY__MAX},
@@ -233,7 +228,7 @@ static enum key_mods switch_keys[STMTS__MAX - 1][9] = {
     {KEY_MOD_SERIALNUM, KEY_MOD_CAMPUS, KEY_MOD_STOCK, KEY__MAX},
     {KEY_MOD_UUID, KEY_MOD_SERIALNUM, KEY_MOD_DURATION, KEY_MOD_DATE, KEY_MOD_EXTENDED, KEY__MAX}
 };
-static struct sqlbox_pstmt pstmts_bottom[STMTS__MAX - 1] = {
+static struct sqlbox_pstmt pstmts_bottom[STMTS__MAX] = {
     {(char *) "WHERE publisherName = (?)"},
     {(char *) "WHERE authorName = (?)"},
     {(char *) "WHERE actionName = (?)"},
@@ -250,7 +245,22 @@ static struct sqlbox_pstmt pstmts_bottom[STMTS__MAX - 1] = {
     {(char *) "WHERE UUID = (?) AND serialnum = (?) "}
 };
 
-static enum key_sels bottom_keys[STMTS__MAX - 1][3] = {
+enum statement {
+    STMT_EDIT,
+    __STMT_SAVE__,
+    __STMT_LOGIN__,
+    STMT__MAX
+};
+
+static struct sqlbox_pstmt pstmts[STMT__MAX] = {
+    {NULL},
+    {
+        (char *)
+        "INSERT INTO HISTORY (UUID, IP, action, actiondate, details) "
+        "VALUES ((?),(?),'EDIT',datetime('now','localtime'),(?))"
+    }
+};
+static enum key_sels bottom_keys[STMTS__MAX][3] = {
     {KEY_SEL_PUBLISHERNAME, KEY__MAX},
     {KEY_SEL_AUTHORNAME, KEY__MAX},
     {KEY_SEL_ACTIONAME, KEY__MAX},
@@ -280,7 +290,7 @@ enum khttp sanitize() {
     return KHTTP_200;
 }
 
-enum khttp second_pass(enum statement STMT) {
+enum khttp second_pass(enum statement_comp STMT) {
     for (int i = 0; bottom_keys[STMT][i] != KEY__MAX; ++i) {
         if (!(r.fieldmap[bottom_keys[STMT][i]]))
             return KHTTP_400;
@@ -288,58 +298,52 @@ enum khttp second_pass(enum statement STMT) {
     return KHTTP_200;
 }
 
-enum statement get_stmts() {
+enum khttp third_pass(enum statement_comp STMT) {
+    kasprintf(&pstmts[STMT_EDIT].stmt, "%s", pstmts_top[STMT].stmt);
+    kasprintf(&pstmts[STMT_EDIT].stmt, "%s%s", pstmts[STMT_EDIT].stmt, pstmts_switches[STMT][0].stmt);
+    for (int i = 1; switch_keys[STMT][i] != KEY__MAX; ++i) {
+        if (r.fieldmap[switch_keys[STMT][i]]) {
+            kasprintf(&pstmts[STMT_EDIT].stmt, "%s,%s", pstmts[STMT_EDIT].stmt, pstmts_switches[STMT][i].stmt);
+        }
+    }
+    kasprintf(&pstmts[STMT_EDIT].stmt, "%s%s", pstmts[STMT_EDIT].stmt, pstmts_bottom[STMT].stmt);
+    return KHTTP_200;
+}
+
+enum statement_comp get_stmts() {
     if (r.page != PG__MAX)
-        return (enum statement) r.page;
+        return (enum statement_comp) r.page;
     enum key i;
     for (i = KEY_PG_PUBLISHER; i < KEY_SEL_PUBLISHERNAME && !(r.fieldmap[i]); i++) {
     }
-    return (enum statement) i;
+    return (enum statement_comp) i;
 }
 
 int main() {
     enum khttp er;
     // Parse the http request and match the keys to the keys, and pages to the pages, default to
-    // querying the INVENTORY if no page was found
+    // querying the PG__MAX if no page was found
     if (khttp_parse(&r, keys, KEY__MAX, pages, PG__MAX, PG__MAX) != KCGI_OK)
         return EXIT_FAILURE;
-
-    if ((er = sanitize()) != KHTTP_200) {
-        khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[er]);
-        khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
-        khttp_head(&r, kresps[KRESP_VARY], "%s", "Origin");
-        khttp_body(&r);
-        if (r.mime == KMIME_TEXT_HTML)
-            khttp_puts(&r, "Could not service request.");
-        khttp_free(&r);
-        return 0;
-    }
-    const enum statement STMT = get_stmts();
-    if ((er = second_pass(STMT)) != KHTTP_200) {
-        khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[er]);
-        khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
-        khttp_head(&r, kresps[KRESP_VARY], "%s", "Origin");
-        khttp_body(&r);
-        if (r.mime == KMIME_TEXT_HTML)
-            khttp_puts(&r, "Could not service request. Second pass");
-        khttp_free(&r);
-        return 0;
-    }
+    if ((er = sanitize()) != KHTTP_200) goto cleanup;
+    const enum statement_comp STMT = get_stmts();
+    if ((er = second_pass(STMT)) != KHTTP_200) goto cleanup;
+    if ((er = third_pass(STMT)) != KHTTP_200) goto cleanup;
     khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
     khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
     khttp_head(&r, kresps[KRESP_VARY], "%s", "Origin");
     khttp_body(&r);
-    khttp_puts(&r,pstmts_top[STMT].stmt);
-    for (int i = 0; switch_keys[STMT][i] != KEY__MAX; ++i) {
-        if (r.fieldmap[switch_keys[STMT][i]]) {
-            if (i != 0)
-                khttp_puts(&r, ",");
-            khttp_puts(&r, pstmts_switches[STMT][i].stmt);
-        }else {
+    khttp_puts(&r, pstmts[STMT_EDIT].stmt);
 
-        }
-    }
-    khttp_puts(&r,pstmts_bottom[STMT].stmt);
+    khttp_free(&r);
+    return 0;
+cleanup:
+    khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[er]);
+    khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
+    khttp_head(&r, kresps[KRESP_VARY], "%s", "Origin");
+    khttp_body(&r);
+    if (r.mime == KMIME_TEXT_HTML)
+        khttp_puts(&r, "Could not service request. Second pass");
     khttp_free(&r);
     return 0;
 }
