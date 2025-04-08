@@ -245,6 +245,24 @@ static struct sqlbox_pstmt pstmts_bottom[STMTS__MAX] = {
     {(char *) "WHERE UUID = (?) AND serialnum = (?) "}
 };
 
+
+static enum key_sels bottom_keys[STMTS__MAX][3] = {
+    {KEY_SEL_PUBLISHERNAME, KEY__MAX},
+    {KEY_SEL_AUTHORNAME, KEY__MAX},
+    {KEY_SEL_ACTIONAME, KEY__MAX},
+    {KEY_SEL_LANGCODE, KEY__MAX},
+    {KEY_SEL_TYPENAME, KEY__MAX},
+    {KEY_SEL_CAMPUSNAME, KEY__MAX},
+    {KEY_SEL_ROLENAME, KEY__MAX},
+    {KEY_SEL_CATEGORYCLASS, KEY__MAX},
+    {KEY_SEL_UUID, KEY__MAX},
+    {KEY_SEL_SERIALNUM, KEY__MAX},
+    {KEY_SEL_SERIALNUM, KEY_SEL_LANGCODE, KEY__MAX},
+    {KEY_SEL_SERIALNUM, KEY_SEL_AUTHORNAME, KEY__MAX},
+    {KEY_SEL_SERIALNUM, KEY_SEL_CAMPUSNAME, KEY__MAX},
+    {KEY_SEL_UUID, KEY_SEL_SERIALNUM, KEY__MAX}
+};
+
 enum statement {
     STMT_EDIT,
     __STMT_SAVE__,
@@ -260,23 +278,6 @@ static struct sqlbox_pstmt pstmts[STMT__MAX] = {
         "VALUES ((?),(?),'EDIT',datetime('now','localtime'),(?))"
     }
 };
-static enum key_sels bottom_keys[STMTS__MAX][3] = {
-    {KEY_SEL_PUBLISHERNAME, KEY__MAX},
-    {KEY_SEL_AUTHORNAME, KEY__MAX},
-    {KEY_SEL_ACTIONAME, KEY__MAX},
-    {KEY_SEL_LANGCODE, KEY__MAX},
-    {KEY_SEL_TYPENAME, KEY__MAX},
-    {KEY_SEL_CAMPUSNAME, KEY__MAX},
-    {KEY_SEL_ROLENAME, KEY__MAX},
-    {KEY_SEL_CATEGORYCLASS, KEY__MAX},
-    {KEY_SEL_UUID, KEY__MAX},
-    {KEY_SEL_SERIALNUM, KEY__MAX},
-    {KEY_SEL_SERIALNUM, KEY_SEL_LANGCODE, KEY__MAX},
-    {KEY_MOD_SERIALNUM, KEY_SEL_AUTHORNAME, KEY__MAX},
-    {KEY_MOD_SERIALNUM, KEY_SEL_CAMPUSNAME, KEY__MAX},
-    {KEY_SEL_UUID, KEY_SEL_SERIALNUM, KEY__MAX}
-};
-
 enum khttp sanitize() {
     if (r.method != KMETHOD_GET) //TODO: SET TO PUT
         return KHTTP_405;
