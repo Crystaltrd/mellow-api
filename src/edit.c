@@ -457,7 +457,6 @@ enum khttp forth_pass(enum statement_comp STMT) {
     if (STMT == STMTS_ACCOUNT && (curr_usr.perms.admin || curr_usr.perms.staff) && r.fieldmap[KEY_MOD_ROLE] && strcmp(
             r.fieldmap[KEY_SEL_UUID]->parsed.s, curr_usr.UUID) != 0)
         return KHTTP_200;
-
     if (STMT == STMTS_ACCOUNT && !r.fieldmap[KEY_MOD_ROLE] && strcmp(
             r.fieldmap[KEY_SEL_UUID]->parsed.s, curr_usr.UUID) == 0)
         return KHTTP_200;
