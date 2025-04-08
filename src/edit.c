@@ -498,6 +498,20 @@ void process(const enum statement_comp STMT, const int parmsz) {
             }
         }
     }
+    for (int i = 0; bottom_keys[STMT][i] != KEY__MAX; ++i) {
+        if ((field = r.fieldmap[bottom_keys[STMT][i]])) {
+            switch (field->type) {
+                case KPAIR_INTEGER:
+                    parms[n++] = (struct sqlbox_parm){.type = SQLBOX_PARM_INT, .iparm = field->parsed.i};
+                    break;
+                case KPAIR_STRING:
+                    parms[n++] = (struct sqlbox_parm){.type = SQLBOX_PARM_STRING, .sparm = field->parsed.s};
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
     if (sqlbox_exec(boxctx_data, dbid_data, STMT_EDIT, parmsz, parms,SQLBOX_STMT_CONSTRAINT) !=
         SQLBOX_CODE_OK)
         errx(EXIT_FAILURE, "sqlbox_exec");
