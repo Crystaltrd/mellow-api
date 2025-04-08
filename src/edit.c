@@ -377,7 +377,7 @@ void fill_user() {
         struct sqlbox_parm parms[] = {
             {.type = SQLBOX_PARM_STRING, .sparm = field->parsed.s},
         };
-        if (!(stmtid = sqlbox_prepare_bind(boxctx_data, dbid_data, STMT_EDIT, parmsz, parms, 0)))
+        if (!(stmtid = sqlbox_prepare_bind(boxctx_data, dbid_data, __STMT_LOGIN__, parmsz, parms, 0)))
             errx(EXIT_FAILURE, "sqlbox_prepare_bind");
         if ((res = sqlbox_step(boxctx_data, stmtid)) == NULL)
             errx(EXIT_FAILURE, "sqlbox_step");
@@ -496,7 +496,7 @@ int main() {
     kjson_close(&req);
     goto cleanup;
 access_denied:
-    khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_403]);
+    khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[er]);
     khttp_head(&r, kresps[KRESP_CONTENT_TYPE], "%s", kmimetypes[KMIME_APP_JSON]);
     khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
     khttp_head(&r, kresps[KRESP_VARY], "%s", "Origin");
