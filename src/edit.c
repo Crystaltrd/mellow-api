@@ -431,7 +431,7 @@ enum khttp third_pass(enum statement_comp STMT) {
         }
     }
     kasprintf(&pstmts[STMT_EDIT].stmt, "%s %s", pstmts[STMT_EDIT].stmt, pstmts_bottom[STMT].stmt);
-    return (found) ? KHTTP_200 : KHTTP_405;
+    return (found) ? KHTTP_200 : KHTTP_400;
 }
 
 enum statement_comp get_stmts() {
@@ -461,6 +461,7 @@ int main() {
     khttp_body(&r);
     kjson_open(&req, &r);
     kjson_obj_open(&req);
+    kjson_objp_open(&req,"user");
     kjson_putstringp(&req, "IP", r.remote);
     kjson_putboolp(&req, "authenticated", curr_usr.authenticated);
     if (curr_usr.authenticated) {
@@ -481,6 +482,8 @@ int main() {
         kjson_putboolp(&req, "has_inventory", curr_usr.perms.has_inventory);
         kjson_obj_close(&req);
     }
+    kjson_obj_close(&req);
+    kjson_putstringp(&req,"string",pstmts[STMT_EDIT].stmt);
     kjson_obj_close(&req);
     kjson_close(&req);
 cleanup:
