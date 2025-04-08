@@ -518,6 +518,24 @@ int main() {
     }
     kjson_obj_close(&req);
     kjson_putstringp(&req, "string", pstmts[STMT_EDIT].stmt);
+
+    struct kpair *field;
+    kjson_arrayp_open(&req,"parms");
+    for (int i = 0; switch_keys[STMT][i] != KEY__MAX; ++i) {
+        if ((field = r.fieldmap[switch_keys[STMT][i]])) {
+            switch (field->type) {
+                case KPAIR_INTEGER:
+                    kjson_putint(&req,field->parsed.i);
+                break;
+                case KPAIR_STRING:
+                    kjson_putstring(&req,field->parsed.s);
+                break;
+                default:
+                    break;
+            }
+        }
+    }
+    kjson_array_close(&req);
     kjson_obj_close(&req);
     kjson_close(&req);
     goto cleanup;
