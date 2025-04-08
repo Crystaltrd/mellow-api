@@ -529,7 +529,7 @@ int process(const enum statement_comp STMT, const int parmsz) {
 }
 
 
-void save(const enum statement STMT, const bool failed, const int affected) {
+void save(const enum statement_comp STMT, const bool failed, const int affected) {
     char *requestDesc = NULL;
     if (!failed) {
         kasprintf(&requestDesc, "Stmt:%s, Modifiers:(", statement_string[STMT]);
