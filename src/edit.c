@@ -539,11 +539,11 @@ void save(const enum statement_comp STMT, const bool failed, const int affected)
             if ((field = r.fieldmap[switch_keys[STMT][i]])) {
                 switch (field->type) {
                     case KPAIR_INTEGER:
-                        kasprintf(&requestDesc, "%s%s: %lld,", requestDesc, keys[switch_keys[STMT][i]].name,
+                        kasprintf(&requestDesc, "%s%s: \"%lld\"", requestDesc, keys[switch_keys[STMT][i]].name,
                                   field->parsed.i);
                         break;
                     case KPAIR_STRING:
-                        kasprintf(&requestDesc, "%s%s: %s,", requestDesc, keys[switch_keys[STMT][i]].name,
+                        kasprintf(&requestDesc, "%s%s: \"%s\"", requestDesc, keys[switch_keys[STMT][i]].name,
                                   field->parsed.s);
                         break;
                     default:
@@ -556,11 +556,11 @@ void save(const enum statement_comp STMT, const bool failed, const int affected)
             if ((field = r.fieldmap[bottom_keys[STMT][i]])) {
                 switch (field->type) {
                     case KPAIR_INTEGER:
-                        kasprintf(&requestDesc, "%s%s: %lld,", requestDesc, keys[bottom_keys[STMT][i]].name,
+                        kasprintf(&requestDesc, "%s%s: \"%lld\"", requestDesc, keys[bottom_keys[STMT][i]].name,
                                   field->parsed.i);
                         break;
                     case KPAIR_STRING:
-                        kasprintf(&requestDesc, "%s%s: %s,", requestDesc, keys[bottom_keys[STMT][i]].name,
+                        kasprintf(&requestDesc, "%s%s: \"%s\"", requestDesc, keys[bottom_keys[STMT][i]].name,
                                   field->parsed.s);
                         break;
                     default:
