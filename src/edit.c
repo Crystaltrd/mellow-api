@@ -39,7 +39,8 @@ enum pg {
 
 
 static const char *pages[PG__MAX] = {
-    "publisher", "author", "lang", "action", "doctype", "campus", "role", "category", "account", "book","languages","authored", "stock",
+    "publisher", "author", "lang", "action", "doctype", "campus", "role", "category", "account", "book", "languages",
+    "authored", "stock",
     "inventory"
 };
 
@@ -203,9 +204,9 @@ static struct sqlbox_pstmt pstmts_switches[STMTS__MAX][8] = {
         {(char *) "campus = (?) "}, {(char *) "role = (?) "}, {(char *) "frozen = (?) "}
     },
     {
-        {(char *) "serialnum = (?)"}, {(char *) "type = (?) "}, {(char *) "category = (?) "},
-        {(char *) "publisher = (?)"}, {(char *) "booktitle = (?)"}, {(char *) "bookreleaseyear = (?)"},
-        {(char *) "bookcover = (?)"}, {(char *) "hits = (?)"}
+        {(char *) "serialnum = (?) "}, {(char *) "type = (?) "}, {(char *) "category = (?) "},
+        {(char *) "publisher = (?) "}, {(char *) "booktitle = (?) "}, {(char *) "bookreleaseyear = (?) "},
+        {(char *) "bookcover = (?) "}, {(char *) "hits = (?) "}
     },
     {{(char *) "serialnum = (?) "}, {(char *) "lang = (?) "}},
     {{(char *) "serialnum = (?) "}, {(char *) "author = (?) "}},
@@ -238,17 +239,17 @@ static struct sqlbox_pstmt pstmts_bottom[STMTS__MAX] = {
     {(char *) "WHERE publisherName = (?)"},
     {(char *) "WHERE authorName = (?)"},
     {(char *) "WHERE actionName = (?)"},
-    {(char *) "WHERE langcode = (?) "},
-    {(char *) "WHERE typeName = (?) "},
-    {(char *) "WHERE campusName = (?) "},
-    {(char *) "WHERE roleName = (?) "},
-    {(char *) "WHERE categoryClass = (?) "},
-    {(char *) "WHERE UUID = (?) "},
-    {(char *) "WHERE serialnum = (?) "},
-    {(char *) "WHERE serialnum = (?) AND lang = (?) "},
-    {(char *) "WHERE serialnum = (?) AND author = (?) "},
-    {(char *) "WHERE serialnum = (?) AND campus = (?) "},
-    {(char *) "WHERE UUID = (?) AND serialnum = (?) "}
+    {(char *) "WHERE langcode = (?)"},
+    {(char *) "WHERE typeName = (?)"},
+    {(char *) "WHERE campusName = (?)"},
+    {(char *) "WHERE roleName = (?)"},
+    {(char *) "WHERE categoryClass = (?)"},
+    {(char *) "WHERE UUID = (?)"},
+    {(char *) "WHERE serialnum = (?)"},
+    {(char *) "WHERE serialnum = (?) AND lang = (?)"},
+    {(char *) "WHERE serialnum = (?) AND author = (?)"},
+    {(char *) "WHERE serialnum = (?) AND campus = (?)"},
+    {(char *) "WHERE UUID = (?) AND serialnum = (?)"}
 };
 
 
@@ -284,6 +285,7 @@ static struct sqlbox_pstmt pstmts[STMT__MAX] = {
         "VALUES ((?),(?),'EDIT',datetime('now','localtime'),(?))"
     }
 };
+
 enum khttp sanitize() {
     if (r.method != KMETHOD_GET) //TODO: SET TO PUT
         return KHTTP_405;
