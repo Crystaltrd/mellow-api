@@ -442,8 +442,8 @@ enum khttp forth_pass(enum statement_comp STMT) {
         return KHTTP_200;
     if (STMT == STMTS_CAMPUS && (curr_usr.perms.admin || curr_usr.perms.staff))
         return KHTTP_200;
-    if (STMT == STMTS_CATEGORY || STMT == STMTS_TYPE || (STMT <= STMTS_LANG) || (
-            STMT >= STMTS_BOOK && STMT <= STMTS_STOCK) && (
+    if ((STMT == STMTS_CATEGORY || STMT == STMTS_TYPE || (STMT <= STMTS_LANG) || (
+             STMT >= STMTS_BOOK && STMT <= STMTS_STOCK)) && (
             curr_usr.perms.manage_stock || curr_usr.perms.admin || curr_usr.perms.staff))
         return KHTTP_200;
     if (STMT == STMTS_ROLE && curr_usr.perms.admin)
