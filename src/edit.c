@@ -44,20 +44,20 @@ static const char *pages[PG__MAX] = {
 };
 
 enum key {
-    KEY_PG_PUBLISHER,
-    KEY_PG_AUTHOR,
-    KEY_PG_LANG,
-    KEY_PG_ACTION,
-    KEY_PG_DOCTYPE,
-    KEY_PG_CAMPUS,
+    KEY_PG_PUBLISHER, //
+    KEY_PG_AUTHOR, //
+    KEY_PG_LANG, //
+    KEY_PG_ACTION, //
+    KEY_PG_DOCTYPE, //
+    KEY_PG_CAMPUS, //
     KEY_PG_ROLE,
-    KEY_PG_CATEGORY,
+    KEY_PG_CATEGORY, //
     KEY_PG_ACCOUNT,
-    KEY_PG_BOOK,
-    KEY_PG_LANGUAGES,
-    KEY_PG_AUTHORED,
-    KEY_PG_STOCK,
-    KEY_PG_INVENTORY,
+    KEY_PG_BOOK, //
+    KEY_PG_LANGUAGES, //
+    KEY_PG_AUTHORED, //
+    KEY_PG_STOCK, //
+    KEY_PG_INVENTORY, //
 };
 
 enum key_cookie {
@@ -438,7 +438,29 @@ enum khttp third_pass(enum statement_comp STMT) {
 enum khttp forth_pass(enum statement_comp STMT) {
     if (!curr_usr.authenticated)
         return KHTTP_403;
-    return KHTTP_200;
+    if (STMT == STMTS_ACTION && curr_usr.perms.admin)
+        return KHTTP_200;
+    if (STMT == STMTS_CAMPUS && (curr_usr.perms.admin || curr_usr.perms.staff))
+        return KHTTP_200;
+    if (STMT == STMTS_CATEGORY || STMT == STMTS_TYPE || (STMT <= STMTS_LANG) || (
+            STMT >= STMTS_BOOK && STMT <= STMTS_STOCK) && (
+            curr_usr.perms.manage_stock || curr_usr.perms.admin || curr_usr.perms.staff))
+        return KHTTP_200;
+    if (STMT == STMTS_ROLE && curr_usr.perms.admin)
+        return KHTTP_200;
+    if (STMT == STMTS_INVENTORY && (
+            curr_usr.perms.manage_inventories || curr_usr.perms.admin || curr_usr.perms.staff))
+        return KHTTP_200;
+    if (STMT == STMTS_ACCOUNT && (curr_usr.perms.admin || curr_usr.perms.staff) && !r.fieldmap[KEY_MOD_ROLE] && strcmp(
+            r.fieldmap[KEY_SEL_UUID]->parsed.s, curr_usr.UUID) != 0)
+        return KHTTP_200;
+
+    if (STMT == STMTS_ACCOUNT && !r.fieldmap[KEY_MOD_ROLE] && strcmp(
+            r.fieldmap[KEY_SEL_UUID]->parsed.s, curr_usr.UUID) == 0)
+        return KHTTP_200;
+
+
+    return KHTTP_403;
 }
 
 enum statement_comp get_stmts() {
