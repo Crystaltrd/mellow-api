@@ -254,20 +254,20 @@ static struct sqlbox_pstmt pstmts_bottom[STMTS__MAX] = {
 
 
 static enum key_sels bottom_keys[STMTS__MAX][3] = {
-    {KEY_SEL_PUBLISHERNAME, KEY__MAX},
-    {KEY_SEL_AUTHORNAME, KEY__MAX},
-    {KEY_SEL_ACTIONAME, KEY__MAX},
-    {KEY_SEL_LANGCODE, KEY__MAX},
-    {KEY_SEL_TYPENAME, KEY__MAX},
-    {KEY_SEL_CAMPUSNAME, KEY__MAX},
-    {KEY_SEL_ROLENAME, KEY__MAX},
-    {KEY_SEL_CATEGORYCLASS, KEY__MAX},
-    {KEY_SEL_UUID, KEY__MAX},
-    {KEY_SEL_SERIALNUM, KEY__MAX},
-    {KEY_SEL_SERIALNUM, KEY_SEL_LANGCODE, KEY__MAX},
-    {KEY_SEL_SERIALNUM, KEY_SEL_AUTHORNAME, KEY__MAX},
-    {KEY_SEL_SERIALNUM, KEY_SEL_CAMPUSNAME, KEY__MAX},
-    {KEY_SEL_UUID, KEY_SEL_SERIALNUM, KEY__MAX}
+    {KEY_SEL_PUBLISHERNAME, (enum key_sels) KEY__MAX},
+    {KEY_SEL_AUTHORNAME, (enum key_sels) KEY__MAX},
+    {KEY_SEL_ACTIONAME, (enum key_sels) KEY__MAX},
+    {KEY_SEL_LANGCODE, (enum key_sels) KEY__MAX},
+    {KEY_SEL_TYPENAME, (enum key_sels) KEY__MAX},
+    {KEY_SEL_CAMPUSNAME, (enum key_sels) KEY__MAX},
+    {KEY_SEL_ROLENAME, (enum key_sels) KEY__MAX},
+    {KEY_SEL_CATEGORYCLASS, (enum key_sels) KEY__MAX},
+    {KEY_SEL_UUID, (enum key_sels) KEY__MAX},
+    {KEY_SEL_SERIALNUM, (enum key_sels) KEY__MAX},
+    {KEY_SEL_SERIALNUM, KEY_SEL_LANGCODE, (enum key_sels) KEY__MAX},
+    {KEY_SEL_SERIALNUM, KEY_SEL_AUTHORNAME, (enum key_sels) KEY__MAX},
+    {KEY_SEL_SERIALNUM, KEY_SEL_CAMPUSNAME, (enum key_sels) KEY__MAX},
+    {KEY_SEL_UUID, KEY_SEL_SERIALNUM, (enum key_sels) KEY__MAX}
 };
 
 enum statement {
