@@ -536,6 +536,23 @@ int main() {
         }
     }
     kjson_array_close(&req);
+
+    kjson_arrayp_open(&req,"parms_bottom");
+    for (int i = 0; switch_keys[STMT][i] != KEY__MAX; ++i) {
+        if ((field = r.fieldmap[bottom_keys[STMT][i]])) {
+            switch (field->type) {
+                case KPAIR_INTEGER:
+                    kjson_putint(&req,field->parsed.i);
+                break;
+                case KPAIR_STRING:
+                    kjson_putstring(&req,field->parsed.s);
+                break;
+                default:
+                    break;
+            }
+        }
+    }
+    kjson_array_close(&req);
     kjson_obj_close(&req);
     kjson_close(&req);
     goto cleanup;
