@@ -480,7 +480,7 @@ enum statement_comp get_stmts() {
     return (enum statement_comp) i;
 }
 
-void process(const enum statement_comp STMT, const int parmsz) {
+int process(const enum statement_comp STMT, const int parmsz) {
     struct sqlbox_parm *parms = kcalloc(parmsz, sizeof(struct sqlbox_parm));
     int n = 0;
     struct kpair *field;
@@ -516,6 +516,16 @@ void process(const enum statement_comp STMT, const int parmsz) {
         SQLBOX_CODE_OK)
         errx(EXIT_FAILURE, "sqlbox_exec");
     free(parms);
+
+    size_t stmtid_count;
+    const struct sqlbox_parmset *res;
+    if (!(stmtid_count = sqlbox_prepare_bind(boxctx_data, dbid_data, __STMT_COUNT__, 0, 0, SQLBOX_STMT_MULTI)))
+        errx(EXIT_FAILURE, "sqlbox_prepare_bind");
+    if ((res = sqlbox_step(boxctx_data, stmtid_count)) == NULL)
+        errx(EXIT_FAILURE, "sqlbox_step");
+    const int nbr = (int) res->ps[0].iparm;
+    sqlbox_finalise(boxctx_data, stmtid_count);
+    return nbr;
 }
 
 int main() {
@@ -531,7 +541,6 @@ int main() {
     if ((er = third_pass(STMT, &nbr_parms)) != KHTTP_200) goto error;
     alloc_ctx_cfg();
     fill_user();
-    process(STMT,nbr_parms);
     if ((er = forth_pass(STMT)) != KHTTP_200) goto access_denied;
     khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
     khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
@@ -562,6 +571,7 @@ int main() {
     }
     kjson_obj_close(&req);
     kjson_putstringp(&req, "string", pstmts[STMT_EDIT].stmt);
+    kjson_putintp(&req, "Affected", process(STMT, nbr_parms));
     kjson_obj_close(&req);
     kjson_close(&req);
     goto cleanup;
