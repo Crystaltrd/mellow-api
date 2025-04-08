@@ -414,7 +414,7 @@ enum khttp sanitize() {
     return KHTTP_200;
 }
 
-enum khttp second_pass(enum statement_comp STMT,int *nbr) {
+enum khttp second_pass(enum statement_comp STMT, int *nbr) {
     for (int i = 0; bottom_keys[STMT][i] != KEY__MAX; ++i) {
         if (!(r.fieldmap[bottom_keys[STMT][i]]))
             return KHTTP_400;
@@ -480,6 +480,30 @@ enum statement_comp get_stmts() {
     return (enum statement_comp) i;
 }
 
+void process(const enum statement_comp STMT, const int parmsz) {
+    struct sqlbox_parm *parms = kcalloc(parmsz, sizeof(struct sqlbox_parm));
+    int n = 0;
+    struct kpair *field;
+    for (int i = 0; switch_keys[STMT][i] != KEY__MAX; ++i) {
+        if ((field = r.fieldmap[switch_keys[STMT][i]])) {
+            switch (field->type) {
+                case KPAIR_INTEGER:
+                    parms[n++] = (struct sqlbox_parm){.type = SQLBOX_PARM_INT, .iparm = field->parsed.i};
+                    break;
+                case KPAIR_STRING:
+                    parms[n++] = (struct sqlbox_parm){.type = SQLBOX_PARM_STRING, .sparm = field->parsed.s};
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+    if (sqlbox_exec(boxctx_data, dbid_data, STMT_EDIT, parmsz, parms,SQLBOX_STMT_CONSTRAINT) !=
+        SQLBOX_CODE_OK)
+        errx(EXIT_FAILURE, "sqlbox_exec");
+    free(parms);
+}
+
 int main() {
     enum khttp er;
     // Parse the http request and match the keys to the keys, and pages to the pages, default to
@@ -489,10 +513,11 @@ int main() {
     if ((er = sanitize()) != KHTTP_200) goto error;
     const enum statement_comp STMT = get_stmts();
     int nbr_parms = 0;
-    if ((er = second_pass(STMT,&nbr_parms)) != KHTTP_200) goto error;
-    if ((er = third_pass(STMT,&nbr_parms)) != KHTTP_200) goto error;
+    if ((er = second_pass(STMT, &nbr_parms)) != KHTTP_200) goto error;
+    if ((er = third_pass(STMT, &nbr_parms)) != KHTTP_200) goto error;
     alloc_ctx_cfg();
     fill_user();
+    process(STMT,nbr_parms);
     if ((er = forth_pass(STMT)) != KHTTP_200) goto access_denied;
     khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
     khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
@@ -523,7 +548,6 @@ int main() {
     }
     kjson_obj_close(&req);
     kjson_putstringp(&req, "string", pstmts[STMT_EDIT].stmt);
-    kjson_putintp(&req, "nbr_parms", nbr_parms);
     kjson_obj_close(&req);
     kjson_close(&req);
     goto cleanup;
