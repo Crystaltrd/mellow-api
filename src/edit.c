@@ -431,7 +431,7 @@ enum khttp third_pass(enum statement_comp STMT) {
         }
     }
     kasprintf(&pstmts[STMT_EDIT].stmt, "%s %s", pstmts[STMT_EDIT].stmt, pstmts_bottom[STMT].stmt);
-    return (found) ? KHTTP_200 : KHTTP_400;
+    return (found) ? KHTTP_200 : KHTTP_405;
 }
 
 enum statement_comp get_stmts() {
