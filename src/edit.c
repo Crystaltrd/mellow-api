@@ -414,23 +414,27 @@ enum khttp sanitize() {
     return KHTTP_200;
 }
 
-enum khttp second_pass(enum statement_comp STMT) {
+enum khttp second_pass(enum statement_comp STMT,int *nbr) {
     for (int i = 0; bottom_keys[STMT][i] != KEY__MAX; ++i) {
         if (!(r.fieldmap[bottom_keys[STMT][i]]))
             return KHTTP_400;
+        (*nbr)++;
     }
     return KHTTP_200;
 }
 
-enum khttp third_pass(enum statement_comp STMT) {
+enum khttp third_pass(enum statement_comp STMT, int *nbr) {
     kasprintf(&pstmts[STMT_EDIT].stmt, "%s", pstmts_top[STMT].stmt);
     bool found = false;
-    if ((found = (r.fieldmap[switch_keys[STMT][0]])))
+    if ((found = (r.fieldmap[switch_keys[STMT][0]]))) {
         kasprintf(&pstmts[STMT_EDIT].stmt, "%s%s", pstmts[STMT_EDIT].stmt, pstmts_switches[STMT][0].stmt);
+        (*nbr)++;
+    }
     for (int i = 1; switch_keys[STMT][i] != KEY__MAX; ++i) {
         if (r.fieldmap[switch_keys[STMT][i]]) {
             found = true;
             kasprintf(&pstmts[STMT_EDIT].stmt, "%s,%s", pstmts[STMT_EDIT].stmt, pstmts_switches[STMT][i].stmt);
+            (*nbr)++;
         }
     }
     kasprintf(&pstmts[STMT_EDIT].stmt, "%s %s", pstmts[STMT_EDIT].stmt, pstmts_bottom[STMT].stmt);
@@ -484,8 +488,9 @@ int main() {
         return EXIT_FAILURE;
     if ((er = sanitize()) != KHTTP_200) goto error;
     const enum statement_comp STMT = get_stmts();
-    if ((er = second_pass(STMT)) != KHTTP_200) goto error;
-    if ((er = third_pass(STMT)) != KHTTP_200) goto error;
+    int nbr_parms = 0;
+    if ((er = second_pass(STMT,&nbr_parms)) != KHTTP_200) goto error;
+    if ((er = third_pass(STMT,&nbr_parms)) != KHTTP_200) goto error;
     alloc_ctx_cfg();
     fill_user();
     if ((er = forth_pass(STMT)) != KHTTP_200) goto access_denied;
@@ -518,41 +523,7 @@ int main() {
     }
     kjson_obj_close(&req);
     kjson_putstringp(&req, "string", pstmts[STMT_EDIT].stmt);
-
-    struct kpair *field;
-    kjson_arrayp_open(&req,"parms");
-    for (int i = 0; switch_keys[STMT][i] != KEY__MAX; ++i) {
-        if ((field = r.fieldmap[switch_keys[STMT][i]])) {
-            switch (field->type) {
-                case KPAIR_INTEGER:
-                    kjson_putint(&req,field->parsed.i);
-                break;
-                case KPAIR_STRING:
-                    kjson_putstring(&req,field->parsed.s);
-                break;
-                default:
-                    break;
-            }
-        }
-    }
-    kjson_array_close(&req);
-
-    kjson_arrayp_open(&req,"parms_bottom");
-    for (int i = 0; switch_keys[STMT][i] != KEY__MAX; ++i) {
-        if ((field = r.fieldmap[bottom_keys[STMT][i]])) {
-            switch (field->type) {
-                case KPAIR_INTEGER:
-                    kjson_putint(&req,field->parsed.i);
-                break;
-                case KPAIR_STRING:
-                    kjson_putstring(&req,field->parsed.s);
-                break;
-                default:
-                    break;
-            }
-        }
-    }
-    kjson_array_close(&req);
+    kjson_putintp(&req, "nbr_parms", nbr_parms);
     kjson_obj_close(&req);
     kjson_close(&req);
     goto cleanup;
