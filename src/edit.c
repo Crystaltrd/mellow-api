@@ -528,6 +528,71 @@ int process(const enum statement_comp STMT, const int parmsz) {
     return nbr;
 }
 
+
+void save(const enum statement STMT, const bool failed, const int affected) {
+    char *requestDesc = NULL;
+    if (!failed) {
+        kasprintf(&requestDesc, "Stmt:%s, Modifiers:(", statement_string[STMT]);
+
+        struct kpair *field;
+        for (int i = 0; switch_keys[STMT][i] != KEY__MAX; ++i) {
+            if ((field = r.fieldmap[switch_keys[STMT][i]])) {
+                switch (field->type) {
+                    case KPAIR_INTEGER:
+                        kasprintf(&requestDesc, "%s%s: %lld,", requestDesc, keys[switch_keys[STMT][i]].name,
+                                  field->parsed.i);
+                        break;
+                    case KPAIR_STRING:
+                        kasprintf(&requestDesc, "%s%s: %s,", requestDesc, keys[switch_keys[STMT][i]].name,
+                                  field->parsed.s);
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+        kasprintf(&requestDesc, "%s), Selectors:(", requestDesc);
+        for (int i = 0; bottom_keys[STMT][i] != KEY__MAX; ++i) {
+            if ((field = r.fieldmap[bottom_keys[STMT][i]])) {
+                switch (field->type) {
+                    case KPAIR_INTEGER:
+                        kasprintf(&requestDesc, "%s%s: %lld,", requestDesc, keys[bottom_keys[STMT][i]].name,
+                                  field->parsed.i);
+                        break;
+                    case KPAIR_STRING:
+                        kasprintf(&requestDesc, "%s%s: %s,", requestDesc, keys[bottom_keys[STMT][i]].name,
+                                  field->parsed.s);
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+
+        kasprintf(&requestDesc, "%s). Affected: %d", requestDesc,affected);
+    } else {
+        kasprintf(&requestDesc, "Stmt:%s, ACCESS DENIED", statement_string[STMT]);
+    }
+    size_t parmsz_save = 3;
+    struct sqlbox_parm parms_save[] = {
+        {
+            .type = (curr_usr.UUID != NULL) ? SQLBOX_PARM_STRING : SQLBOX_PARM_NULL,
+            .sparm = curr_usr.UUID
+        },
+        {
+            .type = SQLBOX_PARM_STRING,
+            .sparm = r.remote
+        },
+        {
+            .type = SQLBOX_PARM_STRING,
+            .sparm = requestDesc
+        },
+    };
+    if (sqlbox_exec(boxctx_data, dbid_data, __STMT_SAVE__, parmsz_save, parms_save,SQLBOX_STMT_CONSTRAINT) !=
+        SQLBOX_CODE_OK)
+        errx(EXIT_FAILURE, "sqlbox_exec");
+}
+
 int main() {
     enum khttp er;
     // Parse the http request and match the keys to the keys, and pages to the pages, default to
@@ -570,10 +635,11 @@ int main() {
         kjson_obj_close(&req);
     }
     kjson_obj_close(&req);
-    kjson_putstringp(&req, "string", pstmts[STMT_EDIT].stmt);
-    kjson_putintp(&req, "Affected", process(STMT, nbr_parms));
+    const int affected = process(STMT,nbr_parms);
+    kjson_putintp(&req, "changes", affected);
     kjson_obj_close(&req);
     kjson_close(&req);
+    save(STMT,false,affected);
     goto cleanup;
 access_denied:
     khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[er]);
@@ -588,6 +654,7 @@ access_denied:
     kjson_putstringp(&req, "error", "You don't have the permissions to edit this ressource");
     kjson_obj_close(&req);
     kjson_close(&req);
+    save(STMT,true,0);
 cleanup:
     khttp_free(&r);
     sqlbox_free(boxctx_data);
