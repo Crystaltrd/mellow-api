@@ -422,7 +422,8 @@ enum khttp second_pass(enum statement_comp STMT) {
 
 enum khttp third_pass(enum statement_comp STMT) {
     kasprintf(&pstmts[STMT_EDIT].stmt, "%s", pstmts_top[STMT].stmt);
-    kasprintf(&pstmts[STMT_EDIT].stmt, "%s%s", pstmts[STMT_EDIT].stmt, pstmts_switches[STMT][0].stmt);
+    if (r.fieldmap[switch_keys[STMT][0]])
+        kasprintf(&pstmts[STMT_EDIT].stmt, "%s%s", pstmts[STMT_EDIT].stmt, pstmts_switches[STMT][0].stmt);
     bool found = false;
     for (int i = 1; switch_keys[STMT][i] != KEY__MAX; ++i) {
         if (r.fieldmap[switch_keys[STMT][i]]) {
@@ -461,7 +462,7 @@ int main() {
     khttp_body(&r);
     kjson_open(&req, &r);
     kjson_obj_open(&req);
-    kjson_objp_open(&req,"user");
+    kjson_objp_open(&req, "user");
     kjson_putstringp(&req, "IP", r.remote);
     kjson_putboolp(&req, "authenticated", curr_usr.authenticated);
     if (curr_usr.authenticated) {
@@ -483,7 +484,7 @@ int main() {
         kjson_obj_close(&req);
     }
     kjson_obj_close(&req);
-    kjson_putstringp(&req,"string",pstmts[STMT_EDIT].stmt);
+    kjson_putstringp(&req, "string", pstmts[STMT_EDIT].stmt);
     kjson_obj_close(&req);
     kjson_close(&req);
 cleanup:
