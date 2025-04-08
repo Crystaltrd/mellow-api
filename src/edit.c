@@ -30,6 +30,8 @@ enum pg {
     PG_CATEGORY,
     PG_ACCOUNT,
     PG_BOOK,
+    PG_LANGUAGES,
+    PG_AUTHORED,
     PG_STOCK,
     PG_INVENTORY,
     PG__MAX
@@ -37,7 +39,7 @@ enum pg {
 
 
 static const char *pages[PG__MAX] = {
-    "publisher", "author", "lang", "action", "doctype", "campus", "role", "category", "account", "book", "stock",
+    "publisher", "author", "lang", "action", "doctype", "campus", "role", "category", "account", "book","languages","authored", "stock",
     "inventory"
 };
 
@@ -52,6 +54,8 @@ enum key {
     KEY_PG_CATEGORY,
     KEY_PG_ACCOUNT,
     KEY_PG_BOOK,
+    KEY_PG_LANGUAGES,
+    KEY_PG_AUTHORED,
     KEY_PG_STOCK,
     KEY_PG_INVENTORY,
 };
@@ -106,6 +110,8 @@ static const struct kvalid keys[KEY__MAX] = {
     {NULL, "category"},
     {NULL, "account"},
     {NULL, "book"},
+    {NULL, "languages"},
+    {NULL, "authored"},
     {NULL, "stock"},
     {NULL, "inventory"},
     {kvalid_stringne, "select_publishername"},
@@ -344,7 +350,7 @@ cleanup:
     khttp_head(&r, kresps[KRESP_VARY], "%s", "Origin");
     khttp_body(&r);
     if (r.mime == KMIME_TEXT_HTML)
-        khttp_puts(&r, "Could not service request. Second pass");
+        khttp_puts(&r, "Could not service request");
     khttp_free(&r);
     return 0;
 }
