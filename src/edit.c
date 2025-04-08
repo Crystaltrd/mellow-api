@@ -435,6 +435,12 @@ enum khttp third_pass(enum statement_comp STMT) {
     return (found) ? KHTTP_200 : KHTTP_400;
 }
 
+enum khttp forth_pass(enum statement_comp STMT) {
+    if (!curr_usr.authenticated)
+        return KHTTP_403;
+    return KHTTP_200;
+}
+
 enum statement_comp get_stmts() {
     if (r.page != PG__MAX)
         return (enum statement_comp) r.page;
@@ -456,6 +462,7 @@ int main() {
     if ((er = third_pass(STMT)) != KHTTP_200) goto error;
     alloc_ctx_cfg();
     fill_user();
+    if ((er = forth_pass(STMT)) != KHTTP_200) goto access_denied;
     khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
     khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
     khttp_head(&r, kresps[KRESP_VARY], "%s", "Origin");
@@ -485,6 +492,20 @@ int main() {
     }
     kjson_obj_close(&req);
     kjson_putstringp(&req, "string", pstmts[STMT_EDIT].stmt);
+    kjson_obj_close(&req);
+    kjson_close(&req);
+    goto cleanup;
+access_denied:
+    khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_403]);
+    khttp_head(&r, kresps[KRESP_CONTENT_TYPE], "%s", kmimetypes[KMIME_APP_JSON]);
+    khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
+    khttp_head(&r, kresps[KRESP_VARY], "%s", "Origin");
+    khttp_body(&r);
+    kjson_open(&req, &r);
+    kjson_obj_open(&req);
+    kjson_putstringp(&req, "IP", r.remote);
+    kjson_putboolp(&req, "authenticated", curr_usr.authenticated);
+    kjson_putstringp(&req, "error", "You don't have the permissions to edit this ressource");
     kjson_obj_close(&req);
     kjson_close(&req);
 cleanup:
