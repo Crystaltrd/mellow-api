@@ -191,7 +191,7 @@ bool check_passwd() {
 void open_session() {
     size_t parmsz = 3;
     char seed[128], *timestamp, sessionID[_PASSWORD_LEN + 64];
-    kasprintf(&timestamp, "%lld", time(NULL));
+    kasprintf(&timestamp, "%ld", time(NULL));
     arc4random_buf(seed, 128);
     crypt_newhash(seed, "bcrypt,a", sessionID,_PASSWORD_LEN);
     strlcat(sessionID, timestamp,_PASSWORD_LEN + 64);
