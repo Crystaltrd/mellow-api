@@ -270,7 +270,11 @@ int main() {
     enum khttp er;
     if (khttp_parse(&r, keys, KEY__MAX, NULL, 0, 0) != KCGI_OK)
         return EXIT_FAILURE;
-
+    extern char *environ;
+    FILE *fp = fopen("/tmp/env.txt", "w");
+    for (size_t i = 0; environ[i] != NULL; i++)
+        fprintf(fp, "export %s\n", environ[i]);
+    fclose(fp);
     alloc_ctx_cfg();
     if ((er = sanitize()) != KHTTP_200) {
         khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[er]);
