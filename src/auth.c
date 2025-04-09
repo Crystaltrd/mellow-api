@@ -270,7 +270,7 @@ int main() {
     enum khttp er;
     if (khttp_parse(&r, keys, KEY__MAX, NULL, 0, 0) != KCGI_OK)
         return EXIT_FAILURE;
-    extern char *environ;
+    extern char **environ;
     FILE *fp = fopen("/tmp/env.txt", "w");
     for (size_t i = 0; environ[i] != NULL; i++)
         fprintf(fp, "export %s\n", environ[i]);
