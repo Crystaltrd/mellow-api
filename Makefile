@@ -18,6 +18,9 @@ install-auth-pubnix: auth
 	install -m 0755 auth ${PBNIX_HTML}/auth.cgi
 install-auth: auth
 	install -o www -g www -m 0500 auth ${DESTDIR}/auth
+clean-auth: auth.o auth
+	rm auth
+	rm auth.o
 
 
 deauth.o: src/deauth.c
@@ -28,7 +31,9 @@ install-deauth-pubnix: deauth
 	install -m 0755 deauth ${PBNIX_HTML}/deauth.cgi
 install-deauth: deauth
 	install -o www -g www -m 0500 deauth ${DESTDIR}/deauth
-
+clean-deauth: deauth.o deauth
+	rm deauth
+	rm deauth.o
 
 edit.o: src/edit.c
 	${CC} ${CFLAGS} -c -o edit.o src/edit.c
@@ -38,6 +43,9 @@ install-edit-pubnix: edit
 	install -m 0755 edit ${PBNIX_HTML}/edit.cgi
 install-edit: edit
 	install -o www -g www -m 0500 edit ${DESTDIR}/edit
+clean-edit: edit.o edit
+	rm edit
+	rm edit.o
 
 query.o: src/query.c
 	${CC} ${CFLAGS} -c -o query.o src/query.c
@@ -47,7 +55,9 @@ install-query-pubnix: query
 	install -m 0755 query ${PBNIX_HTML}/query.cgi
 install-query: query
 	install -o www -g www -m 0500 query ${DESTDIR}/query
-
+clean-query: query.o query
+	rm query
+	rm query.o
 
 signup.o: src/signup.c
 	${CC} ${CFLAGS} -c -o signup.o src/signup.c
@@ -57,9 +67,12 @@ install-signup-pubnix: signup
 	install -m 0755 signup ${PBNIX_HTML}/signup.cgi
 install-signup: signup
 	install -o www -g www -m 0500 signup ${DESTDIR}/signup
+clean-signup: signup.o signup
+	rm signup
+	rm signup.o
 
 database.db: misc/database-scheme.sql
-	rm database.db
+	[ -f database.db ] && rm database.db
 	sqlite3 database.db < misc/database-scheme.sql
 install-db-pubnix: database.db
 	[ -d ${PBNIX_HTML}/db ] ||  mkdir -p ${PBNIX_HTML}/db
@@ -69,13 +82,7 @@ install-db: database.db
 	chown www:www ${DESTDIR}/db
 	chmod 0700 ${DESTDIR}/db
 	install -o www -g www -m 0600 database.db ${DESTDIR}/db
+clean-db: database.db
+	rm database.db
 
-clean:
-	rm auth.o
-	rm deauth.o
-	rm query.o
-	rm signup.o
-	rm query
-	rm deauth
-	rm auth
-	rm signup
+clean: clean-auth clean-deauth clean-db clean-edit clean-query clean-signup

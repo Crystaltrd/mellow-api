@@ -191,7 +191,7 @@ bool check_passwd() {
 void open_session() {
     size_t parmsz = 3;
     char seed[128], *timestamp, sessionID[_PASSWORD_LEN + 64];
-    kasprintf(&timestamp, "%ld", time(NULL));
+    kasprintf(&timestamp, "%lld", time(NULL));
     arc4random_buf(seed, 128);
     crypt_newhash(seed, "bcrypt,a", sessionID,_PASSWORD_LEN);
     strlcat(sessionID, timestamp,_PASSWORD_LEN + 64);
@@ -270,11 +270,6 @@ int main() {
     enum khttp er;
     if (khttp_parse(&r, keys, KEY__MAX, NULL, 0, 0) != KCGI_OK)
         return EXIT_FAILURE;
-    extern char **environ;
-    FILE *fp = fopen("/tmp/env.txt", "w");
-    for (size_t i = 0; environ[i] != NULL; i++)
-        fprintf(fp, "export %s\n", environ[i]);
-    fclose(fp);
     alloc_ctx_cfg();
     if ((er = sanitize()) != KHTTP_200) {
         khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[er]);
