@@ -1,3 +1,9 @@
+## TODO:
+- REGEX for uuid
+- header files for usr (D.R.Y)
+- password hashing in edit
+
+
 ## Permissions:
 
 - Admin: Can manage Staff accounts, can import and export backups.
