@@ -195,8 +195,8 @@ int main() {
         errx(EXIT_FAILURE, "parse");
     if ((er = sanitize()) != KHTTP_200) goto error;
 
-    char *line = "before fill"; goto error;
     fill_user();
+    char *line = "after fill"; goto error;
     if (!curr_usr.authenticated) goto error;
     enum statement STMT = get_stmts();
     if ((r.fieldmap[KEY_SESSION] || r.fieldmap[KEY_UUID]) && !(curr_usr.perms.staff || curr_usr.perms.admin)) goto error
