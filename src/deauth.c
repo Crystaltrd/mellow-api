@@ -194,10 +194,11 @@ int main() {
     if (khttp_parse(&r, keys, KEY__MAX, 0, 0, 0) != KCGI_OK)
         errx(EXIT_FAILURE, "parse");
     if ((er = sanitize()) != KHTTP_200) goto error;
+
+    char *line = "before fill"; goto error;
     fill_user();
     if (!curr_usr.authenticated) goto error;
     enum statement STMT = get_stmts();
-    char *line = "200"; goto error;
     if ((r.fieldmap[KEY_SESSION] || r.fieldmap[KEY_UUID]) && !(curr_usr.perms.staff || curr_usr.perms.admin)) goto error
             ;
     int disconnected = process(STMT);
