@@ -192,15 +192,13 @@ int process(const enum statement STMT) {
 int main() {
     enum khttp er;
     if (khttp_parse(&r, keys, KEY__MAX, 0, 0, 0) != KCGI_OK)
-        errx(EXIT_FAILURE, "parse");
+        return EXIT_FAILURE;
     if ((er = sanitize()) != KHTTP_200) goto error;
-
+    alloc_ctx_cfg();
     fill_user();
-    char *line = "after fill"; goto error;
     if (!curr_usr.authenticated) goto error;
     enum statement STMT = get_stmts();
-    if ((r.fieldmap[KEY_SESSION] || r.fieldmap[KEY_UUID]) && !(curr_usr.perms.staff || curr_usr.perms.admin)) goto error
-            ;
+    if ((r.fieldmap[KEY_SESSION] || r.fieldmap[KEY_UUID]) && !(curr_usr.perms.staff || curr_usr.perms.admin))goto error;
     int disconnected = process(STMT);
     khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
     khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
@@ -235,12 +233,12 @@ int main() {
     kjson_close(&req);
     goto cleanup;
 error:
-    khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_400]);
+    khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[er]);
     khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
     khttp_head(&r, kresps[KRESP_VARY], "%s", "Origin");
     khttp_body(&r);
     if (r.mime == KMIME_TEXT_HTML)
-        khttp_puts(&r, line);
+        khttp_puts(&r, "Could not service request");
     khttp_free(&r);
     return 0;
 cleanup:
