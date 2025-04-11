@@ -22,6 +22,7 @@ enum statement {
     STMTS_LOGOUT,
     STMTS_LOGOUTALL,
     __STMTS_LOGIN__,
+    __STMTS_SAVE__,
     STMTS__MAX
 };
 
@@ -50,6 +51,11 @@ static struct sqlbox_pstmt pstmts[STMTS__MAX] = {
         "WHERE ACCOUNT.role = ROLE.roleName "
         "AND sessionID = (?) "
         "GROUP BY ACCOUNT.UUID, displayname, pwhash, campus, perms, frozen "
+    },
+    {
+        (char *)
+        "INSERT INTO HISTORY (UUID,UUID_ISSUER, IP, action, actiondate, details) "
+        "VALUES ((?),(?),(?),'LOGOUT',datetime('now','localtime'),(?))"
     },
 };
 
@@ -189,6 +195,43 @@ int process(const enum statement STMT) {
     return reset_cookie;
 }
 
+void save(const enum statement STMT, const int self) {
+    char *requestDesc = NULL;
+    if (self) {
+        if (STMT == STMTS_LOGOUTALL) {
+            kasprintf(&requestDesc, "DEAUTH ALL");
+        } else {
+            kasprintf(&requestDesc, "DEAUTH OWN SESSION: %s", r.cookiemap[KEY_SESSION]->parsed.s);
+        }
+    } else if (r.fieldmap[KEY_SESSION]) {
+        kasprintf(&requestDesc, "DEAUTH SESSION: %s", r.fieldmap[KEY_SESSION]->parsed.s);
+    } else {
+        kasprintf(&requestDesc, "DEAUTH ACCOUNT: %s", r.fieldmap[KEY_UUID]->parsed.s);
+    }
+    size_t parmsz_save = 4;
+    struct sqlbox_parm parms_save[] = {
+        {
+            .type = SQLBOX_PARM_STRING,
+            .sparm = curr_usr.UUID
+        },
+        {
+            .type = (r.fieldmap[KEY_UUID]) ? SQLBOX_PARM_STRING : SQLBOX_PARM_NULL,
+            .sparm = curr_usr.UUID
+        },
+        {
+            .type = SQLBOX_PARM_STRING,
+            .sparm = r.remote
+        },
+        {
+            .type = SQLBOX_PARM_STRING,
+            .sparm = requestDesc
+        },
+    };
+    if (sqlbox_exec(boxctx_data, dbid_data, __STMTS_SAVE__, parmsz_save, parms_save,SQLBOX_STMT_CONSTRAINT) !=
+        SQLBOX_CODE_OK)
+        errx(EXIT_FAILURE, "sqlbox_exec");
+}
+
 int main() {
     enum khttp er;
     if (khttp_parse(&r, keys, KEY__MAX, 0, 0, 0) != KCGI_OK)
@@ -231,6 +274,7 @@ int main() {
     kjson_putboolp(&req, "disconnected", disconnected);
     kjson_obj_close(&req);
     kjson_close(&req);
+    save(STMT,disconnected);
     goto cleanup;
 error:
     khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[er]);
