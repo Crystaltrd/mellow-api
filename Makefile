@@ -4,11 +4,11 @@ PBNIX_HTML=${HOME}/public_html/mellow
 DESTDIR=/var/www/cgi-bin/mellow
 
 
-all: edit query auth deauth signup database.db
+all: edit query auth deauth signup search database.db
 install: install-noreplace install-db
 install-pubnix: install-pubnix-noreplace install-db-pubnix
-install-noreplace: install-edit install-auth install-deauth install-query install-signup
-install-pubnix-noreplace: install-edit-pubnix install-auth-pubnix install-deauth-pubnix install-query-pubnix install-signup-pubnix
+install-noreplace: install-edit install-auth install-deauth install-query install-signup install-search
+install-pubnix-noreplace: install-edit-pubnix install-auth-pubnix install-deauth-pubnix install-query-pubnix install-signup-pubnix install-search-pubnix
 
 auth.o: src/auth.c
 	${CC} ${CFLAGS} -c -o auth.o src/auth.c
@@ -71,6 +71,18 @@ clean-signup: signup.o signup
 	rm signup
 	rm signup.o
 
+search.o: src/search.c
+	${CC} ${CFLAGS} -c -o search.o src/search.c
+search: search.o
+	${CC} --static -o search search.o ${LDFLAGS}
+install-search-pubnix: search
+	install -m 0755 search ${PBNIX_HTML}/search.cgi
+install-search: search
+	install -o www -g www -m 0500 search ${DESTDIR}/search
+clean-search: search.o search
+	rm search
+	rm search.o
+
 database.db: misc/database-scheme.sql
 	[ -f database.db ] && rm database.db
 	sqlite3 database.db < misc/database-scheme.sql
@@ -85,4 +97,4 @@ install-db: database.db
 clean-db: database.db
 	rm database.db
 
-clean: clean-auth clean-deauth clean-db clean-edit clean-query clean-signup
+clean: clean-auth clean-deauth clean-db clean-edit clean-query clean-signup clean-search
