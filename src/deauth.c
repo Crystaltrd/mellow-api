@@ -197,8 +197,7 @@ int main() {
     fill_user();
     if (!curr_usr.authenticated) goto error;
     enum statement STMT = get_stmts();
-
-    errx(EXIT_FAILURE, "parse");
+    char *line = "200"; goto error;
     if ((r.fieldmap[KEY_SESSION] || r.fieldmap[KEY_UUID]) && !(curr_usr.perms.staff || curr_usr.perms.admin)) goto error
             ;
     int disconnected = process(STMT);
@@ -235,12 +234,12 @@ int main() {
     kjson_close(&req);
     goto cleanup;
 error:
-    khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[er]);
+    khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_400]);
     khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
     khttp_head(&r, kresps[KRESP_VARY], "%s", "Origin");
     khttp_body(&r);
     if (r.mime == KMIME_TEXT_HTML)
-        khttp_puts(&r, "Could not service request");
+        khttp_puts(&r, line);
     khttp_free(&r);
     return 0;
 cleanup:
