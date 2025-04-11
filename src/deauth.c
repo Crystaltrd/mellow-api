@@ -191,11 +191,9 @@ int process(const enum statement STMT) {
 
 int main() {
     enum khttp er;
-    // Parse the http request and match the keys to the keys, and pages to the pages, default to
-    // querying the PG__MAX if no page was found
     if (khttp_parse(&r, keys, KEY__MAX, 0, 0, 0) != KCGI_OK)
-        return EXIT_FAILURE;
-    if ((er = sanitize()) != KHTTP_200)goto error;
+        errx(EXIT_FAILURE, "parse");
+    if ((er = sanitize()) != KHTTP_200) goto error;
     fill_user();
     if (!curr_usr.authenticated) goto error;
     enum statement STMT = get_stmts();
