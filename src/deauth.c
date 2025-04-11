@@ -193,6 +193,7 @@ int main() {
     enum khttp er;
     if (khttp_parse(&r, keys, KEY__MAX, 0, 0, 0) != KCGI_OK)
         errx(EXIT_FAILURE, "parse");
+    goto error;
     if ((er = sanitize()) != KHTTP_200) goto error;
     fill_user();
     if (!curr_usr.authenticated) goto error;
