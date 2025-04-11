@@ -232,6 +232,7 @@ int main() {
     kjson_putboolp(&req, "disconnected", disconnected);
     kjson_obj_close(&req);
     kjson_close(&req);
+    goto cleanup;
 error:
     khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[er]);
     khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
@@ -240,5 +241,9 @@ error:
     if (r.mime == KMIME_TEXT_HTML)
         khttp_puts(&r, "Could not service request");
     khttp_free(&r);
+    return 0;
+cleanup:
+    khttp_free(&r);
+    sqlbox_free(boxctx_data);
     return 0;
 }
