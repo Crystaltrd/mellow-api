@@ -113,7 +113,6 @@ enum key {
     KEY_FILTER_BY_AUTHOR,
     KEY_FILTER_BY_TYPE,
     KEY_FILTER_BY_PUBLISHER,
-    KEY_FILTER_IGNORE_EMPTY,
     KEY_FILTER_FROM_YEAR,
     KEY_FILTER_TO_YEAR,
     KEY_FILTER_ME,
@@ -165,7 +164,6 @@ static const struct kvalid keys[KEY__MAX] = {
     {kvalid_string, "by_author"},
     {kvalid_string, "by_type"},
     {kvalid_string, "by_publisher"},
-    {kvalid_bit, "ignore_empty"},
     {kvalid_int, "from_year"},
     {kvalid_int, "to_year"},
     {NULL, "me"},
@@ -423,7 +421,6 @@ static struct sqlbox_pstmt pstmts_data[STMTS__MAX] = {
         "AND ((?) = 'IGNORE_PUBLISHER' OR instr(publisher, (?)) > 0) "
         "AND ((?) = 'IGNORE_CAMPUS' OR campus = (?)) "
         "AND ((?) = 'IGNORE_ACCOUNT' OR UUID = (?)) "
-        "AND ((?) = 'INCLUDE_EMPTY' OR STOCK.instock > 0) "
         "AND ((?) = 'IGNORE_FROM_DATE' OR bookreleaseyear >= (?)) "
         "AND ((?) = 'IGNORE_TO_DATE' OR bookreleaseyear <= (?)) "
         "GROUP BY BOOK.serialnum, type, category, categoryName, publisher, booktitle, bookreleaseyear, bookcover, hits "
@@ -655,7 +652,6 @@ static struct sqlbox_pstmt pstmts_count[STMTS__MAX] = {
         "AND ((?) = 'IGNORE_PUBLISHER' OR instr(publisher, (?)) > 0) "
         "AND ((?) = 'IGNORE_CAMPUS' OR campus = (?)) "
         "AND ((?) = 'IGNORE_ACCOUNT' OR UUID = (?)) "
-        "AND ((?) = 'INCLUDE_EMPTY' OR STOCK.instock > 0) "
         "AND ((?) = 'IGNORE_FROM_DATE' OR bookreleaseyear >= (?)) "
         "AND ((?) = 'IGNORE_TO_DATE' OR bookreleaseyear <= (?)) "
         "ORDER BY IIF((?) = 'POPULAR', hits, booktitle) DESC "
@@ -1126,7 +1122,7 @@ void fill_params(const enum statement STATEMENT) {
             };
             break;
         case STMTS_BOOK:
-            parmsz = 27;
+            parmsz = 26;
             parms = kcalloc(parmsz, sizeof(struct sqlbox_parm));
             parms[0] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
@@ -1215,33 +1211,28 @@ void fill_params(const enum statement STATEMENT) {
                 .type = SQLBOX_PARM_STRING,
                 .sparm = ((field = r.fieldmap[KEY_FILTER_BY_ACCOUNT])) ? field->parsed.s : ""
             };
+
             parms[18] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = !((field = r.fieldmap[KEY_FILTER_IGNORE_EMPTY])) || field->valsz <= 0
-                             ? "INCLUDE_EMPTY"
-                             : "DONT_INCLUDE_EMPTY"
-            };
-            parms[19] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
                 .sparm = !((field = r.fieldmap[KEY_FILTER_FROM_YEAR])) || field->valsz <= 0
                              ? "IGNORE_FROM_DATE"
                              : "FROM_DATE"
             };
-            parms[20] = (struct sqlbox_parm){
+            parms[19] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_INT,
                 .iparm = ((field = r.fieldmap[KEY_FILTER_FROM_YEAR])) ? field->parsed.i : 0
             };
-            parms[21] = (struct sqlbox_parm){
+            parms[20] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
                 .sparm = !((field = r.fieldmap[KEY_FILTER_TO_YEAR])) || field->valsz <= 0
                              ? "IGNORE_TO_DATE"
                              : "TO_DATE"
             };
-            parms[22] = (struct sqlbox_parm){
+            parms[21] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_INT,
                 .iparm = ((field = r.fieldmap[KEY_FILTER_TO_YEAR])) ? field->parsed.i : 0
             };
-            parms[23] = (struct sqlbox_parm){
+            parms[22] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
                 .sparm = (r.fieldmap[KEY_FILTER_BY_POPULARITY]) ? "POPULAR" : "DEFAULT_SORT"
             };
