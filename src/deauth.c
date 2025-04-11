@@ -233,7 +233,7 @@ int main() {
     kjson_close(&req);
     goto cleanup;
 error:
-    khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[er]);
+    khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_400]);
     khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
     khttp_head(&r, kresps[KRESP_VARY], "%s", "Origin");
     khttp_body(&r);
