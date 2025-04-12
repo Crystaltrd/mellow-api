@@ -28,6 +28,7 @@ enum statement {
 
 enum key {
     KEY_SESSION,
+    KEY_SESSIONMOD,
     KEY_UUID,
     KEY_DEAUTH_ALL,
     KEY__MAX,
@@ -36,6 +37,7 @@ enum key {
 
 static const struct kvalid keys[KEY__MAX] = {
     {kvalid_stringne, "sessionID"},
+    {kvalid_stringne, "sessionID_mod"},
     {kvalid_stringne, "uuid"},
     {NULL, "all"}
 };
@@ -111,6 +113,7 @@ struct usr {
     char *disp_name;
     char *campus;
     char *role;
+    char *sessionID;
     struct accperms perms;
     bool authenticated;
     bool frozen;
@@ -123,12 +126,17 @@ struct usr curr_usr = {
     .disp_name = NULL,
     .campus = NULL,
     .role = NULL,
+    .sessionID = NULL,
     .perms = {0, 0, 0, 0, 0, 0, 0, 0}
 };
 
 void fill_user() {
     struct kpair *field;
-    if ((field = r.cookiemap[KEY_SESSION])) {
+    if (r.cookiemap[KEY_SESSION] || r.fieldmap[KEY_SESSION]) {
+        if (r.cookiemap[KEY_SESSION])
+            field = r.cookiemap[KEY_SESSION];
+        else
+            field = r.fieldmap[KEY_SESSION];
         size_t stmtid;
         size_t parmsz = 1;
         const struct sqlbox_parmset *res;
@@ -149,6 +157,8 @@ void fill_user() {
 
             kasprintf(&curr_usr.role, "%s", res->ps[4].sparm);
 
+            kasprintf(&curr_usr.sessionID, "%s", field->parsed.s);
+
             curr_usr.perms = int_to_accperms((int) res->ps[5].iparm);
 
             curr_usr.frozen = res->ps[6].iparm;
@@ -160,7 +170,8 @@ void fill_user() {
 enum khttp sanitize() {
     if (r.method != KMETHOD_POST)
         return KHTTP_405;
-    if ((r.fieldmap[KEY_SESSION] && (r.fieldmap[KEY_UUID] || r.fieldmap[KEY_DEAUTH_ALL])) || !r.cookiemap[KEY_SESSION])
+    if ((r.fieldmap[KEY_SESSIONMOD] && (r.fieldmap[KEY_UUID] || r.fieldmap[KEY_DEAUTH_ALL])) || !(r.cookiemap[
+                KEY_SESSION] || r.fieldmap[KEY_SESSION]))
         return KHTTP_403;
 
     return KHTTP_200;
@@ -177,15 +188,15 @@ int process(const enum statement STMT) {
     struct sqlbox_parm *parms = kcalloc(parmsz, sizeof(struct sqlbox_parm));
     int reset_cookie = 0;
     parms[0].type = SQLBOX_PARM_STRING;
-    if (r.fieldmap[KEY_SESSION])
-        parms[0].sparm = r.fieldmap[KEY_SESSION]->parsed.s;
+    if (r.fieldmap[KEY_SESSIONMOD])
+        parms[0].sparm = r.fieldmap[KEY_SESSIONMOD]->parsed.s;
     else if (r.fieldmap[KEY_UUID])
         parms[0].sparm = r.fieldmap[KEY_UUID]->parsed.s;
     else if (r.fieldmap[KEY_DEAUTH_ALL]) {
         parms[0].sparm = curr_usr.UUID;
         reset_cookie = 1;
     } else {
-        parms[0].sparm = r.cookiemap[KEY_SESSION]->parsed.s;
+        parms[0].sparm = curr_usr.sessionID;
         reset_cookie = 1;
     }
     if (sqlbox_exec(boxctx_data, dbid_data, STMT, parmsz, parms,SQLBOX_STMT_CONSTRAINT) !=
@@ -201,10 +212,10 @@ void save(const enum statement STMT, const int self) {
         if (STMT == STMTS_LOGOUTALL) {
             kasprintf(&requestDesc, "DEAUTH ALL");
         } else {
-            kasprintf(&requestDesc, "DEAUTH OWN SESSION: %s", r.cookiemap[KEY_SESSION]->parsed.s);
+            kasprintf(&requestDesc, "DEAUTH OWN SESSION: %s", curr_usr.sessionID);
         }
-    } else if (r.fieldmap[KEY_SESSION]) {
-        kasprintf(&requestDesc, "DEAUTH SESSION: %s", r.fieldmap[KEY_SESSION]->parsed.s);
+    } else if (r.fieldmap[KEY_SESSIONMOD]) {
+        kasprintf(&requestDesc, "DEAUTH SESSION: %s", r.fieldmap[KEY_SESSIONMOD]->parsed.s);
     } else {
         kasprintf(&requestDesc, "DEAUTH ACCOUNT: %s", r.fieldmap[KEY_UUID]->parsed.s);
     }
@@ -241,14 +252,16 @@ int main() {
     fill_user();
     if (!curr_usr.authenticated) goto error;
     enum statement STMT = get_stmts();
-    if ((r.fieldmap[KEY_SESSION] || r.fieldmap[KEY_UUID]) && !(curr_usr.perms.staff || curr_usr.perms.admin))goto error;
+    if ((r.fieldmap[KEY_SESSIONMOD] || r.fieldmap[KEY_UUID]) && !(curr_usr.perms.staff || curr_usr.perms.admin))
+        goto
+                error;
     int disconnected = process(STMT);
     khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
     khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
     khttp_head(&r, kresps[KRESP_VARY], "%s", "Origin");
     if (disconnected)
         khttp_head(&r, kresps[KRESP_SET_COOKIE], "sessionID=%s; Path=/; Max-Age=-1",
-                   r.cookiemap[KEY_SESSION]->parsed.s);
+                   curr_usr.sessionID);
     khttp_body(&r);
     kjson_open(&req, &r);
     kjson_obj_open(&req);
@@ -274,7 +287,7 @@ int main() {
     kjson_putboolp(&req, "disconnected", disconnected);
     kjson_obj_close(&req);
     kjson_close(&req);
-    save(STMT,disconnected);
+    save(STMT, disconnected);
     goto cleanup;
 error:
     khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[er]);
