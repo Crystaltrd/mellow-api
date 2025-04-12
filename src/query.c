@@ -1694,7 +1694,7 @@ void save(const enum statement STATEMENT, const bool failed) {
 }
 
 enum khttp sanitize() {
-    if (r.method == KMETHOD_OPTIONS && r.reqmap[KREQU_ORIGIN] != NULL)
+    if (r.method == KMETHOD_OPTIONS)
         return KHTTP_204;
     if (r.method != KMETHOD_GET)
         return KHTTP_405;
@@ -1762,8 +1762,7 @@ cleanup:
     sqlbox_free(boxctx_count);
     return EXIT_SUCCESS;
 preflight:
-    khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", r.reqmap[KREQU_ORIGIN]->val);
-    khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_METHODS], "%s", "GET, POST");
+    khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "http://localhost");
     khttp_head(&r, kresps[KRESP_VARY], "%s", "Origin");
     khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_204]);
     khttp_body(&r);
