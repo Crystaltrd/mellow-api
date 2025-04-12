@@ -1694,12 +1694,13 @@ void save(const enum statement STATEMENT, const bool failed) {
 }
 
 enum khttp sanitize() {
+
+    if (r.method == KMETHOD_OPTIONS && r.reqmap[KREQU_ORIGIN] != NULL)
+        return KHTTP_204;
     if (r.method != KMETHOD_GET)
         return KHTTP_405;
     if (r.page == PG__MAX)
         return KHTTP_404;
-    if (r.method == KMETHOD_OPTIONS && r.reqmap[KREQU_ORIGIN] != NULL)
-        return KHTTP_204;
     return KHTTP_200;
 }
 
