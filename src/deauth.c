@@ -173,7 +173,6 @@ enum khttp sanitize() {
     if ((r.fieldmap[KEY_SESSIONMOD] && (r.fieldmap[KEY_UUID] || r.fieldmap[KEY_DEAUTH_ALL])) || !(r.cookiemap[
                 KEY_SESSION] || r.fieldmap[KEY_SESSION]))
         return KHTTP_403;
-
     return KHTTP_200;
 }
 

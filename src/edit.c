@@ -348,6 +348,7 @@ struct usr {
     char *disp_name;
     char *campus;
     char *role;
+    char *sessionID;
     struct accperms perms;
     bool authenticated;
     bool frozen;
@@ -360,12 +361,17 @@ struct usr curr_usr = {
     .disp_name = NULL,
     .campus = NULL,
     .role = NULL,
+    .sessionID = NULL,
     .perms = {0, 0, 0, 0, 0, 0, 0, 0}
 };
-
 void fill_user() {
     struct kpair *field;
-    if ((field = r.cookiemap[COOKIE_SESSIONID])) {
+
+    if (r.cookiemap[COOKIE_SESSIONID] || r.fieldmap[COOKIE_SESSIONID]) {
+        if (r.cookiemap[COOKIE_SESSIONID])
+            field = r.cookiemap[COOKIE_SESSIONID];
+        else
+            field = r.fieldmap[COOKIE_SESSIONID];
         size_t stmtid;
         size_t parmsz = 1;
         const struct sqlbox_parmset *res;
@@ -385,6 +391,8 @@ void fill_user() {
             kasprintf(&curr_usr.campus, "%s", res->ps[3].sparm);
 
             kasprintf(&curr_usr.role, "%s", res->ps[4].sparm);
+
+            kasprintf(&curr_usr.sessionID, "%s", field->parsed.s);
 
             curr_usr.perms = int_to_accperms((int) res->ps[5].iparm);
 
