@@ -1633,8 +1633,8 @@ void process(const enum statement STATEMENT) {
             while ((res_book = sqlbox_step(boxctx_data, stmtid_book_data)) != NULL && res_book->code == SQLBOX_CODE_OK
                    && res_book->psz != 0) {
                 kjson_obj_open(&req);
-                kjson_putstringp(&req,"campus", res_book->ps[0].sparm);
-                kjson_putintp(&req,"stock", res_book->ps[1].iparm);
+                kjson_putstringp(&req, "campus", res_book->ps[0].sparm);
+                kjson_putintp(&req, "stock", res_book->ps[1].iparm);
                 kjson_obj_close(&req);
             }
             kjson_array_close(&req);
@@ -1702,6 +1702,8 @@ void save(const enum statement STATEMENT, const bool failed) {
 }
 
 enum khttp sanitize() {
+    if (r.method == KMETHOD_OPTIONS && r.reqmap[KREQU_ORIGIN] != NULL)
+        return KHTTP_204;
     if (r.method != KMETHOD_GET)
         return KHTTP_405;
     if (r.page == PG__MAX)
@@ -1716,6 +1718,7 @@ int main(void) {
     if (khttp_parse(&r, keys, KEY__MAX, pages, PG__MAX, PG_BOOK) != KCGI_OK)
         return EXIT_FAILURE;
     if ((er = sanitize()) != KHTTP_200) {
+        if (er == KHTTP_204) goto preflight;
         khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[er]);
         khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
         khttp_head(&r, kresps[KRESP_VARY], "%s", "Origin");
@@ -1765,5 +1768,19 @@ cleanup:
     khttp_free(&r);
     sqlbox_free(boxctx_data);
     sqlbox_free(boxctx_count);
+    return EXIT_SUCCESS;
+preflight:
+    khttp_head(&r,
+               kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN],
+               "%s", r.reqmap[KREQU_ORIGIN]->val);
+    khttp_head(&r,
+               kresps[KRESP_ACCESS_CONTROL_ALLOW_METHODS],
+               "%s", "GET, POST");
+    khttp_head(&r, kresps[KRESP_VARY],
+               "%s", "Origin");
+    khttp_head(&r, kresps[KRESP_STATUS],
+               "%s", khttps[KHTTP_204]);
+    khttp_body(&r);
+    khttp_free(&r);
     return EXIT_SUCCESS;
 }
