@@ -84,7 +84,7 @@ clean-search: search.o search
 	rm search.o
 
 database.db: misc/database-scheme.sql
-	[ -f database.db ] && rm database.db
+	[ -f database.db ] && rm database.db ||
 	sqlite3 database.db < misc/database-scheme.sql
 install-db-pubnix: database.db
 	[ -d ${PBNIX_HTML}/db ] ||  mkdir -p ${PBNIX_HTML}/db
