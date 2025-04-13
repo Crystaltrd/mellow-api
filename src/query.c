@@ -1720,8 +1720,6 @@ int main(void) {
     if ((er = sanitize()) != KHTTP_200) {
         if (er == KHTTP_204) goto preflight;
         khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[er]);
-        khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
-        khttp_head(&r, kresps[KRESP_VARY], "%s", "Origin");
         khttp_body(&r);
         if (r.mime == KMIME_TEXT_HTML)
             khttp_puts(&r, "Could not service request.");
