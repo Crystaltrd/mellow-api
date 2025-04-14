@@ -113,9 +113,9 @@ CREATE TABLE SESSIONS
     expiresAt DATETIME NOT NULL
 );
 INSERT INTO ACCOUNT
-VALUES ('1', 'Alice', '$2b$10$2HqdewExklOfFFCBhOkTP.ufmT.cq1lQP4QSyRRYHETWRGxs3YTH6', 'El Kseur', 'ADMIN', FALSE),
-       ('2', 'Bob', 'pwhash2', 'El Kseur', 'LIBRARIAN', FALSE),
-       ('3', 'Charlie', 'pwhash3', 'Aboudaou', 'STUDENT', FALSE);
+VALUES ('admin', 'Administrator C',
+        '$argon2id$v=19$m=47104,t=1,p=1$c29tZWhhc2g$qq6HFnwYwAuscx21QUlAZAf9PDs6ve5tTAFDisdc0dk', 'El Kseur', 'ADMIN',
+        FALSE);
 
 CREATE TABLE BOOK
 (
