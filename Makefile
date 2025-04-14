@@ -1,5 +1,5 @@
 CFLAGS=-g -Wall -Wextra `pkg-config --static --cflags libargon2 kcgi-html kcgi-json sqlbox`
-LDFLAGS=--static `pkg-config --libs libargon2 kcgi-html kcgi-json sqlbox`
+LDFLAGS=`pkg-config --libs libargon2 kcgi-html kcgi-json sqlbox`
 PBNIX_HTML=${HOME}/public_html/mellow
 DESTDIR=/var/www/cgi-bin/mellow
 
@@ -13,7 +13,7 @@ install-pubnix-noreplace: install-edit-pubnix install-auth-pubnix install-deauth
 auth.o: src/auth.c
 	${CC} ${CFLAGS} -c -o auth.o src/auth.c
 auth: auth.o
-	${CC} -o auth auth.o ${LDFLAGS}
+	${CC} --static -o auth auth.o ${LDFLAGS}
 install-auth-pubnix: auth
 	install -m 0755 auth ${PBNIX_HTML}/auth.cgi
 install-auth: auth
@@ -26,7 +26,7 @@ clean-auth: auth.o auth
 deauth.o: src/deauth.c
 	${CC} ${CFLAGS} -c -o deauth.o src/deauth.c
 deauth: deauth.o
-	${CC} -o deauth deauth.o ${LDFLAGS}
+	${CC} --static -o deauth deauth.o ${LDFLAGS}
 install-deauth-pubnix: deauth
 	install -m 0755 deauth ${PBNIX_HTML}/deauth.cgi
 install-deauth: deauth
@@ -38,7 +38,7 @@ clean-deauth: deauth.o deauth
 edit.o: src/edit.c
 	${CC} ${CFLAGS} -c -o edit.o src/edit.c
 edit: edit.o
-	${CC} -o edit edit.o ${LDFLAGS}
+	${CC} --static -o edit edit.o ${LDFLAGS}
 install-edit-pubnix: edit
 	install -m 0755 edit ${PBNIX_HTML}/edit.cgi
 install-edit: edit
@@ -50,7 +50,7 @@ clean-edit: edit.o edit
 query.o: src/query.c
 	${CC} ${CFLAGS} -c -o query.o src/query.c
 query: query.o
-	${CC} -o query query.o ${LDFLAGS}
+	${CC} --static -o query query.o ${LDFLAGS}
 install-query-pubnix: query
 	install -m 0755 query ${PBNIX_HTML}/query.cgi
 install-query: query
@@ -62,7 +62,7 @@ clean-query: query.o query
 signup.o: src/signup.c
 	${CC} ${CFLAGS} -c -o signup.o src/signup.c
 signup: signup.o
-	${CC} -o signup signup.o ${LDFLAGS}
+	${CC} --static -o signup signup.o ${LDFLAGS}
 install-signup-pubnix: signup
 	install -m 0755 signup ${PBNIX_HTML}/signup.cgi
 install-signup: signup
@@ -74,7 +74,7 @@ clean-signup: signup.o signup
 search.o: src/search.c
 	${CC} ${CFLAGS} -c -o search.o src/search.c
 search: search.o
-	${CC} -o search search.o ${LDFLAGS}
+	${CC} --static -o search search.o ${LDFLAGS}
 install-search-pubnix: search
 	install -m 0755 search ${PBNIX_HTML}/search.cgi
 install-search: search
