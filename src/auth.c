@@ -16,17 +16,12 @@
 #include <pwd.h>
 #include <unistd.h>
 #include <argon2.h>
+#define HASHLEN 32
+#define SALTLEN 16
 #ifndef __BSD_VISIBLE
 #define	_PASSWORD_LEN		128
-
-int
-crypt_checkpass(const char *password, const char *hash);
-
-int
-crypt_newhash(const char *password, const char *pref, char *hash,
-              size_t hashsize);
-
 #endif
+
 struct kreq r;
 struct kjsonreq req;
 
@@ -183,7 +178,11 @@ bool check_passwd() {
     kasprintf(&hash, "%s", res->ps[5].sparm);
 
     sqlbox_finalise(boxctx_data, stmtid);
-    if (crypt_checkpass(r.fieldmap[KEY_PASSWD]->parsed.s, hash) != 0)
+
+    uint8_t *pwd = (uint8_t *) kstrdup(r.fieldmap[KEY_PASSWD]->parsed.s);
+    uint32_t pwdlen = strlen((char *) pwd);
+
+    if (argon2id_verify(hash, pwd, pwdlen) != 0)
         return false;
 
     return true;
@@ -191,10 +190,16 @@ bool check_passwd() {
 
 void open_session() {
     size_t parmsz = 3;
-    char seed[128], *timestamp, sessionID[_PASSWORD_LEN + 64];
+    char *timestamp, sessionID[_PASSWORD_LEN + 64];
     kasprintf(&timestamp, "%lld", time(NULL));
-    arc4random_buf(seed, 128);
-    crypt_newhash(seed, "bcrypt,a", sessionID,_PASSWORD_LEN);
+    uint8_t salt[SALTLEN];
+    arc4random_buf(salt,SALTLEN);
+    uint8_t pwd[_PASSWORD_LEN];
+    arc4random_buf(pwd,_PASSWORD_LEN);
+    uint32_t t_cost = 1;
+    uint32_t m_cost = 47104;
+    uint32_t parallelism = 1;
+    argon2id_hash_encoded(t_cost, m_cost, parallelism, pwd,_PASSWORD_LEN , salt, SALTLEN,HASHLEN, sessionID, _PASSWORD_LEN);
     strlcat(sessionID, timestamp,_PASSWORD_LEN + 64);
     struct sqlbox_parm parms[] = {
         {

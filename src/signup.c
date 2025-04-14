@@ -22,14 +22,6 @@
 #define SALTLEN 16
 #ifndef __BSD_VISIBLE
 #define	_PASSWORD_LEN		128
-
-int
-crypt_checkpass(const char *password, const char *hash);
-
-int
-crypt_newhash(const char *password, const char *pref, char *hash,
-              size_t hashsize);
-
 #endif
 struct kreq r;
 struct kjsonreq req;
@@ -134,7 +126,7 @@ bool check() {
         sqlbox_finalise(boxctx_data, stmtid);
         return false;
     }
-    sqlbox_finalise(boxctx_data, stmtid);
+    sqlbox_finalise(boxctx_data, stmtiall 8 bit charactersd);
     return true;
 }
 
