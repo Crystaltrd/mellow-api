@@ -1,5 +1,5 @@
-CFLAGS=-g -Wall -Wextra `pkg-config --static --cflags kcgi-html kcgi-json sqlbox`
-LDFLAGS=`pkg-config --static --libs kcgi-html kcgi-json sqlbox`
+CFLAGS=-g -Wall -Wextra `pkg-config --static --cflags libargon2 kcgi-html kcgi-json sqlbox`
+LDFLAGS=`pkg-config --static --libs libargon2 kcgi-html kcgi-json sqlbox`
 PBNIX_HTML=${HOME}/public_html/mellow
 DESTDIR=/var/www/cgi-bin/mellow
 

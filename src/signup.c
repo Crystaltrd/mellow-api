@@ -1,3 +1,4 @@
+#include <argon2.h>
 #include <ctype.h>
 #include <sys/types.h> /* size_t, ssize_t */
 #include <stdarg.h> /* va_list */
@@ -16,6 +17,9 @@
 #include <time.h>
 #include <pwd.h>
 #include <unistd.h>
+
+#define HASHLEN 32
+#define SALTLEN 16
 #ifndef __BSD_VISIBLE
 #define	_PASSWORD_LEN		128
 
@@ -136,7 +140,14 @@ bool check() {
 
 void create_acc() {
     char hash[_PASSWORD_LEN];
-    crypt_newhash(r.fieldmap[KEY_PASSWD]->parsed.s, "bcrypt,a", hash,_PASSWORD_LEN);
+    uint8_t salt[SALTLEN];
+    arc4random_buf(salt,SALTLEN);
+    uint8_t *pwd = (uint8_t *) kstrdup(r.fieldmap[KEY_PASSWD]->parsed.s);
+    uint32_t pwdlen = strlen((char *) pwd);
+    uint32_t t_cost = 1;
+    uint32_t m_cost = 47104;
+    uint32_t parallelism = 1;
+    argon2id_hash_encoded(t_cost, m_cost, parallelism, pwd, pwdlen, salt, SALTLEN,HASHLEN, hash, _PASSWORD_LEN);
     size_t parmsz = 5;
     struct sqlbox_parm parms[] = {
         {
@@ -163,7 +174,7 @@ void create_acc() {
     if (sqlbox_exec(boxctx_data, dbid_data, STMTS_ADD, parmsz, parms,SQLBOX_STMT_CONSTRAINT) != SQLBOX_CODE_OK)
         errx(EXIT_FAILURE, "sqlbox_exec");
     khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
-    khttp_head(&r, kresps[KRESP_CONTENT_TYPE],"%s", kmimetypes[KMIME_APP_JSON]);
+    khttp_head(&r, kresps[KRESP_CONTENT_TYPE], "%s", kmimetypes[KMIME_APP_JSON]);
     khttp_head(&r, kresps[KRESP_CONTENT_TYPE], "%s", kmimetypes[KMIME_TEXT_PLAIN]);
     khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
     khttp_head(&r, kresps[KRESP_VARY], "%s", "Origin");
@@ -235,7 +246,7 @@ int main() {
     }
     if (check() == false) {
         khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
-        khttp_head(&r, kresps[KRESP_CONTENT_TYPE],"%s", kmimetypes[KMIME_APP_JSON]);
+        khttp_head(&r, kresps[KRESP_CONTENT_TYPE], "%s", kmimetypes[KMIME_APP_JSON]);
         khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
         khttp_head(&r, kresps[KRESP_VARY], "%s", "Origin");
         khttp_body(&r);
