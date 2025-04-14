@@ -126,7 +126,7 @@ bool check() {
         sqlbox_finalise(boxctx_data, stmtid);
         return false;
     }
-    sqlbox_finalise(boxctx_data, stmtiall 8 bit charactersd);
+    sqlbox_finalise(boxctx_data, stmtid);
     return true;
 }
 
