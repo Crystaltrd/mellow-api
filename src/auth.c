@@ -191,7 +191,7 @@ bool check_passwd() {
 void open_session() {
     size_t parmsz = 3;
     char *timestamp, sessionID[_PASSWORD_LEN + 64];
-    kasprintf(&timestamp, ""PRId64"", time(NULL));
+    kasprintf(&timestamp, "%"PRId64"", time(NULL));
     uint8_t salt[SALTLEN];
     arc4random_buf(salt,SALTLEN);
     uint8_t pwd[_PASSWORD_LEN];
