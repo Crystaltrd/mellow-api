@@ -12,7 +12,7 @@ install-noreplace: install-edit install-auth install-deauth install-query instal
 install-pubnix-noreplace: install-edit-pubnix install-auth-pubnix install-deauth-pubnix install-query-pubnix install-signup-pubnix install-search-pubnix
 
 auth.o: src/auth.c
-	${CC} ${CFLAGS} -c -o auth.o src/auth.c
+	${CC} ${CFLAGS} -c -o auth.o ../src/auth.c
 auth: auth.o
 	${CC} -o auth auth.o ${LDFLAGS} ${LDFLAGS_LINUX}
 install-auth-pubnix: auth
@@ -25,7 +25,7 @@ clean-auth: auth.o auth
 
 
 deauth.o: src/deauth.c
-	${CC} ${CFLAGS} -c -o deauth.o src/deauth.c
+	${CC} ${CFLAGS} -c -o deauth.o ../src/deauth.c
 deauth: deauth.o
 	${CC} -o deauth deauth.o ${LDFLAGS} ${LDFLAGS_LINUX}
 install-deauth-pubnix: deauth
@@ -37,7 +37,7 @@ clean-deauth: deauth.o deauth
 	rm deauth.o
 
 edit.o: src/edit.c
-	${CC} ${CFLAGS} -c -o edit.o src/edit.c
+	${CC} ${CFLAGS} -c -o edit.o ../src/edit.c
 edit: edit.o
 	${CC} -o edit edit.o ${LDFLAGS} ${LDFLAGS_LINUX}
 install-edit-pubnix: edit
@@ -49,7 +49,7 @@ clean-edit: edit.o edit
 	rm edit.o
 
 query.o: src/query.c
-	${CC} ${CFLAGS} -c -o query.o src/query.c
+	${CC} ${CFLAGS} -c -o query.o ../src/query.c
 query: query.o
 	${CC} -o query query.o ${LDFLAGS} ${LDFLAGS_LINUX}
 install-query-pubnix: query
@@ -61,7 +61,7 @@ clean-query: query.o query
 	rm query.o
 
 signup.o: src/signup.c
-	${CC} ${CFLAGS} -c -o signup.o src/signup.c
+	${CC} ${CFLAGS} -c -o signup.o ../src/signup.c
 signup: signup.o
 	${CC} -o signup signup.o ${LDFLAGS} ${LDFLAGS_LINUX}
 install-signup-pubnix: signup
@@ -73,7 +73,7 @@ clean-signup: signup.o signup
 	rm signup.o
 
 search.o: src/search.c
-	${CC} ${CFLAGS} -c -o search.o src/search.c
+	${CC} ${CFLAGS} -c -o search.o ../src/search.c
 search: search.o
 	${CC} -o search search.o ${LDFLAGS} ${LDFLAGS_LINUX}
 install-search-pubnix: search
@@ -86,7 +86,7 @@ clean-search: search.o search
 
 database.db: misc/database-scheme.sql
 	[ -f database.db ] && rm database.db || echo "Skipping db"
-	sqlite3 database.db < misc/database-scheme.sql
+	sqlite3 database.db < ../misc/database-scheme.sql
 install-db-pubnix: database.db
 	[ -d ${PBNIX_HTML}/db ] ||  mkdir -p ${PBNIX_HTML}/db
 	install -m 0666 database.db ${PBNIX_HTML}/db
