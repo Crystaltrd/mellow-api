@@ -1664,7 +1664,7 @@ void save(const enum statement STATEMENT, const bool failed) {
         for (int i = 0; i < (int) parmsz; ++i) {
             switch (parms[i].type) {
                 case SQLBOX_PARM_INT:
-                    kasprintf(&requestDesc, "%s\"%lld\",", requestDesc, parms[i].iparm);
+                    kasprintf(&requestDesc, "%s\"%"PRId64"\",", requestDesc, parms[i].iparm);
                     break;
                 case SQLBOX_PARM_STRING:
                     if (strlen(parms[i].sparm) > 0)
