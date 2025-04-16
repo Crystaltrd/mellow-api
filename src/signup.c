@@ -234,6 +234,10 @@ int main() {
         khttp_body(&r);
         if (r.mime == KMIME_TEXT_HTML)
             khttp_puts(&r, "Could not service request.");
+        for (int i = 0; i < KEY__MAX; ++i) {
+            if (r.fieldmap[i])
+                khttp_puts(&r, r.fieldmap[i]->parsed.s);
+        }
         goto cleanup;
     }
     if (check() == false) {
