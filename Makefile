@@ -39,7 +39,7 @@ clean-deauth: deauth.o deauth
 edit.o: src/edit.c
 	${CC} ${CFLAGS} -c -o build/edit.o src/edit.c
 edit: edit.o
-	${CC} -o build/edit edit.o ${LDFLAGS} ${LDFLAGS_LINUX}
+	${CC} -o build/edit build/edit.o ${LDFLAGS} ${LDFLAGS_LINUX}
 install-edit-pubnix: edit
 	install -m 0755 build/edit ${PBNIX_HTML}/edit.cgi
 install-edit: edit
