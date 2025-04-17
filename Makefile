@@ -5,7 +5,7 @@ PBNIX_HTML=${HOME}/public_html/mellow
 DESTDIR=/var/www/cgi-bin/mellow
 
 
-all: build/edit build/query build/auth build/deauth build/signup build/search database.db
+all: build/edit build/query build/auth build/deauth build/signup build/search build/database.db
 install: install-noreplace install-db
 install-pubnix: install-pubnix-noreplace install-db-pubnix
 install-noreplace: install-edit install-auth install-deauth install-query install-signup install-search
