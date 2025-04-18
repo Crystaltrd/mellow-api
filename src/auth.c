@@ -222,7 +222,7 @@ void open_session() {
     khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
     khttp_head(&r, kresps[KRESP_CONTENT_TYPE], "%s", kmimetypes[KMIME_APP_JSON]);
     khttp_head(&r, kresps[KRESP_SET_COOKIE],
-               "sessionID=%s; Path=/; Max-Age=%d", sessionID,
+               "sessionID=%s; Path=/; Max-Age=%d; SameSite=none", sessionID,
                ((r.fieldmap[KEY_REMEMBER]) ? 7 * 24 * 60 * 60 : 60 * 60 * 3));
     khttp_body(&r);
     kjson_open(&req, &r);
