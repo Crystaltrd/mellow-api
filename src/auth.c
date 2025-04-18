@@ -220,8 +220,6 @@ void open_session() {
 
     khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
     khttp_head(&r, kresps[KRESP_CONTENT_TYPE], "%s", kmimetypes[KMIME_APP_JSON]);
-    khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
-    khttp_head(&r, kresps[KRESP_VARY], "%s", "Origin");
     khttp_head(&r, kresps[KRESP_SET_COOKIE],
                "sessionID=%s; Path=/; Max-Age=%d", sessionID,
                ((r.fieldmap[KEY_REMEMBER]) ? 7 * 24 * 60 * 60 : 60 * 60 * 3));
@@ -280,8 +278,6 @@ int main() {
     if ((er = sanitize()) != KHTTP_200) {
         khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[er]);
         khttp_head(&r, kresps[KRESP_CONTENT_TYPE], "%s", kmimetypes[KMIME_TEXT_PLAIN]);
-        khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
-        khttp_head(&r, kresps[KRESP_VARY], "%s", "Origin");
         khttp_body(&r);
         if (r.mime == KMIME_TEXT_HTML)
             khttp_puts(&r, "Could not service request.");
@@ -291,8 +287,6 @@ int main() {
     if (check_passwd() == false) {
         khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
         khttp_head(&r, kresps[KRESP_CONTENT_TYPE], "%s", kmimetypes[KMIME_APP_JSON]);
-        khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
-        khttp_head(&r, kresps[KRESP_VARY], "%s", "Origin");
         khttp_body(&r);
         kjson_open(&req, &r);
         kjson_obj_open(&req);
