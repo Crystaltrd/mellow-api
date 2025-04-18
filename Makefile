@@ -3,6 +3,8 @@ LDFLAGS=--static `pkg-config --static --libs libargon2 kcgi-html kcgi-json sqlbo
 LDFLAGS_LINUX= `pkg-config --static --libs libmd libbsd`
 PBNIX_HTML=${HOME}/public_html/mellow
 DESTDIR=/var/www/cgi-bin/mellow
+USER=www
+GROUP=www
 
 
 all: build/edit build/query build/auth build/deauth build/signup build/search build/database.db
@@ -18,7 +20,7 @@ build/auth: build/auth.o
 install-auth-pubnix: build/auth
 	install -m 0755 build/auth ${PBNIX_HTML}/auth.cgi
 install-auth: build/auth
-	install -o www -g www -m 0500 build/auth ${DESTDIR}/auth
+	install -o ${USER} -g ${GROUP} -m 0500 build/auth ${DESTDIR}/auth
 clean-auth: build/auth.o build/auth
 	rm build/auth
 	rm build/auth.o
@@ -31,7 +33,7 @@ build/deauth: build/deauth.o
 install-deauth-pubnix: build/deauth
 	install -m 0755 build/deauth ${PBNIX_HTML}/deauth.cgi
 install-deauth: build/deauth
-	install -o www -g www -m 0500 build/deauth ${DESTDIR}/deauth
+	install -o ${USER} -g ${GROUP} -m 0500 build/deauth ${DESTDIR}/deauth
 clean-deauth: build/deauth.o build/deauth
 	rm build/deauth
 	rm build/deauth.o
@@ -43,7 +45,7 @@ build/edit: build/edit.o
 install-edit-pubnix: build/edit
 	install -m 0755 build/edit ${PBNIX_HTML}/edit.cgi
 install-edit: build/edit
-	install -o www -g www -m 0500 build/edit ${DESTDIR}/edit
+	install -o ${USER} -g ${GROUP} -m 0500 build/edit ${DESTDIR}/edit
 clean-edit: build/edit.o build/edit
 	rm build/edit
 	rm build/edit.o
@@ -55,7 +57,7 @@ build/query: build/query.o
 install-query-pubnix: build/query
 	install -m 0755 build/query ${PBNIX_HTML}/query.cgi
 install-query: build/query
-	install -o www -g www -m 0500 build/query ${DESTDIR}/query
+	install -o ${USER} -g ${GROUP} -m 0500 build/query ${DESTDIR}/query
 clean-query: build/query.o build/query
 	rm build/query
 	rm build/query.o
@@ -67,7 +69,7 @@ build/signup: build/signup.o
 install-signup-pubnix: build/signup
 	install -m 0755 build/signup ${PBNIX_HTML}/signup.cgi
 install-signup: build/signup
-	install -o www -g www -m 0500 build/signup ${DESTDIR}/signup
+	install -o ${USER} -g ${GROUP} -m 0500 build/signup ${DESTDIR}/signup
 clean-signup: build/signup.o build/signup
 	rm build/signup
 	rm build/signup.o
@@ -79,7 +81,7 @@ build/search: build/search.o
 install-search-pubnix: build/search
 	install -m 0755 build/search ${PBNIX_HTML}/search.cgi
 install-search: build/search
-	install -o www -g www -m 0500 build/search ${DESTDIR}/search
+	install -o ${USER} -g ${GROUP} -m 0500 build/search ${DESTDIR}/search
 clean-search: build/search.o build/search
 	rm build/search
 	rm build/search.o
@@ -92,9 +94,9 @@ install-db-pubnix: build/database.db
 	install -m 0666 build/database.db ${PBNIX_HTML}/db
 install-db: build/database.db
 	[ -d ${DESTDIR}/db ] ||  mkdir -p ${DESTDIR}/db
-	chown www:www ${DESTDIR}/db
+	chown ${USER}:${GROUP} ${DESTDIR}/db
 	chmod 0700 ${DESTDIR}/db
-	install -o www -g www -m 0600 build/database.db ${DESTDIR}/db
+	install -o ${USER} -g ${GROUP} -m 0600 build/database.db ${DESTDIR}/db
 clean-db: build/database.db
 	rm build/database.db
 
