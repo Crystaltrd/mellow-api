@@ -609,8 +609,6 @@ int main() {
     fill_user();
     if ((er = forth_pass(STMT)) != KHTTP_200)goto access_denied;
     khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
-    khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
-    khttp_head(&r, kresps[KRESP_VARY], "%s", "Origin");
     khttp_body(&r);
     kjson_open(&req, &r);
     kjson_obj_open(&req);
@@ -645,8 +643,6 @@ int main() {
 access_denied:
     khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[er]);
     khttp_head(&r, kresps[KRESP_CONTENT_TYPE], "%s", kmimetypes[KMIME_APP_JSON]);
-    khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
-    khttp_head(&r, kresps[KRESP_VARY], "%s", "Origin");
     khttp_body(&r);
     kjson_open(&req, &r);
     kjson_obj_open(&req);
@@ -662,8 +658,6 @@ cleanup:
     return 0;
 error:
     khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[er]);
-    khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "*");
-    khttp_head(&r, kresps[KRESP_VARY], "%s", "Origin");
     khttp_body(&r);
     if (r.mime == KMIME_TEXT_HTML)
         khttp_puts(&r, "Could not service request");
