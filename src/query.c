@@ -1013,13 +1013,14 @@ void fill_params(const enum statement STATEMENT) {
 
             parms[0] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
-
-                .sparm = (r.fieldmap[KEY_FILTER_CASCADE] && !(
-                              r.fieldmap[KEY_FILTER_BY_PARENT] || r.fieldmap[KEY_FILTER_BY_CLASS])) && (
-                             r.fieldmap[KEY_FILTER_TREE] && !(r.fieldmap[KEY_FILTER_BY_PARENT]))
-                                                                 ? "ROOT"
-                                                                 : "NOT_ROOT"
             };
+            if (r.fieldmap[KEY_FILTER_CASCADE]) {
+                parms[0].sparm = !((r.fieldmap[KEY_FILTER_BY_PARENT] || r.fieldmap[KEY_FILTER_BY_CLASS]))
+                                     ? "ROOT"
+                                     : "NOT_ROOT";
+            } else if (r.fieldmap[KEY_FILTER_TREE]) {
+                parms[0].sparm = !((r.fieldmap[KEY_FILTER_BY_PARENT])) ? "ROOT" : "NOT_ROOT";
+            }
             parms[1] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
                 .sparm = !(r.fieldmap[KEY_FILTER_BY_NAME])
