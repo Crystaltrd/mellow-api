@@ -1521,12 +1521,10 @@ void get_cat_children(const char *class) {
             kjson_arrayp_open(&req, "children");
             get_cat_children(res->ps[0].sparm);
             kjson_array_close(&req);
-        } else if (r.fieldmap[KEY_FILTER_CASCADE]) {
-            kjson_obj_close(&req);
-            get_cat_children(res->ps[0].sparm);
         }
-        if (!r.fieldmap[KEY_FILTER_CASCADE]) {
-            kjson_obj_close(&req);
+        kjson_obj_close(&req);
+        if (r.fieldmap[KEY_FILTER_CASCADE]) {
+            get_cat_children(res->ps[0].sparm);
         }
     }
     if (!sqlbox_finalise(boxctx_data, stmtid))
