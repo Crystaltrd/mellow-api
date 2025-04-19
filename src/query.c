@@ -1013,8 +1013,8 @@ void fill_params(const enum statement STATEMENT) {
 
             parms[0] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
-                .sparm = (r.fieldmap[KEY_FILTER_TREE] && (!((field = r.fieldmap[KEY_FILTER_BY_PARENT])) || field->valsz
-                                                          <= 0))
+                .sparm = ((r.fieldmap[KEY_FILTER_TREE] || r.fieldmap[KEY_FILTER_CASCADE]) && (!((field = r.fieldmap[KEY_FILTER_BY_PARENT])) || field->valsz
+                                                          <= 0)) || r.fieldmap
                              ? "ROOT"
                              : "NOT_ROOT"
             };
