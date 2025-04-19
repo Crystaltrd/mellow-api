@@ -383,6 +383,43 @@ static struct sqlbox_pstmt pstms_data_top[STMTS__MAX] = {
         "WHERE serialnum = (?)"
     },
 };
+static struct sqlbox_pstmt pstmts_switches[STMTS__MAX][14] = {
+    {{(char *) "instr(publisherName,(?)) > 0"}, {(char *) "serialnum = (?)"}},
+    {{(char *) "instr(authorName,(?)) > 0"}, {(char *) "A.serialnum = (?)"}},
+    {{(char *) "instr(langCode,(?)) > 0"}, {(char *) "A.serialnum = (?)"}},
+    {{(char *) "instr(actionName,(?)) > 0"}},
+    {{(char *) "instr(typeName,(?)) > 0"}, {(char *) "serialnum = (?)"}},
+    {{(char *) "instr(campusName,(?)) > 0"}, {(char *) "serialnum = (?)"}, {(char *) "UUID = (?)"}},
+    {{(char *) "instr(roleName,(?)) > 0"}, {(char *) "perms = (?)"}, {(char *) "UUID = (?)"}},
+    {
+        {(char *) "parentCategoryID IS NULL"},
+        {(char *) "instr(categoryName,(?)) > 0"},
+        {(char *) "categoryClass = (?)"},
+        {(char *) "parentCategoryID = (?)"},
+        {(char *) "serialnum = (?)"}
+    },
+    {
+        {(char *) "ACCOUNT.UUID = (?)"},
+        {(char *) "instr(displayname, (?))> 0"},
+        {(char *) "serialnum = (?)"},
+        {(char *) "campus = (?)"},
+        {(char *) "role = (?)"},
+        {(char *) "frozen = (?)"},
+        {(char *) "sessionID = (?)"},
+    },
+    {
+        {(char *)"BOOK.serialnum = (?)"},
+        {(char *)"instr(booktitle, (?))"},
+        {(char *)"lang = (?)"},
+        {(char *)"instr(author, (?)) > 0"},
+        {(char *)"type = (?)"},
+        {(char *)"instr(publisher, (?)) > 0"},
+        {(char *)"campus = (?)"},
+        {(char *)"UUID = (?)"},
+        {(char *)"bookreleaseyear >= (?)"},
+        {(char *)"bookreleaseyear <= (?)"},
+    }
+};
 static struct sqlbox_pstmt pstmts_data[STMTS__MAX] = {
     {
         (char *)
@@ -1501,8 +1538,6 @@ void get_cat_children(const char *class) {
         kjson_obj_open(&req);
         for (int i = 0; i < (int) res->psz; ++i) {
             switch (res->ps[i].type) {
-                case SQLBOX_PARM_INT:
-                    kjson_putintp(&req, rows[STMTS_CATEGORY][i], res->ps[i].iparm);
                     break;
                 case SQLBOX_PARM_STRING:
                     kjson_putstringp(&req, rows[STMTS_CATEGORY][i], res->ps[i].sparm);
