@@ -189,7 +189,6 @@ enum statement {
     STMTS_CAMPUS,
     STMTS_ROLE,
     STMTS_CATEGORY,
-    STMTS_CATEGORY_CASCADE,
     STMTS_ACCOUNT,
     STMTS_BOOK,
     STMTS_STOCK,
@@ -204,7 +203,7 @@ enum statement {
 };
 
 static const char *statement_string[STMTS__MAX] = {
-    "publisher", "author", "lang", "action", "type", "campus", "role", "category", "category_cascade", "account",
+    "publisher", "author", "lang", "action", "type", "campus", "role", "category", "account",
     "book", "stock", "inventory", "history", "sessions"
 };
 static const char *rows[STMTS__MAX][9] = {
@@ -215,7 +214,6 @@ static const char *rows[STMTS__MAX][9] = {
     {"typeName"},
     {"campusName"},
     {"roleName", "perms"},
-    {"categoryClass", "categoryName", "parentCategoryID"},
     {"categoryClass", "categoryName", "parentCategoryID"},
     {"UUID", "displayname", "pwhash", "campus", "role", "perm", "frozen"},
     {"serialnum", "type", "category", "categoryName", "publisher", "booktitle", "bookreleaseyear", "bookcover", "hits"},
@@ -233,14 +231,7 @@ enum statement get_stmts() {
     }
     if (i == KEY_PAGE)
         i = r.page;
-    if (i < PG_CATEGORY) {
-        return (enum statement) i;
-    } else if (i == PG_CATEGORY) {
-        if (r.fieldmap[KEY_FILTER_CASCADE])
-            return STMTS_CATEGORY_CASCADE;
-        return STMTS_CATEGORY;
-    }
-    return i + 1;
+    return (enum statement) i;
 }
 
 /*
@@ -316,12 +307,7 @@ static struct sqlbox_pstmt pstms_data_top[STMTS__MAX] = {
         "FROM CATEGORY LEFT JOIN BOOK B ON CATEGORY.categoryClass = B.category "
         "WHERE "
     },
-    {
-        (char *)
-        "SELECT categoryClass, categoryName, parentCategoryID "
-        "FROM CATEGORY "
-        "WHERE "
-    },
+
     {
         (char *)
         "SELECT ACCOUNT.UUID, displayname, pwhash, campus, role, perms, frozen "
@@ -486,29 +472,6 @@ static struct sqlbox_pstmt pstmts_data[STMTS__MAX] = {
         "AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) "
         "GROUP BY categoryClass, categoryName, parentCategoryID "
         "ORDER BY IIF((?) = 'POPULAR', SUM(hits), categoryClass) DESC "
-        "LIMIT (?) OFFSET (? * (?))"
-    },
-    {
-        (char *)
-        "WITH RECURSIVE CategoryCascade AS (SELECT categoryName,categoryClass, parentCategoryID "
-        "FROM CATEGORY "
-        "LEFT JOIN BOOK B ON CATEGORY.categoryClass = B.category "
-        "WHERE IIF((?) = 'ROOT',parentCategoryID IS NULL,TRUE) "
-        "AND ((?) = 'IGNORE_NAME' OR instr(categoryName, (?)) > 0) "
-        "AND ((?) = 'IGNORE_CLASS' OR categoryClass = (?)) "
-        "AND ((?) = 'IGNORE_PARENT_CLASS' OR parentCategoryID = (?)) "
-        "AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) "
-        "GROUP BY categoryClass,categoryName,parentCategoryID "
-        "UNION ALL "
-        "SELECT c.categoryName,c.categoryClass, c.parentCategoryID "
-        "FROM CATEGORY c "
-        "INNER JOIN CategoryCascade ct ON IIF((?) = 'GET_PARENTS',"
-        "c.categoryClass = ct.parentCategoryID,"
-        "c.parentCategoryID = ct.categoryClass)) "
-        "SELECT CATEGORY.categoryClass, CATEGORY.categoryName,CATEGORY.parentCategoryID "
-        "FROM CATEGORY, CategoryCascade "
-        "WHERE CategoryCascade.categoryClass = CATEGORY.categoryClass "
-        "GROUP BY CATEGORY.categoryClass, CATEGORY.categoryName, CATEGORY.parentCategoryID "
         "LIMIT (?) OFFSET (? * (?))"
     },
     {
@@ -723,28 +686,6 @@ static struct sqlbox_pstmt pstmts_count[STMTS__MAX] = {
         "AND ((?) = 'IGNORE_PARENT_CLASS' OR parentCategoryID = (?)) "
         "AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) "
         "ORDER BY IIF((?) = 'POPULAR', SUM(hits), categoryClass) DESC "
-        "LIMIT (?) OFFSET (? * (?) * 0)"
-    },
-    {
-        (char *)
-        " WITH RECURSIVE CategoryCascade AS (SELECT categoryName,categoryClass, parentCategoryID "
-        "FROM CATEGORY "
-        "LEFT JOIN BOOK B ON CATEGORY.categoryClass = B.category "
-        "WHERE IIF((?) = 'ROOT',parentCategoryID IS NULL,TRUE) "
-        "AND ((?) = 'IGNORE_NAME' OR instr(categoryName, (?)) > 0) "
-        "AND ((?) = 'IGNORE_CLASS' OR categoryClass = (?)) "
-        "AND ((?) = 'IGNORE_PARENT_CLASS' OR parentCategoryID = (?)) "
-        "AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) "
-        "GROUP BY categoryClass,categoryName,parentCategoryID "
-        "UNION ALL "
-        "SELECT c.categoryName,c.categoryClass, c.parentCategoryID "
-        "FROM CATEGORY c "
-        "INNER JOIN CategoryCascade ct ON IIF((?) = 'GET_PARENTS',"
-        "c.categoryClass = ct.parentCategoryID,"
-        "c.parentCategoryID = ct.categoryClass)) "
-        "SELECT COUNT(DISTINCT CATEGORY.categoryClass) "
-        "FROM CATEGORY, CategoryCascade "
-        "WHERE CategoryCascade.categoryClass = CATEGORY.categoryClass "
         "LIMIT (?) OFFSET (? * (?) * 0)"
     },
     {
@@ -1121,64 +1062,6 @@ void fill_params(const enum statement STATEMENT) {
             parms[9] = (struct sqlbox_parm){
                 .type = SQLBOX_PARM_STRING,
                 .sparm = (r.fieldmap[KEY_FILTER_BY_POPULARITY]) ? "POPULAR" : "DEFAULT_SORT"
-            };
-            break;
-        case STMTS_CATEGORY_CASCADE:
-            parmsz = 13;
-            parms = kcalloc(parmsz, sizeof(struct sqlbox_parm));
-
-            parms[0] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = !((field = r.fieldmap[KEY_FILTER_BY_PARENT])) || field->valsz
-                         <= 0
-                             ? "ROOT"
-                             : "NOT_ROOT"
-            };
-            parms[1] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = !((field = r.fieldmap[KEY_FILTER_BY_NAME])) || field->valsz <= 0
-                             ? "IGNORE_NAME"
-                             : "NAME"
-            };
-            parms[2] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = ((field = r.fieldmap[KEY_FILTER_BY_NAME])) ? field->parsed.s : ""
-            };
-            parms[3] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = !((field = r.fieldmap[KEY_FILTER_BY_CLASS])) || field->valsz <= 0
-                             ? "IGNORE_CLASS"
-                             : "CLASS"
-            };
-            parms[4] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = ((field = r.fieldmap[KEY_FILTER_BY_CLASS])) ? field->parsed.s : ""
-            };
-            parms[5] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = !((field = r.fieldmap[KEY_FILTER_BY_PARENT])) || field->valsz <= 0
-                             ? "IGNORE_PARENT_CLASS"
-                             : "PARENT_CLASS"
-            };
-            parms[6] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = ((field = r.fieldmap[KEY_FILTER_BY_PARENT])) ? field->parsed.s : ""
-            };
-
-            parms[7] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = !((field = r.fieldmap[KEY_FILTER_BY_BOOK])) || field->valsz <= 0
-                             ? "IGNORE_BOOK"
-                             : "BOOK"
-
-            };
-            parms[8] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = ((field = r.fieldmap[KEY_FILTER_BY_BOOK])) ? field->parsed.s : ""
-            };
-            parms[9] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = (r.fieldmap[KEY_FILTER_GET_PARENTS]) ? "GET_PARENTS" : "DONT_GET_PARENTS"
             };
             break;
         case STMTS_ACCOUNT:
@@ -1638,8 +1521,13 @@ void get_cat_children(const char *class) {
             kjson_arrayp_open(&req, "children");
             get_cat_children(res->ps[0].sparm);
             kjson_array_close(&req);
+        } else if (r.fieldmap[KEY_FILTER_CASCADE]) {
+            kjson_obj_close(&req);
+            get_cat_children(res->ps[0].sparm);
         }
-        kjson_obj_close(&req);
+        if (!r.fieldmap[KEY_FILTER_CASCADE]) {
+            kjson_obj_close(&req);
+        }
     }
     if (!sqlbox_finalise(boxctx_data, stmtid))
         errx(EXIT_FAILURE, "sqlbox_finalise");
@@ -1720,10 +1608,15 @@ void process(const enum statement STATEMENT) {
                     break;
             }
         }
-        if (r.fieldmap[KEY_FILTER_TREE] && STATEMENT == STMTS_CATEGORY) {
-            kjson_arrayp_open(&req, "children");
-            get_cat_children(res->ps[0].sparm);
-            kjson_array_close(&req);
+        if (STATEMENT == STMTS_CATEGORY) {
+            if (r.fieldmap[KEY_FILTER_TREE]) {
+                kjson_arrayp_open(&req, "children");
+                get_cat_children(res->ps[0].sparm);
+                kjson_array_close(&req);
+            } else if (r.fieldmap[KEY_FILTER_CASCADE]) {
+                kjson_obj_close(&req);
+                get_cat_children(res->ps[0].sparm);
+            }
         }
         if (STATEMENT == STMTS_BOOK) {
             size_t stmtid_book_data;
@@ -1778,7 +1671,8 @@ void process(const enum statement STATEMENT) {
             if (!sqlbox_finalise(boxctx_data, stmtid_book_data))
                 errx(EXIT_FAILURE, "sqlbox_finalise");
         }
-        kjson_obj_close(&req);
+        if (!(STATEMENT == STMTS_CATEGORY && r.fieldmap[KEY_FILTER_CASCADE]))
+            kjson_obj_close(&req);
     }
     if (!sqlbox_finalise(boxctx_data, stmtid_data))
         errx(EXIT_FAILURE, "sqlbox_finalise");
