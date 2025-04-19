@@ -259,6 +259,144 @@ struct sqlbox *boxctx_count;
 struct sqlbox_cfg cfg_count;
 size_t dbid_data; // Database associated with a config and a context for query results
 size_t dbid_count; // Database associated with a config and a context for the number of results
+static struct sqlbox_pstmt pstms_data_top[STMTS__MAX] = {
+    {
+        (char *)
+        "SELECT publisherName "
+        "FROM PUBLISHER "
+        "LEFT JOIN BOOK B ON B.publisher = PUBLISHER.publisherName "
+        "WHERE "
+    },
+    {
+        (char *)
+        "SELECT authorName "
+        "FROM AUTHOR "
+        "LEFT JOIN AUTHORED A ON AUTHOR.authorName = A.author "
+        "LEFT JOIN BOOK B ON B.serialnum = A.serialnum "
+        "WHERE "
+    },
+    {
+        (char *)
+        "SELECT langCode "
+        "FROM LANG "
+        "LEFT JOIN LANGUAGES A ON LANG.langCode = A.lang "
+        "LEFT JOIN BOOK B ON B.serialnum = A.serialnum "
+        "WHERE "
+    },
+    {
+        (char *)
+        "SELECT actionName "
+        "FROM ACTION "
+        "WHERE "
+    },
+    {
+        (char *)
+        "SELECT typeName "
+        "FROM DOCTYPE "
+        "LEFT JOIN BOOK B ON DOCTYPE.typeName = B.type "
+        "WHERE "
+    },
+    {
+        (char *)
+        "SELECT campusName "
+        "FROM CAMPUS "
+        "LEFT JOIN STOCK S ON CAMPUS.campusName = S.campus "
+        "LEFT JOIN ACCOUNT A on CAMPUS.campusName = A.campus "
+        "WHERE "
+    },
+    {
+        (char *)
+        "SELECT roleName, perms "
+        "FROM ROLE LEFT JOIN ACCOUNT A ON A.role = ROLE.roleName "
+        "WHERE "
+    },
+    {
+        (char *)
+        "SELECT categoryClass, categoryName, parentCategoryID "
+        "FROM CATEGORY LEFT JOIN BOOK B ON CATEGORY.categoryClass = B.category "
+        "WHERE "
+    },
+    {
+        (char *)
+        "SELECT categoryClass, categoryName, parentCategoryID "
+        "FROM CATEGORY "
+        "WHERE "
+    },
+    {
+        (char *)
+        "SELECT ACCOUNT.UUID, displayname, pwhash, campus, role, perms, frozen "
+        "FROM ROLE,"
+        "ACCOUNT "
+        "LEFT JOIN INVENTORY I on ACCOUNT.UUID = I.UUID "
+        "LEFT JOIN SESSIONS S on ACCOUNT.UUID = S.account "
+        "WHERE ACCOUNT.role = ROLE.roleName "
+        "AND "
+    },
+    {
+        (char *)
+        "SELECT BOOK.serialnum, type, category,categoryName, publisher, booktitle, bookreleaseyear, bookcover, hits "
+        "FROM (BOOK LEFT JOIN INVENTORY I ON BOOK.serialnum = I.serialnum),"
+        "CATEGORY,"
+        "LANGUAGES,"
+        "AUTHORED,"
+        "STOCK,"
+        "WHERE category = categoryClass "
+        "AND AUTHORED.serialnum = BOOK.serialnum "
+        "AND LANGUAGES.serialnum = BOOK.serialnum "
+        "AND STOCK.serialnum = BOOK.serialnum "
+        "AND "
+    },
+    {
+        (char *)
+        "SELECT STOCK.serialnum,campus,instock "
+        "FROM STOCK,BOOK "
+        "WHERE STOCK.serialnum = BOOK.serialnum "
+        "AND "
+    },
+    {
+        (char *)
+        "SELECT UUID, serialnum, rentduration, rentdate, extended "
+        "FROM INVENTORY "
+        "WHERE "
+    },
+    {
+
+        (char *)
+        "SELECT UUID,UUID_ISSUER,serialnum,IP,action,actiondate,details "
+        "FROM HISTORY "
+        "WHERE "
+    },
+    {
+        (char *)
+        "SELECT account,sessionID,expiresAt "
+        "FROM SESSIONS "
+        "WHERE "
+    },
+    {
+        (char *)
+        "INSERT INTO HISTORY (UUID, IP, action, actiondate, details) "
+        "VALUES ((?),(?),'QUERY',datetime('now','localtime'),(?))"
+    },
+    {
+        (char *)
+        "SELECT author "
+        "FROM AUTHORED "
+        "WHERE serialnum = (?)"
+    },
+    {
+        (char *)
+        "SELECT lang "
+        "FROM LANGUAGES "
+        "WHERE serialnum = (?)"
+    },
+
+    {
+        (char *)
+        "SELECT campus,instock "
+        "FROM STOCK "
+        "WHERE serialnum = (?)"
+    },
+};
 static struct sqlbox_pstmt pstmts_data[STMTS__MAX] = {
     {
         (char *)
@@ -1631,8 +1769,8 @@ void process(const enum statement STATEMENT) {
             while ((res_book = sqlbox_step(boxctx_data, stmtid_book_data)) != NULL && res_book->code == SQLBOX_CODE_OK
                    && res_book->psz != 0) {
                 kjson_obj_open(&req);
-                kjson_putstringp(&req,"campus", res_book->ps[0].sparm);
-                kjson_putintp(&req,"stock", res_book->ps[1].iparm);
+                kjson_putstringp(&req, "campus", res_book->ps[0].sparm);
+                kjson_putintp(&req, "stock", res_book->ps[1].iparm);
                 kjson_obj_close(&req);
             }
             kjson_array_close(&req);

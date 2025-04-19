@@ -216,4 +216,3 @@ CREATE TABLE HISTORY
     details     TEXT DEFAULT NULL
 );
 
-
