@@ -383,20 +383,42 @@ static struct sqlbox_pstmt pstms_data_top[STMTS__MAX] = {
         "WHERE serialnum = (?)"
     },
 };
-static struct sqlbox_pstmt pstmts_switches[STMTS__MAX][14] = {
-    {{(char *) "instr(publisherName,(?)) > 0"}, {(char *) "serialnum = (?)"}},
-    {{(char *) "instr(authorName,(?)) > 0"}, {(char *) "A.serialnum = (?)"}},
-    {{(char *) "instr(langCode,(?)) > 0"}, {(char *) "A.serialnum = (?)"}},
-    {{(char *) "instr(actionName,(?)) > 0"}},
-    {{(char *) "instr(typeName,(?)) > 0"}, {(char *) "serialnum = (?)"}},
-    {{(char *) "instr(campusName,(?)) > 0"}, {(char *) "serialnum = (?)"}, {(char *) "UUID = (?)"}},
-    {{(char *) "instr(roleName,(?)) > 0"}, {(char *) "perms = (?)"}, {(char *) "UUID = (?)"}},
+static struct sqlbox_pstmt pstmts_switches[STMTS__MAX][10] = {
+    {
+        {(char *) "instr(publisherName,(?)) > 0"},
+        {(char *) "serialnum = (?)"}
+    },
+    {
+        {(char *) "instr(authorName,(?)) > 0"},
+        {(char *) "A.serialnum = (?)"}
+    },
+    {
+        {(char *) "instr(langCode,(?)) > 0"},
+        {(char *) "A.serialnum = (?)"}
+    },
+    {
+        {(char *) "instr(actionName,(?)) > 0"}
+    },
+    {
+        {(char *) "instr(typeName,(?)) > 0"},
+        {(char *) "serialnum = (?)"}
+    },
+    {
+        {(char *) "instr(campusName,(?)) > 0"},
+        {(char *) "serialnum = (?)"},
+        {(char *) "UUID = (?)"}
+    },
+    {
+        {(char *) "instr(roleName,(?)) > 0"},
+        {(char *) "perms = (?)"},
+        {(char *) "UUID = (?)"}
+    },
     {
         {(char *) "parentCategoryID IS NULL"},
         {(char *) "instr(categoryName,(?)) > 0"},
         {(char *) "categoryClass = (?)"},
         {(char *) "parentCategoryID = (?)"},
-        {(char *) "serialnum = (?)"}
+        {(char *) "serialnum = (?)"},
     },
     {
         {(char *) "ACCOUNT.UUID = (?)"},
@@ -408,16 +430,125 @@ static struct sqlbox_pstmt pstmts_switches[STMTS__MAX][14] = {
         {(char *) "sessionID = (?)"},
     },
     {
-        {(char *)"BOOK.serialnum = (?)"},
-        {(char *)"instr(booktitle, (?))"},
-        {(char *)"lang = (?)"},
-        {(char *)"instr(author, (?)) > 0"},
-        {(char *)"type = (?)"},
-        {(char *)"instr(publisher, (?)) > 0"},
-        {(char *)"campus = (?)"},
-        {(char *)"UUID = (?)"},
-        {(char *)"bookreleaseyear >= (?)"},
-        {(char *)"bookreleaseyear <= (?)"},
+        {(char *) "BOOK.serialnum = (?)"},
+        {(char *) "instr(booktitle, (?))"},
+        {(char *) "lang = (?)"},
+        {(char *) "instr(author, (?)) > 0"},
+        {(char *) "type = (?)"},
+        {(char *) "instr(publisher, (?)) > 0"},
+        {(char *) "campus = (?)"},
+        {(char *) "UUID = (?)"},
+        {(char *) "bookreleaseyear >= (?)"},
+        {(char *) "bookreleaseyear <= (?)"},
+    },
+    {
+        {(char *) "STOCK.serialnum = (?)"},
+        {(char *) "campus = (?)"},
+        {(char *) "instock > 0"},
+    },
+    {
+        {(char *) "UUID = (?)"},
+        {(char *) "serialnum = (?)"}
+    },
+    {
+        {(char *) "UUID = (?)"},
+        {(char *) "UUID_ISSUER = (?)"},
+        {(char *) "serialnum = (?)"},
+        {(char *) "action = (?)"},
+        {(char *) "actiondate >= datetime((?),'unixepoch')"},
+        {(char *) "actiondate <= datetime((?),'unixepoch')"},
+    },
+    {
+        {(char *) "sessionID = (?)"},
+        {(char *) "account = (?)"},
+    }
+};
+static struct sqlbox_pstmt pstmts_bottom[STMTS__MAX][STMTS__MAX] = {
+    {
+        {(char *) "GROUP BY publisherName"},
+        {(char *) "ORDER BY SUM(hits)"},
+        {(char *) "ORDER BY publisherName"},
+        {(char *) "LIMIT (?),(? * ?)"}
+    },
+    {
+        {(char *) "GROUP BY authorName"},
+        {(char *) "ORDER BY SUM(hits)"},
+        {(char *) "ORDER BY authorName"},
+        {(char *) "LIMIT (?),(? * ?)"}
+    },
+    {
+        {(char *) "GROUP BY langCode"},
+        {(char *) "ORDER BY SUM(hits)"},
+        {(char *) "ORDER BY langCode"},
+        {(char *) "LIMIT (?),(? * ?)"}
+    },
+    {
+        {(char *) "GROUP BY typeName"},
+        {(char *) "ORDER BY SUM(hits)"},
+        {(char *) "ORDER BY typeName"},
+        {(char *) "LIMIT (?),(? * ?)"}
+    },
+    {
+        {(char *) "GROUP BY campusName "},
+        {(char *) "ORDER BY campusName "},
+        {(char *) "LIMIT (?),(? * ?)"}
+    },
+    {
+        {(char *) "GROUP BY roleName, perms"},
+        {(char *) "ORDER BY perms"},
+        {(char *) "ORDER BY roleName"},
+        {(char *) "LIMIT (?),(? * ?)"},
+    },
+    {
+        {(char *) "GROUP BY categoryClass, categoryName, parentCategoryID"},
+        {(char *) "ORDER BY SUM(hits)"},
+        {(char *) "ORDER BY categoryClass"},
+        {(char *) "ORDER BY categoryName"},
+        {(char *) "LIMIT (?),(? * ?)"},
+    },
+    {
+
+        {(char *) "GROUP BY ACCOUNT.UUID, displayname, pwhash, campus, perms, frozen"},
+        {(char *) "ORDER BY UUID"},
+        {(char *) "ORDER BY displayname"},
+        {(char *) "ORDER BY perms"},
+        {(char *) "LIMIT (?),(? * ?)"}
+    },
+    {
+        {
+            (char *)
+            "GROUP BY BOOK.serialnum, type, category, categoryName, publisher, booktitle, bookreleaseyear, bookcover, hits"
+        },
+        {(char *) "ORDER BY serialnum"},
+        {(char *) "ORDER BY booktitle"},
+        {(char *) "ORDER BY hits"},
+        {(char *) "LIMIT (?),(? * ?)"}
+    },
+    {
+        {(char *) "GROUP BY STOCK.serialnum, campus, instock,hits"},
+        {(char *) "ORDER BY BOOK.serialnum"},
+        {(char *) "ORDER BY instock"},
+        {(char *) "LIMIT (?),(? * ?)"},
+    },
+    {
+        {(char *) "GROUP BY UUID, serialnum, rentduration, rentdate, extended"},
+        {(char *) "ORDER BY UUID"},
+        {(char *) "ORDER BY serialnum"},
+        {(char *) "ORDER BY rentdate"},
+        {(char *) "LIMIT (?),(? * ?)"},
+    },
+    {
+        {(char *)"GROUP BY UUID, UUID_ISSUER, serialnum, action, actiondate"},
+        {(char *)"ORDER BY UUID"},
+        {(char *)"ORDER BY serialnum"},
+        {(char *)"ORDER BY actiondate"},
+        {(char *)"LIMIT (?),(? * ?)"}
+    },
+    {
+        {(char *)"GROUP BY account,sessionID,expiresAt "},
+        {(char *)"ORDER BY account"},
+        {(char *)"ORDER BY expiresAt"},
+        {(char *)"LIMIT (?),(? * ?)"},
     }
 };
 static struct sqlbox_pstmt pstmts_data[STMTS__MAX] = {
