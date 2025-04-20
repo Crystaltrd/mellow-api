@@ -1157,9 +1157,10 @@ int main(void) {
         return 0;
     }
     const enum statement_pieces STMT = get_stmts();
+
+    alloc_ctx_cfg();
     fill_user();
     build_stmt(STMT);
-    alloc_ctx_cfg();
     if (!fill_parms(STMT)) goto access_denied;
     save(false);
     process(STMT);
