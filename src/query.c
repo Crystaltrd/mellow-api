@@ -1065,7 +1065,7 @@ void process(const enum statement STATEMENT) {
     if (!sqlbox_finalise(boxctx_data, stmtid_data))
         errx(EXIT_FAILURE, "sqlbox_finalise");
     kjson_array_close(&req);
-    if (!(stmtid_data = sqlbox_prepare_bind(boxctx_data, dbid_data, STMT_COUNT, parmsz, parms, SQLBOX_STMT_MULTI)))
+    if (!(stmtid_data = sqlbox_prepare_bind(boxctx_data, dbid_data, STMT_COUNT, parmsz-3, parms, SQLBOX_STMT_MULTI)))
         errx(EXIT_FAILURE, "sqlbox_prepare_bind");
     if ((res = sqlbox_step(boxctx_data, stmtid_data)) == NULL)
         errx(EXIT_FAILURE, "sqlbox_step");
