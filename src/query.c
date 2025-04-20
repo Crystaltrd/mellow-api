@@ -610,11 +610,11 @@ int main(void) {
                     khttp_puts(&r, ",");
                 }
                 khttp_puts(&r, pstmts_bottom[STMT][i].stmt);
-                khttp_puts(&r, (r.fieldmap[bottom_keys[STMT][i]] == 0) ? "DESC" : "ASC");
+                khttp_puts(&r, (r.fieldmap[bottom_keys[STMT][i]]->parsed.i == 0) ? " DESC " : " ASC ");
             }
         }
     }
-    khttp_puts(&r, " LIMIT(?),(? * ?) ");
+    khttp_puts(&r, "LIMIT(?),(? * ?) ");
 
     khttp_free(&r);
     return EXIT_SUCCESS;
