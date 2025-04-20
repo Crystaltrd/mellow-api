@@ -742,9 +742,10 @@ void fill_parms(enum statement_pieces STMT) {
             }
         }
     }
-    parms[n++] = (struct sqlbox_parm){.type = SQLBOX_PARM_INT, .iparm = 0};
-    parms[n++] = (struct sqlbox_parm){.type = SQLBOX_PARM_INT, .iparm = 0};
-    parms[n++] = (struct sqlbox_parm){.type = SQLBOX_PARM_INT, .iparm = 0};
+    parms[n++] = (struct sqlbox_parm){.type = SQLBOX_PARM_INT, .iparm = r.fieldmap[KEY_LIMIT] ? r.fieldmap[KEY_LIMIT]->parsed.i : 25};
+    parms[n++] = (struct sqlbox_parm){.type = SQLBOX_PARM_INT, .iparm = r.fieldmap[KEY_LIMIT] ? r.fieldmap[KEY_LIMIT]->parsed.i : 25};
+    parms[n++] = (struct sqlbox_parm){.type = SQLBOX_PARM_INT, .iparm = r.fieldmap[KEY_OFFSET] ? r.fieldmap[KEY_OFFSET]->parsed.i : 0};
+
 }
 
 int main(void) {
@@ -767,7 +768,7 @@ int main(void) {
     fill_parms(STMT);
     khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
     khttp_body(&r);
-    for (int i = 0; i < parmsz; ++i) {
+    for (size_t i = 0; i < parmsz; ++i) {
         if (parms[i].type == SQLBOX_PARM_STRING) {
             khttp_puts(&r,parms[i].sparm);
             khttp_puts(&r,"\r\n");
