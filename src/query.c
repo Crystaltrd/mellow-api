@@ -859,14 +859,15 @@ void fill_parms(enum statement_pieces STMT) {
             }
         }
     }
-    parms[n++] = (struct sqlbox_parm){
-        .type = SQLBOX_PARM_INT, .iparm = r.fieldmap[KEY_LIMIT] ? r.fieldmap[KEY_LIMIT]->parsed.i : 25
-    };
-    parms[n++] = (struct sqlbox_parm){
-        .type = SQLBOX_PARM_INT, .iparm = r.fieldmap[KEY_LIMIT] ? r.fieldmap[KEY_LIMIT]->parsed.i : 25
-    };
+
     parms[n++] = (struct sqlbox_parm){
         .type = SQLBOX_PARM_INT, .iparm = r.fieldmap[KEY_OFFSET] ? r.fieldmap[KEY_OFFSET]->parsed.i : 0
+    };
+    parms[n++] = (struct sqlbox_parm){
+        .type = SQLBOX_PARM_INT, .iparm = r.fieldmap[KEY_LIMIT] ? r.fieldmap[KEY_LIMIT]->parsed.i : 25
+    };
+    parms[n++] = (struct sqlbox_parm){
+        .type = SQLBOX_PARM_INT, .iparm = r.fieldmap[KEY_LIMIT] ? r.fieldmap[KEY_LIMIT]->parsed.i : 25
     };
 }
 
