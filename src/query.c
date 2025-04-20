@@ -651,7 +651,10 @@ int main(void) {
                       "INNER JOIN CategoryCascade ct ON c.parentCategoryID = ct.categoryClass) ", stmt);
         }
     }
+    kasprintf(&stmt, "%s SELECT", stmt);
     for (int i = 0; rows[STMT][i] != NULL; ++i) {
+        if (i == 0)
+            kasprintf(&stmt, "%s %s", stmt, rows[STMT][i]);
         kasprintf(&stmt, "%s,%s", stmt, rows[STMT][i]);
     }
     kasprintf(&stmt, "%s%s", stmt, pstms_data_top[STMT]);
