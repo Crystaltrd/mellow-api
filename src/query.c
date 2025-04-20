@@ -111,7 +111,10 @@ static const char *rows[STMTS__MAX][10] = {
     {"roleName", "perms",NULL},
     {"categoryClass", "categoryName", "parentCategoryID",NULL},
     {"UUID", "displayname", "pwhash", "campus", "role", "perm", "frozen",NULL},
-    {"BOOK.serialnum", "type", "category", "categoryName", "publisher", "booktitle", "bookreleaseyear", "bookcover", "hits",NULL},
+    {
+        "BOOK.serialnum", "type", "category", "categoryName", "publisher", "booktitle", "bookreleaseyear", "bookcover",
+        "hits",NULL
+    },
     {"STOCK.serialnum", "campus", "instock",NULL},
     {"UUID", "serialnum", "rentduration", "rentdate", "extended",NULL},
     {"UUID", "UUID_ISSUER", "serialnum", "IP", "action", "actiondate", "details",NULL},
@@ -517,82 +520,80 @@ static enum key bottom_keys[STMTS__MAX][8] = {
 };
 static char *pstmts_bottom[STMTS__MAX][5] = {
     {
-        {(char *) "publisherName"},
-        {(char *) "SUM(hits)"},
-        {(char *) "publisherName"},
+        "publisherName",
+        "SUM(hits)",
+        "publisherName",
     },
     {
-        {(char *) "authorName"},
-        {(char *) "SUM(hits)"},
-        {(char *) "authorName"},
+        "authorName",
+        "SUM(hits)",
+        "authorName",
     },
     {
-        {(char *) "langCode"},
-        {(char *) "SUM(hits)"},
-        {(char *) "langCode"},
+        "langCode",
+        "SUM(hits)",
+        "langCode",
     },
     {
-        {(char *) "actionName"},
-        {(char *) "actionName"},
+        "actionName",
+        "actionName",
     },
     {
-        {(char *) "typeName"},
-        {(char *) "SUM(hits)"},
-        {(char *) "typeName"},
+        "typeName",
+        "SUM(hits)",
+        "typeName",
     },
     {
-        {(char *) "campusName "},
-        {(char *) "campusName "},
+        "campusName ",
+        "campusName ",
     },
     {
-        {(char *) "roleName, perms"},
-        {(char *) "perms"},
-        {(char *) "roleName"},
+        "roleName, perms",
+        "perms",
+        "roleName",
     },
     {
-        {(char *) "categoryClass, categoryName, parentCategoryID"},
-        {(char *) "SUM(hits)"},
-        {(char *) "categoryClass"},
-        {(char *) "categoryName"},
+        "categoryClass, categoryName, parentCategoryID",
+        "SUM(hits)",
+        "categoryClass",
+        "categoryName",
     },
     {
 
-        {(char *) "ACCOUNT.UUID, displayname, pwhash, campus, perms, frozen"},
-        {(char *) "UUID"},
-        {(char *) "displayname"},
-        {(char *) "perms"},
+        "ACCOUNT.UUID, displayname, pwhash, campus, perms, frozen",
+        "UUID",
+        "displayname",
+        "perms",
     },
     {
-        {
-            (char *)
-            "BOOK.serialnum, type, category, categoryName, publisher, booktitle, bookreleaseyear, bookcover, hits"
-        },
-        {(char *) "serialnum"},
-        {(char *) "booktitle"},
-        {(char *) "bookreleaseyear"},
-        {(char *) "hits"},
+
+        "BOOK.serialnum, type, category, categoryName, publisher, booktitle, bookreleaseyear, bookcover, hits",
+        "serialnum",
+        "booktitle",
+        "bookreleaseyear",
+        "hits",
     },
     {
-        {(char *) "STOCK.serialnum, campus, instock,hits"},
-        {(char *) "BOOK.serialnum"},
-        {(char *) "instock"},
+        "STOCK.serialnum, campus, instock,hits",
+        "BOOK.serialnum",
+        "instock",
     },
     {
-        {(char *) "UUID, serialnum, rentduration, rentdate, extended"},
-        {(char *) "UUID"},
-        {(char *) "serialnum"},
-        {(char *) "rentdate"},
+        "UUID, serialnum, rentduration, rentdate, extended",
+        "UUID",
+        "serialnum",
+        "rentdate",
     },
     {
-        {(char *) "UUID, UUID_ISSUER, serialnum, action, actiondate"},
-        {(char *) "UUID"},
-        {(char *) "serialnum"},
-        {(char *) "actiondate"},
+        "UUID, UUID_ISSUER, serialnum, action, actiondate",
+        "UUID",
+        "serialnum",
+        "actiondate",
     },
     {
-        {(char *) "account,sessionID,expiresAt "},
-        {(char *) "account"},
-        {(char *) "expiresAt"},
+        "account,sessionID,expiresAt ",
+        "account",
+        "expiresAt",
     }
 };
 
@@ -651,7 +652,7 @@ int main(void) {
         }
     }
     for (int i = 0; rows[STMT][i] != NULL; ++i) {
-    kasprintf(&stmt, "%s,%s", stmt, rows[STMT][i]);
+        kasprintf(&stmt, "%s,%s", stmt, rows[STMT][i]);
     }
     kasprintf(&stmt, "%s%s", stmt, pstms_data_top[STMT]);
     bool flag = false;
