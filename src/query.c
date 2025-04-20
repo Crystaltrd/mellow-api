@@ -269,14 +269,14 @@ static const struct kvalid keys[KEY__MAX] = {
     {kvalid_stringne, "action"},
     {kvalid_date, "upperdate"},
     {kvalid_date, "lowerdate"},
-    {kvalid_bit, "order_hits"},
-    {kvalid_bit, "order_name"},
-    {kvalid_bit, "order_perms"},
-    {kvalid_bit, "order_class"},
-    {kvalid_bit, "order_uuid"},
-    {kvalid_bit, "order_serialnum"},
-    {kvalid_bit, "order_date"},
-    {kvalid_bit, "order_stock"},
+    {kvalid_int, "order_hits"},
+    {kvalid_int, "order_name"},
+    {kvalid_int, "order_perms"},
+    {kvalid_int, "order_class"},
+    {kvalid_int, "order_uuid"},
+    {kvalid_int, "order_serialnum"},
+    {kvalid_int, "order_date"},
+    {kvalid_int, "order_stock"},
 };
 
 static struct sqlbox_pstmt pstmts_switches[STMTS__MAX][10] = {
