@@ -1137,15 +1137,8 @@ int main(void) {
     alloc_ctx_cfg();
     fill_user();
     fill_parms(STMT);
-    khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
-    khttp_body(&r);
-    for (size_t i = 0; i < parmsz; ++i) {
-        if (parms[i].type == SQLBOX_PARM_STRING) {
-            khttp_puts(&r, parms[i].sparm);
-            khttp_puts(&r, "\r\n");
-        }
-    }
-    khttp_puts(&r, pstmts[STMT_DATA].stmt);
+    process(STMT);
     khttp_free(&r);
+    sqlbox_free(boxctx_data);
     return EXIT_SUCCESS;
 }
