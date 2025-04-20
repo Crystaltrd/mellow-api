@@ -237,7 +237,7 @@ static const struct kvalid keys[KEY__MAX] = {
     {kvalid_stringne, "serialnum"},
     {kvalid_stringne, "uuid"},
     {kvalid_stringne, "perms"},
-    {kvalid_bit, "root"},
+    {NULL, "root"},
     {kvalid_stringne, "parent"},
     {kvalid_stringne, "class"},
     {kvalid_stringne, "campus"},
@@ -554,6 +554,8 @@ enum khttp sanitize() {
         return KHTTP_405;
     if (r.page == PG__MAX)
         return KHTTP_404;
+    if (r.fieldmap[KEY_SWITCH_ROOT] && r.fieldmap[KEY_SWITCH_PARENT])
+        return KHTTP_400;
     return KHTTP_200;
 }
 
@@ -581,11 +583,10 @@ int main(void) {
     for (int i = 0; switch_keys[STMT][i] != KEY__MAX; i++) {
         if (r.fieldmap[switch_keys[STMT][i]]) {
             if (!flag) {
-                if (!strstr(pstms_data_top[STMT].stmt,"WHERE")) {
-                khttp_puts(&r, " WHERE ");
-                }
-                else {
-                khttp_puts(&r, " AND ");
+                if (!strstr(pstms_data_top[STMT].stmt, "WHERE")) {
+                    khttp_puts(&r, " WHERE ");
+                } else {
+                    khttp_puts(&r, " AND ");
                 }
                 flag = true;
             } else {
@@ -608,11 +609,11 @@ int main(void) {
                     khttp_puts(&r, ",");
                 }
                 khttp_puts(&r, pstmts_bottom[STMT][i].stmt);
-                khttp_puts(&r, (r.fieldmap[bottom_keys[STMT][i]]->parsed.i == 0) ? " DESC " : " ASC ");
+                khttp_puts(&r, (r.fieldmap[bottom_keys[STMT][i]]->parsed.i == 0) ? " DESC" : " ASC");
             }
         }
     }
-    khttp_puts(&r, "LIMIT(?),(? * ?) ");
+    khttp_puts(&r, " LIMIT(?),(? * ?)");
 
     khttp_free(&r);
     return EXIT_SUCCESS;
