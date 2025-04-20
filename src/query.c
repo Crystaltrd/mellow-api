@@ -805,13 +805,13 @@ void build_stmt(enum statement_pieces STMT) {
 }
 
 
-void fill_parms(enum statement_pieces STMT) {
+int fill_parms(enum statement_pieces STMT) {
     if ((STMT == STMTS_HISTORY || STMT == STMTS_ACCOUNT || STMT == STMTS_SESSIONS || STMT == STMTS_INVENTORY)) {
         if (!curr_usr.authenticated)
-            errx(EXIT_FAILURE, "perms");
+            return 0;
     }
     if (STMT == STMTS_INVENTORY && !curr_usr.perms.has_inventory)
-        errx(EXIT_FAILURE, "perms");
+        return 0;
     parms = kcalloc(parmsz, sizeof(struct sqlbox_parm));
     int n = 0;
     struct kpair *field;
@@ -869,6 +869,7 @@ void fill_parms(enum statement_pieces STMT) {
     parms[n++] = (struct sqlbox_parm){
         .type = SQLBOX_PARM_INT, .iparm = r.fieldmap[KEY_LIMIT] ? r.fieldmap[KEY_LIMIT]->parsed.i : 25
     };
+    return 1;
 }
 
 void get_cat_children(const char *class) {
@@ -930,17 +931,6 @@ void process(const enum statement STATEMENT) {
     kjson_obj_open(&req);
     kjson_objp_open(&req, "user");
     kjson_putstringp(&req, "IP", r.remote);
-    kjson_putstringp(&req, "STMT", pstmts[STMT_DATA].stmt);
-    kjson_arrayp_open(&req, "parms");
-    for (int i = 0; i < parmsz; ++i) {
-        if (parms[i].type == SQLBOX_PARM_INT) {
-            kjson_putint(&req, parms[i].iparm);
-        }
-        if (parms[i].type == SQLBOX_PARM_STRING) {
-            kjson_putstring(&req, parms[i].sparm);
-        }
-    }
-    kjson_array_close(&req);
     kjson_putboolp(&req, "authenticated", curr_usr.authenticated);
     if (curr_usr.authenticated) {
         kjson_putstringp(&req, "UUID", curr_usr.UUID);
@@ -1081,7 +1071,7 @@ void process(const enum statement STATEMENT) {
     kjson_close(&req);
 }
 
-void save(const enum statement STATEMENT, const bool failed) {
+void save(const bool failed) {
     char *requestDesc = NULL;
     if (!failed) {
         kasprintf(&requestDesc, "Stmt:%s, Parms:(", pages[r.page]);
@@ -1141,8 +1131,24 @@ int main(void) {
     build_stmt(STMT);
     alloc_ctx_cfg();
     fill_user();
-    fill_parms(STMT);
+    if (!fill_parms(STMT)) goto access_denied;
     process(STMT);
+    save(false);
+    goto cleanup;
+access_denied:
+    khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_403]);
+    khttp_head(&r, kresps[KRESP_CONTENT_TYPE], "%s", kmimetypes[KMIME_APP_JSON]);
+
+    khttp_body(&r);
+    kjson_open(&req, &r);
+    kjson_obj_open(&req);
+    kjson_putstringp(&req, "IP", r.remote);
+    kjson_putboolp(&req, "authenticated", curr_usr.authenticated);
+    kjson_putstringp(&req, "error", "You don't have the permissions to access this ressource");
+    kjson_obj_close(&req);
+    kjson_close(&req);
+    save(true);
+cleanup:
     khttp_free(&r);
     sqlbox_free(boxctx_data);
     return EXIT_SUCCESS;
