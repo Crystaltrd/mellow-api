@@ -581,6 +581,21 @@ int main(void) {
             khttp_puts(&r, " AND ");
         khttp_puts(&r, pstmts_switches[STMT][i].stmt);
     }
+    bool ordered = false;
+    for (int i = 0; bottom_keys[STMT][i] != KEY__SWITCH__MAX; i++) {
+        if (bottom_keys[STMT][i] == KEY_MANDATORY_GROUP_BY)
+            khttp_puts(&r, " GROUP BY ");
+        else {
+            if (!ordered) {
+                khttp_puts(&r," ORDER BY ");
+                ordered = true;
+            }
+            else {
+                khttp_puts(&r,",");
+            }
+        }
+        khttp_puts(&r, pstmts_bottom[STMT][i].stmt);
+    }
     khttp_free(&r);
     return EXIT_SUCCESS;
 }
