@@ -657,7 +657,7 @@ int main(void) {
             kasprintf(&stmt, "%s %s", stmt, rows[STMT][i]);
         kasprintf(&stmt, "%s,%s", stmt, rows[STMT][i]);
     }
-    kasprintf(&stmt, "%s%s", stmt, pstms_data_top[STMT]);
+    kasprintf(&stmt, "%s %s", stmt, pstms_data_top[STMT]);
     bool flag = false;
     for (int i = 0; switch_keys[STMT][i] != KEY__MAX; i++) {
         if (r.fieldmap[switch_keys[STMT][i]]) {
