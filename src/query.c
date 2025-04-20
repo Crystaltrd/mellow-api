@@ -828,7 +828,7 @@ void build_stmt(enum statement_pieces STMT) {
             }
         }
     }
-    kasprintf(&pstmts[STMT_DATA].stmt, "%s"" LIMIT(? * )),(?)", pstmts[STMT_DATA].stmt);
+    kasprintf(&pstmts[STMT_DATA].stmt, "%s"" LIMIT(? * ?),(?)", pstmts[STMT_DATA].stmt);
     parmsz += 3;
 }
 
