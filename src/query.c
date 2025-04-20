@@ -107,7 +107,6 @@ static struct sqlbox_pstmt pstms_data_top[STMTS__MAX] = {
         "SELECT publisherName "
         "FROM PUBLISHER "
         "LEFT JOIN BOOK B ON B.publisher = PUBLISHER.publisherName "
-        "WHERE "
     },
     {
         (char *)
@@ -123,20 +122,17 @@ static struct sqlbox_pstmt pstms_data_top[STMTS__MAX] = {
         "FROM LANG "
         "LEFT JOIN LANGUAGES A ON LANG.langCode = A.lang "
         "LEFT JOIN BOOK B ON B.serialnum = A.serialnum "
-        "WHERE "
     },
     {
         (char *)
         "SELECT actionName "
         "FROM ACTION "
-        "WHERE "
     },
     {
         (char *)
         "SELECT typeName "
         "FROM DOCTYPE "
         "LEFT JOIN BOOK B ON DOCTYPE.typeName = B.type "
-        "WHERE "
     },
     {
         (char *)
@@ -144,19 +140,16 @@ static struct sqlbox_pstmt pstms_data_top[STMTS__MAX] = {
         "FROM CAMPUS "
         "LEFT JOIN STOCK S ON CAMPUS.campusName = S.campus "
         "LEFT JOIN ACCOUNT A on CAMPUS.campusName = A.campus "
-        "WHERE "
     },
     {
         (char *)
         "SELECT roleName, perms "
         "FROM ROLE LEFT JOIN ACCOUNT A ON A.role = ROLE.roleName "
-        "WHERE "
     },
     {
         (char *)
         "SELECT categoryClass, categoryName, parentCategoryID "
         "FROM CATEGORY LEFT JOIN BOOK B ON CATEGORY.categoryClass = B.category "
-        "WHERE "
     },
 
     {
@@ -167,7 +160,6 @@ static struct sqlbox_pstmt pstms_data_top[STMTS__MAX] = {
         "LEFT JOIN INVENTORY I on ACCOUNT.UUID = I.UUID "
         "LEFT JOIN SESSIONS S on ACCOUNT.UUID = S.account "
         "WHERE ACCOUNT.role = ROLE.roleName "
-        "AND "
     },
     {
         (char *)
@@ -181,33 +173,28 @@ static struct sqlbox_pstmt pstms_data_top[STMTS__MAX] = {
         "AND AUTHORED.serialnum = BOOK.serialnum "
         "AND LANGUAGES.serialnum = BOOK.serialnum "
         "AND STOCK.serialnum = BOOK.serialnum "
-        "AND "
     },
     {
         (char *)
         "SELECT STOCK.serialnum,campus,instock "
         "FROM STOCK,BOOK "
         "WHERE STOCK.serialnum = BOOK.serialnum "
-        "AND "
     },
     {
         (char *)
         "SELECT UUID, serialnum, rentduration, rentdate, extended "
         "FROM INVENTORY "
-        "WHERE "
     },
     {
 
         (char *)
         "SELECT UUID,UUID_ISSUER,serialnum,IP,action,actiondate,details "
         "FROM HISTORY "
-        "WHERE "
     },
     {
         (char *)
         "SELECT account,sessionID,expiresAt "
         "FROM SESSIONS "
-        "WHERE "
     },
 };
 
