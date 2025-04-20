@@ -759,7 +759,7 @@ void build_stmt(enum statement_pieces STMT) {
         }
     }
     kasprintf(&pstmts[STMT_DATA].stmt, "%s %s", pstmts[STMT_DATA].stmt, pstms_data_top[STMT].stmt);
-    kasprintf(&pstmts[STMT_COUNT].stmt, "%s)) %s", pstmts[STMT_COUNT].stmt, pstms_data_top[STMT].stmt);
+    kasprintf(&pstmts[STMT_COUNT].stmt, "%s,NULL)) %s", pstmts[STMT_COUNT].stmt, pstms_data_top[STMT].stmt);
     bool flag = false;
     for (int i = 0; switch_keys[STMT][i] != KEY__MAX; i++) {
         if (r.fieldmap[switch_keys[STMT][i]]) {
