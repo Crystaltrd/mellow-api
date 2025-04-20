@@ -602,7 +602,7 @@ int main(void) {
                       "INNER JOIN CategoryCascade ct ON c.parentCategoryID = ct.categoryClass) ", stmt);
         }
     }
-    kasprintf(&stmt, "%s%s", pstms_data_top[STMT].stmt, stmt);
+    kasprintf(&stmt, "%s%s", stmt,pstms_data_top[STMT].stmt);
     bool flag = false;
     for (int i = 0; switch_keys[STMT][i] != KEY__MAX; i++) {
         if (r.fieldmap[switch_keys[STMT][i]]) {
@@ -616,14 +616,14 @@ int main(void) {
             } else {
                 kasprintf(&stmt, "%s"" AND ", stmt);
             }
-            kasprintf(&stmt, "%s%s", pstmts_switches[STMT][i].stmt, stmt);
+            kasprintf(&stmt, "%s%s", stmt,pstmts_switches[STMT][i].stmt);
         }
     }
     flag = false;
     for (int i = 0; bottom_keys[STMT][i] != KEY__MAX; i++) {
         if (bottom_keys[STMT][i] == KEY_MANDATORY_GROUP_BY) {
             kasprintf(&stmt, "%s"" GROUP BY ", stmt);
-            kasprintf(&stmt, "%s%s", pstmts_bottom[STMT][i].stmt, stmt);
+            kasprintf(&stmt, "%s%s", stmt,pstmts_bottom[STMT][i].stmt);
         } else {
             if (r.fieldmap[bottom_keys[STMT][i]]) {
                 if (!flag) {
@@ -632,12 +632,12 @@ int main(void) {
                 } else {
                     kasprintf(&stmt, "%s"",", stmt);
                 }
-                kasprintf(&stmt, "%s%s", pstmts_bottom[STMT][i].stmt, stmt);
-                kasprintf(&stmt, "%s%s",(r.fieldmap[bottom_keys[STMT][i]]->parsed.i == 0) ? " DESC" : " ASC", stmt);
+                kasprintf(&stmt, "%s%s",stmt, pstmts_bottom[STMT][i].stmt);
+                kasprintf(&stmt, "%s%s",stmt,(r.fieldmap[bottom_keys[STMT][i]]->parsed.i == 0) ? " DESC" : " ASC");
             }
         }
     }
-    kasprintf(&stmt, "%s"" LIMIT(?),(? * ?)", stmt);
+    kasprintf(&stmt, "%s"" LIMIT(?),(? * ?)",stmt);
     khttp_puts(&r, stmt);
     khttp_free(&r);
     return EXIT_SUCCESS;
