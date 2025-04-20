@@ -215,5 +215,3 @@ CREATE TABLE HISTORY
     actiondate  DATETIME NOT NULL,
     details     TEXT DEFAULT NULL
 );
-
-

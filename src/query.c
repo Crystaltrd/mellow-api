@@ -72,115 +72,11 @@ static const char *pages[PG__MAX] = {
     "inventory", "history", "sessions"
 };
 
-/*
- * All possible keys that can be passed to the backend, the first 11 ones are used as a fix for some hosting providers
- * not providing URL normalisation and require that the binaries end with .cgi
- */
-enum key {
-    KEY_PG_PUBLISHER,
-    KEY_PG_AUTHOR,
-    KEY_PG_LANG,
-    KEY_PG_ACTION,
-    KEY_PG_DOCTYPE,
-    KEY_PG_CAMPUS,
-    KEY_PG_ROLE,
-    KEY_PG_CATEGORY,
-    KEY_PG_ACCOUNT,
-    KEY_PG_BOOK,
-    KEY_PG_STOCK,
-    KEY_PG_INVENTORY,
-    KEY_PG_HISTORY,
-    KEY_PG_SESSIONS,
-    // FILTERS
-    KEY_PAGE,
-    KEY_LIMIT,
-    KEY_FILTER_BY_NAME,
-    KEY_FILTER_BY_BOOK,
-    KEY_FILTER_BY_POPULARITY,
-    KEY_FILTER_BY_ACCOUNT,
-    KEY_FILTER_BY_PERM,
-    KEY_FILTER_BY_CLASS,
-    KEY_FILTER_BY_PARENT,
-    KEY_FILTER_CASCADE,
-    KEY_FILTER_TREE,
-    KEY_FILTER_GET_PARENTS,
-    KEY_FILTER_BY_ID,
-    KEY_FILTER_BY_CAMPUS,
-    KEY_FILTER_BY_ROLE,
-    KEY_FILTER_FROZEN,
-    KEY_FILTER_BY_CATEGORY,
-    KEY_FILTER_BY_LANG,
-    KEY_FILTER_BY_AUTHOR,
-    KEY_FILTER_BY_TYPE,
-    KEY_FILTER_BY_PUBLISHER,
-    KEY_FILTER_IGNORE_EMPTY,
-    KEY_FILTER_FROM_YEAR,
-    KEY_FILTER_TO_YEAR,
-    KEY_FILTER_ME,
-    KEY_FILTER_BY_ISSUER,
-    KEY_FILTER_BY_ACTION,
-    KEY_FILTER_FROM_DATE,
-    KEY_FILTER_TO_DATE,
-    KEY_FILTER_BY_SESSION,
-    COOKIE_SESSIONID,
-    KEY_PERMS_DETAILS,
-    KEY__MAX
-};
 
-
-static const struct kvalid keys[KEY__MAX] = {
-    {NULL, "publisher"},
-    {NULL, "author"},
-    {NULL, "lang"},
-    {NULL, "action"},
-    {NULL, "doctype"},
-    {NULL, "campus"},
-    {NULL, "role"},
-    {NULL, "category"},
-    {NULL, "account"},
-    {NULL, "book"},
-    {NULL, "stock"},
-    {NULL, "inventory"},
-    {NULL, "history"},
-    {NULL, "sessions"},
-    // FILTERS
-    {kvalid_uint, "page"},
-    {kvalid_uint, "limit"},
-    {kvalid_string, "by_name"},
-    {kvalid_string, "by_book"},
-    {NULL, "by_popularity"},
-    {kvalid_string, "by_account"},
-    {kvalid_uint, "by_perm"},
-    {kvalid_string, "by_class"},
-    {kvalid_string, "by_parent"},
-    {NULL, "cascade"},
-    {NULL, "tree"},
-    {NULL, "get_parents"},
-    {kvalid_string, "by_ID"},
-    {kvalid_string, "by_campus"},
-    {kvalid_string, "by_role"},
-    {kvalid_bit, "frozen"},
-    {kvalid_string, "by_category"},
-    {kvalid_string, "by_lang"},
-    {kvalid_string, "by_author"},
-    {kvalid_string, "by_type"},
-    {kvalid_string, "by_publisher"},
-    {kvalid_bit, "ignore_empty"},
-    {kvalid_int, "from_year"},
-    {kvalid_int, "to_year"},
-    {NULL, "me"},
-    {kvalid_string, "by_issuer"},
-    {kvalid_string, "by_action"},
-    {kvalid_date, "from_date"},
-    {kvalid_date, "to_date"},
-    {kvalid_int, "by_session"},
-    {kvalid_stringne, "sessionID"},
-    {NULL, "details"},
-};
 /*
  * Pre-made SQL statements
  */
-enum statement {
+enum statement_pieces {
     STMTS_PUBLISHER,
     STMTS_AUTHOR,
     STMTS_LANG,
@@ -189,221 +85,93 @@ enum statement {
     STMTS_CAMPUS,
     STMTS_ROLE,
     STMTS_CATEGORY,
-    STMTS_CATEGORY_CASCADE,
     STMTS_ACCOUNT,
     STMTS_BOOK,
     STMTS_STOCK,
     STMTS_INVENTORY,
     STMTS_HISTORY,
     STMTS_SESSIONS,
-    __STMT_STORE__,
-    __STMT_BOOK_AUTHORED__,
-    __STMT_BOOK_LANGUAGES__,
-    __STMT_BOOK_STOCK__,
     STMTS__MAX
 };
 
-static const char *statement_string[STMTS__MAX] = {
-    "publisher", "author", "lang", "action", "type", "campus", "role", "category", "category_cascade", "account",
-    "book", "stock", "inventory", "history", "sessions"
-};
-static const char *rows[STMTS__MAX][9] = {
-    {"publisherName"},
-    {"authorName"},
-    {"langcode"},
-    {"actionName"},
-    {"typeName"},
-    {"campusName"},
-    {"roleName", "perms"},
-    {"categoryClass", "categoryName", "parentCategoryID"},
-    {"categoryClass", "categoryName", "parentCategoryID"},
-    {"UUID", "displayname", "pwhash", "campus", "role", "perm", "frozen"},
-    {"serialnum", "type", "category", "categoryName", "publisher", "booktitle", "bookreleaseyear", "bookcover", "hits"},
-    {"serialnum", "campus", "instock"},
-    {"UUID", "serialnum", "rentduration", "rentdate", "extended"},
-    {"UUID", "UUID_ISSUER", "serialnum", "IP", "action", "actiondate", "details"},
-    {"account", "sessionID", "expiresAt"}
-};
 /*
  * Helper function to get the Statement for a specific page
  */
-enum statement get_stmts() {
-    enum key i;
-    for (i = KEY_PG_PUBLISHER; i < KEY_PAGE && !(r.fieldmap[i]); i++) {
-    }
-    if (i == KEY_PAGE)
-        i = r.page;
-    if (i < PG_CATEGORY) {
-        return (enum statement) i;
-    } else if (i == PG_CATEGORY) {
-        if (r.fieldmap[KEY_FILTER_CASCADE])
-            return STMTS_CATEGORY_CASCADE;
-        return STMTS_CATEGORY;
-    }
-    return i + 1;
+enum statement_pieces get_stmts() {
+    return (enum statement_pieces) r.page;
 }
 
-/*
- * Array of sources(databases) and their access mode, we only have one which is our central database.
- * And since this microservice handles querying only, we open it as Read-Only
- */
-struct sqlbox_src srcs[] = {
+static const char *rows[STMTS__MAX][10] = {
+    {"publisherName",NULL},
+    {"authorName",NULL},
+    {"langcode",NULL},
+    {"actionName",NULL},
+    {"typeName",NULL},
+    {"campusName",NULL},
+    {"roleName", "perms",NULL},
+    {"categoryClass", "categoryName", "parentCategoryID",NULL},
+    {"UUID", "displayname", "pwhash", "campus", "role", "perm", "frozen",NULL},
     {
-        .fname = (char *) "db/database.db",
-        .mode = SQLBOX_SRC_RW
-    }
+        "BOOK.serialnum", "type", "category", "categoryName", "publisher", "booktitle", "bookreleaseyear", "bookcover",
+        "hits",NULL
+    },
+    {"STOCK.serialnum", "campus", "instock",NULL},
+    {"UUID", "serialnum", "rentduration", "rentdate", "extended",NULL},
+    {"UUID", "UUID_ISSUER", "serialnum", "IP", "action", "actiondate", "details",NULL},
+    {"account", "sessionID", "expiresAt",NULL}
 };
-struct sqlbox *boxctx_data;
-struct sqlbox_cfg cfg_data;
-struct sqlbox *boxctx_count;
-struct sqlbox_cfg cfg_count;
-size_t dbid_data; // Database associated with a config and a context for query results
-size_t dbid_count; // Database associated with a config and a context for the number of results
-static struct sqlbox_pstmt pstmts_data[STMTS__MAX] = {
+static struct sqlbox_pstmt pstms_data_top[STMTS__MAX] = {
     {
         (char *)
-        "SELECT publisherName "
         "FROM PUBLISHER "
         "LEFT JOIN BOOK B ON B.publisher = PUBLISHER.publisherName "
-        "WHERE ((?) = 'IGNORE_NAME' OR instr(publisherName, (?)) > 0) "
-        "AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) "
-        "GROUP BY publisherName "
-        "ORDER BY IIF((?) = 'POPULAR', SUM(hits), publisherName) DESC "
-        "LIMIT (?) OFFSET (? * (?))"
     },
     {
         (char *)
-        "SELECT authorName "
         "FROM AUTHOR "
         "LEFT JOIN AUTHORED A ON AUTHOR.authorName = A.author "
         "LEFT JOIN BOOK B ON B.serialnum = A.serialnum "
-        "WHERE ((?) = 'IGNORE_NAME' OR instr(authorName, (?)) > 0) "
-        "AND ((?) = 'IGNORE_BOOK' OR A.serialnum = (?)) "
-        "GROUP BY authorName ORDER BY IIF((?) = 'POPULAR', SUM(hits), authorName) DESC "
-        "LIMIT (?) OFFSET (? * (?))"
     },
     {
         (char *)
-        "SELECT langCode "
         "FROM LANG "
         "LEFT JOIN LANGUAGES A ON LANG.langCode = A.lang "
         "LEFT JOIN BOOK B ON B.serialnum = A.serialnum "
-        "WHERE ((?) = 'IGNORE_NAME' OR instr(langCode, (?)) > 0) "
-        "AND ((?) = 'IGNORE_BOOK' OR A.serialnum = (?)) "
-        "GROUP BY langCode "
-        "ORDER BY IIF((?) = 'POPULAR', SUM(hits), langCode) DESC "
-        "LIMIT (?) OFFSET (? * (?))"
     },
     {
         (char *)
-        "SELECT actionName "
         "FROM ACTION "
-        "WHERE instr(actionName,(?)) > 0 "
-        "ORDER BY actionName "
-        "LIMIT (?) OFFSET (? * (?))"
     },
     {
         (char *)
-        "SELECT typeName "
         "FROM DOCTYPE "
         "LEFT JOIN BOOK B ON DOCTYPE.typeName = B.type "
-        "WHERE ((?) = 'IGNORE_NAME' OR instr(typeName, (?)) > 0) "
-        "AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) "
-        "GROUP BY typeName "
-        "ORDER BY IIF((?) = 'POPULAR', SUM(hits), typeName) DESC "
-        "LIMIT (?) OFFSET (? * (?))"
     },
     {
         (char *)
-        "SELECT campusName "
         "FROM CAMPUS "
         "LEFT JOIN STOCK S ON CAMPUS.campusName = S.campus "
         "LEFT JOIN ACCOUNT A on CAMPUS.campusName = A.campus "
-        "WHERE ((?) = 'IGNORE_NAME' OR instr(campusName, (?)) > 0) "
-        "AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) "
-        "AND ((?) = 'IGNORE_ACCOUNT' OR UUID = (?)) "
-        "GROUP BY campusName "
-        "ORDER BY campusName "
-        "LIMIT (?) OFFSET (? * (?))"
     },
     {
         (char *)
-        "SELECT roleName, perms "
         "FROM ROLE LEFT JOIN ACCOUNT A ON A.role = ROLE.roleName "
-        "WHERE ((?) = 'IGNORE_NAME' OR instr(roleName, (?)) > 0) "
-        "AND ((?) = 'IGNORE_PERMS' OR perms = (?)) "
-        "AND ((?) = 'IGNORE_ACCOUNT' OR UUID = (?)) "
-        "GROUP BY roleName, perms "
-        "ORDER BY perms DESC "
-        "LIMIT (?) OFFSET (? * (?))"
     },
     {
         (char *)
-        "SELECT categoryClass, categoryName, parentCategoryID "
         "FROM CATEGORY LEFT JOIN BOOK B ON CATEGORY.categoryClass = B.category "
-        "WHERE IIF((?) = 'ROOT',parentCategoryID IS NULL,TRUE) "
-        "AND ((?) = 'IGNORE_NAME' OR instr(categoryName, (?)) > 0) "
-        "AND ((?) = 'IGNORE_CLASS' OR categoryClass = (?)) "
-        "AND ((?) = 'IGNORE_PARENT_CLASS' OR parentCategoryID = (?)) "
-        "AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) "
-        "GROUP BY categoryClass, categoryName, parentCategoryID "
-        "ORDER BY IIF((?) = 'POPULAR', SUM(hits), categoryClass) DESC "
-        "LIMIT (?) OFFSET (? * (?))"
     },
+
     {
         (char *)
-        "WITH RECURSIVE CategoryCascade AS (SELECT categoryName,categoryClass, parentCategoryID "
-        "FROM CATEGORY "
-        "LEFT JOIN BOOK B ON CATEGORY.categoryClass = B.category "
-        "WHERE IIF((?) = 'ROOT',parentCategoryID IS NULL,TRUE) "
-        "AND ((?) = 'IGNORE_NAME' OR instr(categoryName, (?)) > 0) "
-        "AND ((?) = 'IGNORE_CLASS' OR categoryClass = (?)) "
-        "AND ((?) = 'IGNORE_PARENT_CLASS' OR parentCategoryID = (?)) "
-        "AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) "
-        "GROUP BY categoryClass,categoryName,parentCategoryID "
-        "UNION ALL "
-        "SELECT c.categoryName,c.categoryClass, c.parentCategoryID "
-        "FROM CATEGORY c "
-        "INNER JOIN CategoryCascade ct ON IIF((?) = 'GET_PARENTS',"
-        "c.categoryClass = ct.parentCategoryID,"
-        "c.parentCategoryID = ct.categoryClass)) "
-        "SELECT CATEGORY.categoryClass, CATEGORY.categoryName,CATEGORY.parentCategoryID "
-        "FROM CATEGORY, CategoryCascade "
-        "WHERE CategoryCascade.categoryClass = CATEGORY.categoryClass "
-        "GROUP BY CATEGORY.categoryClass, CATEGORY.categoryName, CATEGORY.parentCategoryID "
-        "LIMIT (?) OFFSET (? * (?))"
-    },
-    {
-        (char *)
-        "SELECT ACCOUNT.UUID, displayname, pwhash, campus, role, perms, frozen "
         "FROM ROLE,"
         "ACCOUNT "
         "LEFT JOIN INVENTORY I on ACCOUNT.UUID = I.UUID "
         "LEFT JOIN SESSIONS S on ACCOUNT.UUID = S.account "
         "WHERE ACCOUNT.role = ROLE.roleName "
-        "AND ((?) = 'IGNORE_ID' OR ACCOUNT.UUID = (?)) "
-        "AND ((?) = 'IGNORE_NAME' OR instr(displayname, (?)) > 0) "
-        "AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) "
-        "AND ((?) = 'IGNORE_CAMPUS' OR campus = (?)) "
-        "AND ((?) = 'IGNORE_ROLE' OR role = (?)) "
-        "AND ((?) = 'IGNORE_FREEZE' OR frozen = (?)) "
-        "AND ((?) = 'IGNORE_SESSION' OR sessionID = (?)) "
-        "GROUP BY ACCOUNT.UUID, displayname, pwhash, campus, perms, frozen "
-        "ORDER BY displayname "
-        "LIMIT (?) OFFSET (? * (?))"
     },
     {
         (char *)
-        "WITH RECURSIVE CategoryCascade AS (SELECT categoryClass, parentCategoryID "
-        "FROM CATEGORY "
-        "WHERE IIF((?) = 'ROOT',"
-        "parentCategoryID IS NULL,"
-        "categoryClass = (?)) "
-        "UNION ALL "
-        "SELECT c.categoryClass, c.parentCategoryID "
-        "FROM CATEGORY c "
-        "INNER JOIN CategoryCascade ct ON c.parentCategoryID = ct.categoryClass) "
-        "SELECT BOOK.serialnum, type, category,categoryName, publisher, booktitle, bookreleaseyear, bookcover, hits "
         "FROM (BOOK LEFT JOIN INVENTORY I ON BOOK.serialnum = I.serialnum),"
         "CATEGORY,"
         "LANGUAGES,"
@@ -411,75 +179,429 @@ static struct sqlbox_pstmt pstmts_data[STMTS__MAX] = {
         "STOCK,"
         "CategoryCascade "
         "WHERE category = CategoryCascade.categoryClass "
+        "AND CATEGORY.categoryClass = BOOK.category "
         "AND AUTHORED.serialnum = BOOK.serialnum "
         "AND LANGUAGES.serialnum = BOOK.serialnum "
         "AND STOCK.serialnum = BOOK.serialnum "
-        "AND CATEGORY.categoryClass = BOOK.category "
-        "AND ((?) = 'IGNORE_ID' OR BOOK.serialnum = (?)) "
-        "AND ((?) = 'IGNORE_NAME' OR instr(booktitle, (?))) "
-        "AND ((?) = 'IGNORE_LANG' OR lang = (?)) "
-        "AND ((?) = 'IGNORE_AUTHOR' OR instr(author, (?)) > 0) "
-        "AND ((?) = 'IGNORE_TYPE' OR type = (?)) "
-        "AND ((?) = 'IGNORE_PUBLISHER' OR instr(publisher, (?)) > 0) "
-        "AND ((?) = 'IGNORE_CAMPUS' OR campus = (?)) "
-        "AND ((?) = 'IGNORE_ACCOUNT' OR UUID = (?)) "
-        "AND ((?) = 'IGNORE_FROM_DATE' OR bookreleaseyear >= (?)) "
-        "AND ((?) = 'IGNORE_TO_DATE' OR bookreleaseyear <= (?)) "
-        "GROUP BY BOOK.serialnum, type, category, categoryName, publisher, booktitle, bookreleaseyear, bookcover, hits "
-        "ORDER BY IIF((?) = 'POPULAR', hits, booktitle) DESC "
-        "LIMIT (?) OFFSET (? * (?))"
     },
     {
         (char *)
-        "SELECT STOCK.serialnum,campus,instock "
         "FROM STOCK,BOOK "
         "WHERE STOCK.serialnum = BOOK.serialnum "
-        "AND ((?) = 'IGNORE_BOOK' OR STOCK.serialnum = (?)) "
-        "AND ((?) = 'IGNORE_CAMPUS' OR campus = (?)) "
-        "AND IIF((?) = 'AVAILABLE', instock > 0, TRUE) "
-        "GROUP BY STOCK.serialnum, campus, instock,hits "
-        "ORDER BY IIF((?) = 'POPULAR', hits, instock) DESC "
-        "LIMIT (?) OFFSET (? * (?))"
     },
     {
         (char *)
         "SELECT UUID, serialnum, rentduration, rentdate, extended "
         "FROM INVENTORY "
-        "WHERE ((?) = 'IGNORE_ACCOUNT' OR UUID = (?)) "
-        "AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) "
-        "GROUP BY UUID, serialnum, rentduration, rentdate, extended "
-        "ORDER BY rentdate DESC "
-        "LIMIT (?) OFFSET (? * (?))"
     },
     {
 
         (char *)
-        "SELECT UUID,UUID_ISSUER,serialnum,IP,action,actiondate,details "
         "FROM HISTORY "
-        "WHERE ((?) = 'IGNORE_ACCOUNT' OR UUID = (?)) "
-        "AND ((?) = 'IGNORE_ISSUER' OR UUID_ISSUER = (?)) "
-        "AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) "
-        "AND ((?) = 'IGNORE_ACTION' OR action = (?)) "
-        "AND ((?) = 'IGNORE_FROM_DATE' OR actiondate >= datetime((?),'unixepoch')) "
-        "AND ((?) = 'IGNORE_TO_DATE' OR actiondate <= datetime((?),'unixepoch')) "
-        "GROUP BY UUID, UUID_ISSUER, serialnum, action, actiondate "
-        "ORDER BY actiondate DESC "
-        "LIMIT (?) OFFSET (? * (?))"
     },
     {
         (char *)
-        "SELECT account,sessionID,expiresAt "
         "FROM SESSIONS "
-        "WHERE ((?) = 'IGNORE_ID' OR sessionID = (?)) "
-        "AND ((?) = 'IGNORE_ACCOUNT' OR account = (?)) "
-        "GROUP BY account,sessionID,expiresAt "
-        "ORDER BY expiresAt DESC "
-        "LIMIT (?) OFFSET (? * (?))"
+    },
+};
+
+enum key {
+    KEY_SWITCH_NAME,
+    KEY_SWITCH_SERIALNUM,
+    KEY_SWITCH_UUID,
+    KEY_SWITCH_PERMS,
+    KEY_SWITCH_ROOT, // MUTUALLY EXCLUSIVE
+    KEY_SWITCH_PARENT, // MUTUALLY EXCLUSIVE
+    KEY_SWITCH_CLASS,
+    KEY_SWITCH_CAMPUS,
+    KEY_SWITCH_ROLE,
+    KEY_SWITCH_FROZEN,
+    KEY_SWITCH_SESSIONID,
+    KEY_SWITCH_LANG,
+    KEY_SWITCH_AUTHOR,
+    KEY_SWITCH_PUBLISHER,
+    KEY_SWITCH_TYPE,
+    KEY_SWITCH_UPPERYEAR,
+    KEY_SWITCH_LOWERYEAR,
+    KEY_SWITCH_NOTEMPTY,
+    KEY_SWITCH_ISSUER,
+    KEY_SWITCH_ACTION,
+    KEY_SWITCH_UPPERDATE,
+    KEY_SWITCH_LOWERDATE,
+    KEY_ORDER_HITS,
+    KEY_ORDER_NAME,
+    KEY_ORDER_PERMS,
+    KEY_ORDER_CLASS,
+    KEY_ORDER_UUID,
+    KEY_ORDER_SERIALNUM,
+    KEY_ORDER_DATE,
+    KEY_ORDER_STOCK,
+    KEY_LIMIT,
+    KEY_OFFSET,
+    KEY_CASCADE,
+    KEY_TREE,
+    KEY_MANDATORY_GROUP_BY,
+    COOKIE_SESSIONID,
+    KEY__MAX
+};
+
+static const struct kvalid keys[KEY__MAX] = {
+    {kvalid_stringne, "name"},
+    {kvalid_stringne, "serialnum"},
+    {kvalid_stringne, "uuid"},
+    {kvalid_stringne, "perms"},
+    {NULL, "root"},
+    {kvalid_stringne, "parent"},
+    {kvalid_stringne, "class"},
+    {kvalid_stringne, "campus"},
+    {kvalid_stringne, "role"},
+    {kvalid_bit, "frozen"},
+    {kvalid_stringne, "sessionid"},
+    {kvalid_stringne, "lang"},
+    {kvalid_stringne, "author"},
+    {kvalid_stringne, "publisher"},
+    {kvalid_stringne, "type"},
+    {kvalid_int, "upperyear"},
+    {kvalid_int, "loweryear"},
+    {kvalid_bit, "notempty"},
+    {kvalid_stringne, "issuer"},
+    {kvalid_stringne, "action"},
+    {kvalid_date, "upperdate"},
+    {kvalid_date, "lowerdate"},
+    {kvalid_int, "order_hits"},
+    {kvalid_int, "order_name"},
+    {kvalid_int, "order_perms"},
+    {kvalid_int, "order_class"},
+    {kvalid_int, "order_uuid"},
+    {kvalid_int, "order_serialnum"},
+    {kvalid_int, "order_date"},
+    {kvalid_int, "order_stock"},
+    {kvalid_int, "limit"},
+    {kvalid_int, "page"},
+    {NULL, "cascade"},
+    {NULL, "tree"},
+    {kvalid_stringne, "sessionID"},
+
+};
+
+
+static char *pstmts_switches[STMTS__MAX][10] = {
+    {
+        "instr(publisherName,(?)) > 0",
+        "serialnum = (?)"
+    },
+    {
+        "instr(authorName,(?)) > 0",
+        "A.serialnum = (?)"
+    },
+    {
+        "instr(langCode,(?)) > 0",
+        "A.serialnum = (?)"
+    },
+    {
+        "instr(actionName,(?)) > 0"
+    },
+    {
+        "instr(typeName,(?)) > 0",
+        "serialnum = (?)"
+    },
+    {
+        "instr(campusName,(?)) > 0",
+        "serialnum = (?)",
+        "UUID = (?)"
+    },
+    {
+        "instr(roleName,(?)) > 0",
+        "perms = (?)",
+        "UUID = (?)"
+    },
+    {
+        "parentCategoryID IS NULL",
+        "parentCategoryID = (?)",
+        "instr(categoryName,(?)) > 0",
+        "categoryClass = (?)",
+        "serialnum = (?)",
+    },
+    {
+        "ACCOUNT.UUID = (?)",
+        "instr(displayname, (?))> 0",
+        "serialnum = (?)",
+        "campus = (?)",
+        "role = (?)",
+        "frozen = (?)",
+        "sessionID = (?)",
+    },
+    {
+        "BOOK.serialnum = (?)",
+        "instr(booktitle, (?))",
+        "lang = (?)",
+        "instr(author, (?)) > 0",
+        "type = (?)",
+        "instr(publisher, (?)) > 0",
+        "campus = (?)",
+        "UUID = (?)",
+        "bookreleaseyear >= (?)",
+        "bookreleaseyear <= (?)",
+    },
+    {
+        "STOCK.serialnum = (?)",
+        "campus = (?)",
+        "instock > 0",
+    },
+    {
+        "UUID = (?)",
+        "serialnum = (?)"
+    },
+    {
+        "UUID = (?)",
+        "UUID_ISSUER = (?)",
+        "serialnum = (?)",
+        "action = (?)",
+        "actiondate >= datetime((?),'unixepoch')",
+        "actiondate <= datetime((?),'unixepoch')",
+    },
+    {
+        "sessionID = (?)",
+        "account = (?)",
+    }
+};
+
+static enum key switch_keys[STMTS__MAX][11] = {
+
+    {KEY_SWITCH_NAME, KEY_SWITCH_SERIALNUM, KEY__MAX},
+    {KEY_SWITCH_NAME, KEY_SWITCH_SERIALNUM, KEY__MAX},
+    {KEY_SWITCH_NAME, KEY_SWITCH_SERIALNUM, KEY__MAX},
+    {KEY_SWITCH_NAME, KEY__MAX},
+    {KEY_SWITCH_NAME, KEY_SWITCH_SERIALNUM, KEY__MAX},
+    {KEY_SWITCH_NAME, KEY_SWITCH_SERIALNUM, KEY_SWITCH_UUID, KEY__MAX},
+    {KEY_SWITCH_NAME, KEY_SWITCH_PERMS, KEY_SWITCH_UUID, KEY__MAX},
+    {KEY_SWITCH_ROOT, KEY_SWITCH_PARENT, KEY_SWITCH_NAME, KEY_SWITCH_CLASS, KEY_SWITCH_SERIALNUM, KEY__MAX},
+    {
+        KEY_SWITCH_UUID, KEY_SWITCH_NAME, KEY_SWITCH_SERIALNUM, KEY_SWITCH_CAMPUS, KEY_SWITCH_ROLE, KEY_SWITCH_FROZEN,
+        KEY_SWITCH_SESSIONID, KEY__MAX
+    },
+    {
+        KEY_SWITCH_SERIALNUM, KEY_SWITCH_NAME, KEY_SWITCH_LANG, KEY_SWITCH_AUTHOR, KEY_SWITCH_ROLE,
+        KEY_SWITCH_PUBLISHER, KEY_SWITCH_CAMPUS, KEY_SWITCH_UUID, KEY_SWITCH_UPPERYEAR, KEY_SWITCH_LOWERYEAR,
+        KEY__MAX
+    },
+    {KEY_SWITCH_SERIALNUM, KEY_SWITCH_CAMPUS, KEY_SWITCH_NOTEMPTY, KEY__MAX},
+    {KEY_SWITCH_UUID, KEY_SWITCH_SERIALNUM, KEY__MAX},
+    {
+        KEY_SWITCH_UUID, KEY_SWITCH_ISSUER, KEY_SWITCH_SERIALNUM, KEY_SWITCH_ACTION, KEY_SWITCH_UPPERYEAR,
+        KEY_SWITCH_LOWERDATE, KEY__MAX
+    },
+    {KEY_SWITCH_SESSIONID, KEY_SWITCH_UUID, KEY__MAX}
+};
+
+
+static enum key bottom_keys[STMTS__MAX][8] = {
+    {
+        KEY_MANDATORY_GROUP_BY,
+        KEY_ORDER_HITS,
+        KEY_ORDER_NAME,
+        KEY__MAX
+    },
+    {
+        KEY_MANDATORY_GROUP_BY,
+        KEY_ORDER_HITS,
+        KEY_ORDER_NAME,
+        KEY__MAX
+    },
+    {
+        KEY_MANDATORY_GROUP_BY,
+        KEY_ORDER_HITS,
+        KEY_ORDER_NAME,
+        KEY__MAX
+    },
+    {
+        KEY_MANDATORY_GROUP_BY,
+        KEY_ORDER_NAME,
+        KEY__MAX
+    },
+    {
+        KEY_MANDATORY_GROUP_BY,
+        KEY_ORDER_HITS,
+        KEY_ORDER_NAME,
+        KEY__MAX
+    },
+    {
+        KEY_MANDATORY_GROUP_BY,
+        KEY_ORDER_NAME,
+        KEY__MAX
+    },
+
+    {
+        KEY_MANDATORY_GROUP_BY,
+        KEY_ORDER_PERMS,
+        KEY_ORDER_NAME,
+        KEY__MAX
+    },
+
+    {
+        KEY_MANDATORY_GROUP_BY,
+        KEY_ORDER_HITS,
+        KEY_ORDER_CLASS,
+        KEY_ORDER_NAME,
+        KEY__MAX
+    },
+    {
+        KEY_MANDATORY_GROUP_BY,
+        KEY_ORDER_UUID,
+        KEY_ORDER_NAME,
+        KEY_ORDER_PERMS,
+        KEY__MAX
+    },
+    {
+        KEY_MANDATORY_GROUP_BY,
+        KEY_ORDER_SERIALNUM,
+        KEY_ORDER_NAME,
+        KEY_ORDER_DATE,
+        KEY_ORDER_HITS,
+        KEY__MAX
+    },
+    {
+        KEY_MANDATORY_GROUP_BY,
+        KEY_ORDER_SERIALNUM,
+        KEY_ORDER_STOCK,
+        KEY__MAX
+    },
+    {
+        KEY_MANDATORY_GROUP_BY,
+        KEY_ORDER_UUID,
+        KEY_ORDER_SERIALNUM,
+        KEY_ORDER_DATE,
+        KEY__MAX
+    },
+    {
+        KEY_MANDATORY_GROUP_BY,
+        KEY_ORDER_UUID,
+        KEY_ORDER_SERIALNUM,
+        KEY_ORDER_DATE,
+        KEY__MAX
+    },
+    {
+        KEY_MANDATORY_GROUP_BY,
+        KEY_ORDER_UUID,
+        KEY_ORDER_DATE,
+        KEY__MAX
+    }
+};
+static char *pstmts_bottom[STMTS__MAX][5] = {
+    {
+        "publisherName",
+        "SUM(hits)",
+        "publisherName",
+    },
+    {
+        "authorName",
+        "SUM(hits)",
+        "authorName",
+    },
+    {
+        "langCode",
+        "SUM(hits)",
+        "langCode",
+    },
+    {
+        "actionName",
+        "actionName",
+    },
+    {
+        "typeName",
+        "SUM(hits)",
+        "typeName",
+    },
+    {
+        "campusName ",
+        "campusName ",
+    },
+    {
+        "roleName, perms",
+        "perms",
+        "roleName",
+    },
+    {
+        "categoryClass, categoryName, parentCategoryID",
+        "SUM(hits)",
+        "categoryClass",
+        "categoryName",
+    },
+    {
+
+        "ACCOUNT.UUID, displayname, pwhash, campus, perms, frozen",
+        "UUID",
+        "displayname",
+        "perms",
+    },
+    {
+
+        "BOOK.serialnum, type, category, categoryName, publisher, booktitle, bookreleaseyear, bookcover, hits",
+        "serialnum",
+        "booktitle",
+        "bookreleaseyear",
+        "hits",
+    },
+    {
+        "STOCK.serialnum, campus, instock,hits",
+        "BOOK.serialnum",
+        "instock",
+    },
+    {
+        "UUID, serialnum, rentduration, rentdate, extended",
+        "UUID",
+        "serialnum",
+        "rentdate",
+    },
+    {
+        "UUID, UUID_ISSUER, serialnum, action, actiondate",
+        "UUID",
+        "serialnum",
+        "actiondate",
+    },
+    {
+        "account,sessionID,expiresAt ",
+        "account",
+        "expiresAt",
+    }
+};
+
+enum statement {
+    STMT_DATA,
+    STMT_COUNT,
+    STMT_LOGIN,
+    STMT_SAVE,
+    STMT_CATEGORY_CHILD,
+    STMT_AUTHORED,
+    STMT_LANGUAGED,
+    STMT_STOCKED,
+    STMT__FINAL__MAX
+};
+
+static struct sqlbox_pstmt pstmts[STMT__FINAL__MAX] = {
+    {(char *) ""},
+    {(char *) ""},
+    {
+        (char *)
+        "SELECT ACCOUNT.UUID, displayname, pwhash, campus, role, perms, frozen "
+        "FROM ROLE,"
+        "ACCOUNT "
+        "LEFT JOIN SESSIONS S on ACCOUNT.UUID = S.account "
+        "WHERE ACCOUNT.role = ROLE.roleName "
+        "AND sessionID = (?) "
+        "GROUP BY ACCOUNT.UUID, displayname, pwhash, campus, perms, frozen "
     },
     {
         (char *)
         "INSERT INTO HISTORY (UUID, IP, action, actiondate, details) "
-        "VALUES ((?),(?),'QUERY',datetime('now','localtime'),(?))"
+        "VALUES ((?),(?),'EDIT',datetime('now','localtime'),(?))"
+    },
+    {
+        (char *)
+        "SELECT categoryClass, categoryName, parentCategoryID "
+        "FROM CATEGORY "
+        "WHERE parentCategoryID = (?) "
+        "ORDER BY categoryClass DESC"
     },
     {
         (char *)
@@ -502,207 +624,27 @@ static struct sqlbox_pstmt pstmts_data[STMTS__MAX] = {
     },
 };
 
+enum khttp sanitize() {
+    if (r.method != KMETHOD_GET)
+        return KHTTP_405;
+    if (r.page == PG__MAX)
+        return KHTTP_404;
+    if (r.fieldmap[KEY_SWITCH_ROOT] && r.fieldmap[KEY_SWITCH_PARENT])
+        return KHTTP_400;
+    if (r.fieldmap[KEY_TREE] && r.fieldmap[KEY_CASCADE])
+        return KHTTP_400;
+    return KHTTP_200;
+}
 
-static struct sqlbox_pstmt pstmts_count[STMTS__MAX] = {
+struct sqlbox_src srcs[] = {
     {
-        (char *)
-        "SELECT COUNT(DISTINCT publisherName) "
-        "FROM PUBLISHER "
-        "LEFT JOIN BOOK B ON B.publisher = PUBLISHER.publisherName "
-        "WHERE ((?) = 'IGNORE_NAME' OR instr(publisherName, (?)) > 0) "
-        "AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) "
-        "ORDER BY IIF((?) = 'POPULAR', SUM(hits), publisherName) DESC "
-        "LIMIT (?) OFFSET (? * (?) * 0)"
-    },
-    {
-        (char *)
-        "SELECT COUNT(DISTINCT authorName) "
-        "FROM AUTHOR "
-        "LEFT JOIN AUTHORED A ON AUTHOR.authorName = A.author "
-        "LEFT JOIN BOOK B ON B.serialnum = A.serialnum "
-        "WHERE ((?) = 'IGNORE_NAME' OR instr(authorName, (?)) > 0) "
-        "AND ((?) = 'IGNORE_BOOK' OR A.serialnum = (?)) "
-        "ORDER BY IIF((?) = 'POPULAR', SUM(hits), authorName) DESC "
-        "LIMIT (?) OFFSET (? * (?) * 0)"
-    },
-    {
-        (char *)
-        "SELECT COUNT(DISTINCT langCode) "
-        "FROM LANG "
-        "LEFT JOIN LANGUAGES A ON LANG.langCode = A.lang "
-        "LEFT JOIN BOOK B ON B.serialnum = A.serialnum "
-        "WHERE ((?) = 'IGNORE_NAME' OR instr(langCode, (?)) > 0) "
-        "AND ((?) = 'IGNORE_BOOK' OR A.serialnum = (?)) "
-        "ORDER BY IIF((?) = 'POPULAR', SUM(hits), langCode) DESC "
-        "LIMIT (?) OFFSET (? * (?) * 0)"
-    },
-    {
-        (char *)
-        "SELECT COUNT(DISTINCT actionName) "
-        "FROM ACTION "
-        "WHERE instr(actionName,(?)) > 0 "
-        "LIMIT (?) OFFSET (? * (?))"
-    },
-    {
-        (char *)
-        "SELECT COUNT(DISTINCT typeName) "
-        "FROM DOCTYPE "
-        "LEFT JOIN BOOK B ON DOCTYPE.typeName = B.type "
-        "WHERE ((?) = 'IGNORE_NAME' OR instr(typeName, (?)) > 0) "
-        "AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) "
-        "ORDER BY IIF((?) = 'POPULAR', SUM(hits), typeName) DESC "
-        "LIMIT (?) OFFSET (? * (?) * 0)"
-    },
-    {
-        (char *)
-        "SELECT COUNT(DISTINCT campusName) "
-        "FROM CAMPUS "
-        "LEFT JOIN STOCK S ON CAMPUS.campusName = S.campus "
-        "LEFT JOIN ACCOUNT A on CAMPUS.campusName = A.campus "
-        "WHERE ((?) = 'IGNORE_NAME' OR instr(campusName, (?)) > 0) "
-        "AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) "
-        "AND ((?) = 'IGNORE_ACCOUNT' OR UUID = (?)) "
-        "LIMIT (?) OFFSET (? * (?) * 0)"
-    },
-    {
-        (char *)
-        "SELECT COUNT(DISTINCT roleName) "
-        "FROM ROLE "
-        "LEFT JOIN ACCOUNT A ON A.role = ROLE.roleName "
-        "WHERE ((?) = 'IGNORE_NAME' OR instr(roleName, (?)) > 0) "
-        "AND ((?) = 'IGNORE_PERMS' OR perms = (?)) "
-        "AND ((?) = 'IGNORE_ACCOUNT' OR UUID = (?)) "
-        "LIMIT (?) OFFSET (? * (?) * 0)"
-    },
-    {
-        (char *)
-        "SELECT COUNT(DISTINCT categoryClass) "
-        "FROM CATEGORY "
-        "LEFT JOIN BOOK B ON CATEGORY.categoryClass = B.category "
-        "WHERE IIF((?) = 'ROOT',parentCategoryID IS NULL,TRUE) "
-        "AND ((?) = 'IGNORE_NAME' OR instr(categoryName, (?)) > 0) "
-        "AND ((?) = 'IGNORE_CLASS' OR categoryClass = (?)) "
-        "AND ((?) = 'IGNORE_PARENT_CLASS' OR parentCategoryID = (?)) "
-        "AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) "
-        "ORDER BY IIF((?) = 'POPULAR', SUM(hits), categoryClass) DESC "
-        "LIMIT (?) OFFSET (? * (?) * 0)"
-    },
-    {
-        (char *)
-        " WITH RECURSIVE CategoryCascade AS (SELECT categoryName,categoryClass, parentCategoryID "
-        "FROM CATEGORY "
-        "LEFT JOIN BOOK B ON CATEGORY.categoryClass = B.category "
-        "WHERE IIF((?) = 'ROOT',parentCategoryID IS NULL,TRUE) "
-        "AND ((?) = 'IGNORE_NAME' OR instr(categoryName, (?)) > 0) "
-        "AND ((?) = 'IGNORE_CLASS' OR categoryClass = (?)) "
-        "AND ((?) = 'IGNORE_PARENT_CLASS' OR parentCategoryID = (?)) "
-        "AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) "
-        "GROUP BY categoryClass,categoryName,parentCategoryID "
-        "UNION ALL "
-        "SELECT c.categoryName,c.categoryClass, c.parentCategoryID "
-        "FROM CATEGORY c "
-        "INNER JOIN CategoryCascade ct ON IIF((?) = 'GET_PARENTS',"
-        "c.categoryClass = ct.parentCategoryID,"
-        "c.parentCategoryID = ct.categoryClass)) "
-        "SELECT COUNT(DISTINCT CATEGORY.categoryClass) "
-        "FROM CATEGORY, CategoryCascade "
-        "WHERE CategoryCascade.categoryClass = CATEGORY.categoryClass "
-        "LIMIT (?) OFFSET (? * (?) * 0)"
-    },
-    {
-        (char *)
-        "SELECT COUNT(DISTINCT ACCOUNT.UUID) "
-        "FROM ROLE,ACCOUNT "
-        "LEFT JOIN INVENTORY I on ACCOUNT.UUID = I.UUID "
-        "LEFT JOIN SESSIONS S on ACCOUNT.UUID = S.account "
-        "WHERE ACCOUNT.role = ROLE.roleName "
-        "AND ((?) = 'IGNORE_ID' OR ACCOUNT.UUID = (?)) "
-        "AND ((?) = 'IGNORE_NAME' OR instr(displayname, (?)) > 0) "
-        "AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) "
-        "AND ((?) = 'IGNORE_CAMPUS' OR campus = (?)) "
-        "AND ((?) = 'IGNORE_ROLE' OR role = (?)) "
-        "AND ((?) = 'IGNORE_FREEZE' OR frozen = (?)) "
-        "AND ((?) = 'IGNORE_SESSION' OR sessionID = (?)) "
-        "LIMIT (?) OFFSET (? * (?) * 0)"
-    },
-    {
-        (char *)
-        "WITH RECURSIVE CategoryCascade AS (SELECT categoryClass, parentCategoryID "
-        "FROM CATEGORY "
-        "WHERE IIF((?) = 'ROOT',parentCategoryID IS NULL,categoryClass = (?)) "
-        "UNION ALL "
-        "SELECT c.categoryClass, c.parentCategoryID "
-        "FROM CATEGORY c "
-        "INNER JOIN CategoryCascade ct ON c.parentCategoryID = ct.categoryClass) "
-        "SELECT COUNT(DISTINCT BOOK.serialnum) "
-        "FROM (BOOK LEFT JOIN INVENTORY I ON BOOK.serialnum = I.serialnum),"
-        "CATEGORY,"
-        "LANGUAGES,"
-        "AUTHORED,"
-        "STOCK,"
-        "CategoryCascade "
-        "WHERE category = CategoryCascade.categoryClass "
-        "AND AUTHORED.serialnum = BOOK.serialnum "
-        "AND LANGUAGES.serialnum = BOOK.serialnum "
-        "AND STOCK.serialnum = BOOK.serialnum "
-        "AND CATEGORY.categoryClass = BOOK.category "
-        "AND ((?) = 'IGNORE_ID' OR BOOK.serialnum = (?)) "
-        "AND ((?) = 'IGNORE_NAME' OR instr(booktitle, (?))) "
-        "AND ((?) = 'IGNORE_LANG' OR lang = (?)) "
-        "AND ((?) = 'IGNORE_AUTHOR' OR instr(author, (?)) > 0) "
-        "AND ((?) = 'IGNORE_TYPE' OR type = (?)) "
-        "AND ((?) = 'IGNORE_PUBLISHER' OR instr(publisher, (?)) > 0) "
-        "AND ((?) = 'IGNORE_CAMPUS' OR campus = (?)) "
-        "AND ((?) = 'IGNORE_ACCOUNT' OR UUID = (?)) "
-        "AND ((?) = 'IGNORE_FROM_DATE' OR bookreleaseyear >= (?)) "
-        "AND ((?) = 'IGNORE_TO_DATE' OR bookreleaseyear <= (?)) "
-        "ORDER BY IIF((?) = 'POPULAR', hits, booktitle) DESC "
-        "LIMIT (?) OFFSET (? * (?) * 0)"
-    },
-    {
-        (char *)
-        "SELECT COUNT(DISTINCT COALESCE(STOCK.serialnum, campus)) "
-        "FROM STOCK,"
-        "BOOK "
-        "WHERE STOCK.serialnum = BOOK.serialnum "
-        "AND ((?) = 'IGNORE_BOOK' OR STOCK.serialnum = (?)) "
-        "AND ((?) = 'IGNORE_CAMPUS' OR campus = (?)) "
-        "AND IIF((?) = 'AVAILABLE', instock > 0, TRUE) "
-        "ORDER BY IIF((?) = 'POPULAR', hits, instock) DESC "
-        "LIMIT (?) OFFSET (? * (?) * 0)"
-    },
-    {
-        (char *)
-        "SELECT COUNT(DISTINCT COALESCE(UUID, serialnum, rentduration, rentdate, extended)) "
-        "FROM INVENTORY "
-        "WHERE ((?) = 'IGNORE_ACCOUNT' OR UUID = (?)) "
-        "AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) "
-        "LIMIT (?) OFFSET (? * (?) * 0)"
-    },
-    {
-
-        (char *)
-        "SELECT COUNT(DISTINCT COALESCE(UUID,UUID_ISSUER,serialnum,action,actiondate,details)) "
-        "FROM HISTORY "
-        "WHERE ((?) = 'IGNORE_ACCOUNT' OR UUID = (?)) "
-        "AND ((?) = 'IGNORE_ISSUER' OR UUID_ISSUER = (?)) "
-        "AND ((?) = 'IGNORE_BOOK' OR serialnum = (?)) "
-        "AND ((?) = 'IGNORE_ACTION' OR action = (?)) "
-        "AND ((?) = 'IGNORE_FROM_DATE' OR actiondate >= datetime((?),'unixepoch')) "
-        "AND ((?) = 'IGNORE_TO_DATE' OR actiondate <= datetime((?),'unixepoch')) "
-        "LIMIT (?) OFFSET (? * (?) * 0)"
-    },
-    {
-        (char *)
-        "SELECT COUNT(DISTINCT COALESCE(account,sessionID,expiresAt)) "
-        "FROM SESSIONS "
-        "WHERE ((?) = 'IGNORE_ID' OR sessionID = (?)) "
-        "AND ((?) = 'IGNORE_ACCOUNT' OR account = (?)) "
-        "LIMIT (?) OFFSET (? * (?) * 0)"
+        .fname = (char *) "db/database.db",
+        .mode = SQLBOX_SRC_RW
     }
-
 };
-
+struct sqlbox *boxctx_data;
+struct sqlbox_cfg cfg_data;
+size_t dbid_data; // Database associated with a config and a context for query results
 struct sqlbox_parm *parms; //Array of statement parameters
 size_t parmsz;
 /*
@@ -713,29 +655,15 @@ void alloc_ctx_cfg() {
     cfg_data.msg.func_short = warnx;
     cfg_data.srcs.srcsz = 1;
     cfg_data.srcs.srcs = srcs;
-    cfg_data.stmts.stmtsz = STMTS__MAX;
-    cfg_data.stmts.stmts = pstmts_data;
+    cfg_data.stmts.stmtsz = STMT__FINAL__MAX;
+    cfg_data.stmts.stmts = pstmts;
     if ((boxctx_data = sqlbox_alloc(&cfg_data)) == NULL)
         errx(EXIT_FAILURE, "sqlbox_alloc");
     if (!(dbid_data = sqlbox_open(boxctx_data, 0)))
         errx(EXIT_FAILURE, "sqlbox_open");
-
-    memset(&cfg_count, 0, sizeof(struct sqlbox_cfg));
-    cfg_count.msg.func_short = warnx;
-    cfg_count.srcs.srcsz = 1;
-    cfg_count.srcs.srcs = srcs;
-    cfg_count.stmts.stmtsz = STMTS__MAX - 4; // 3 is the number of reserved statements, without count
-    cfg_count.stmts.stmts = pstmts_count;
-    if ((boxctx_count = sqlbox_alloc(&cfg_count)) == NULL)
-        errx(EXIT_FAILURE, "sqlbox_alloc");
-    if (!(dbid_data = sqlbox_open(boxctx_count, 0)))
-        errx(EXIT_FAILURE, "sqlbox_open");
 }
 
 
-/*
- * A struct holding the UUID and Permissions of the user issuing the call
- */
 struct usr {
     char *UUID;
     char *disp_name;
@@ -760,34 +688,15 @@ struct usr curr_usr = {
 
 void fill_user() {
     struct kpair *field;
-    if (r.cookiemap[COOKIE_SESSIONID] || r.fieldmap[COOKIE_SESSIONID]) {
-        if (r.cookiemap[COOKIE_SESSIONID])
-            field = r.cookiemap[COOKIE_SESSIONID];
-        else
-            field = r.fieldmap[COOKIE_SESSIONID];
+
+    if ((field = r.cookiemap[COOKIE_SESSIONID])) {
         size_t stmtid;
-        size_t parmsz = 17;
+        size_t parmsz = 1;
         const struct sqlbox_parmset *res;
         struct sqlbox_parm parms[] = {
-            {.type = SQLBOX_PARM_STRING, .sparm = "IGNORE_ID"},
-            {.type = SQLBOX_PARM_STRING, .sparm = ""},
-            {.type = SQLBOX_PARM_STRING, .sparm = "IGNORE_NAME"},
-            {.type = SQLBOX_PARM_STRING, .sparm = ""},
-            {.type = SQLBOX_PARM_STRING, .sparm = "IGNORE_BOOK"},
-            {.type = SQLBOX_PARM_STRING, .sparm = ""},
-            {.type = SQLBOX_PARM_STRING, .sparm = "IGNORE_CAMPUS"},
-            {.type = SQLBOX_PARM_STRING, .sparm = ""},
-            {.type = SQLBOX_PARM_STRING, .sparm = "IGNORE_ROLE"},
-            {.type = SQLBOX_PARM_STRING, .sparm = ""},
-            {.type = SQLBOX_PARM_STRING, .sparm = "IGNORE_FREEZE"},
-            {.type = SQLBOX_PARM_STRING, .sparm = ""},
-            {.type = SQLBOX_PARM_STRING, .sparm = "SESSION"},
             {.type = SQLBOX_PARM_STRING, .sparm = field->parsed.s},
-            {.type = SQLBOX_PARM_INT, .iparm = 1},
-            {.type = SQLBOX_PARM_INT, .iparm = 0},
-            {.type = SQLBOX_PARM_INT, .iparm = 0},
         };
-        if (!(stmtid = sqlbox_prepare_bind(boxctx_data, dbid_data, STMTS_ACCOUNT, parmsz, parms, 0)))
+        if (!(stmtid = sqlbox_prepare_bind(boxctx_data, dbid_data, STMT_LOGIN, parmsz, parms, 0)))
             errx(EXIT_FAILURE, "sqlbox_prepare_bind");
         if ((res = sqlbox_step(boxctx_data, stmtid)) == NULL)
             errx(EXIT_FAILURE, "sqlbox_step");
@@ -811,667 +720,195 @@ void fill_user() {
     }
 }
 
-/*
- * Fills the parm parameter array with the values that will replace the interrogation marks in the SQL statements
- *
- */
+void build_stmt(enum statement_pieces STMT) {
+    if (STMT == STMTS_BOOK) {
+        if (r.fieldmap[KEY_SWITCH_CLASS]) {
+            kasprintf(&pstmts[STMT_DATA].stmt,
+                      "%s""WITH RECURSIVE CategoryCascade AS (SELECT categoryClass, parentCategoryID "
+                      "FROM CATEGORY "
+                      "WHERE "
+                      "categoryClass = (?)) "
+                      "UNION ALL "
+                      "SELECT c.categoryClass, c.parentCategoryID "
+                      "FROM CATEGORY c "
+                      "INNER JOIN CategoryCascade ct ON c.parentCategoryID = ct.categoryClass) ",
+                      pstmts[STMT_DATA].stmt);
+            parmsz++;
+        } else {
+            kasprintf(&pstmts[STMT_DATA].stmt,
+                      "%s""WITH RECURSIVE CategoryCascade AS (SELECT categoryClass, parentCategoryID "
+                      "FROM CATEGORY "
+                      "WHERE "
+                      "parentCategoryID IS NULL "
+                      "UNION ALL "
+                      "SELECT c.categoryClass, c.parentCategoryID "
+                      "FROM CATEGORY c "
+                      "INNER JOIN CategoryCascade ct ON c.parentCategoryID = ct.categoryClass) ",
+                      pstmts[STMT_DATA].stmt);
+        }
+    }
+    kasprintf(&pstmts[STMT_COUNT].stmt, "%s SELECT COUNT(DISTINCT COALESCE(", pstmts[STMT_DATA].stmt);
+    kasprintf(&pstmts[STMT_DATA].stmt, "%s SELECT", pstmts[STMT_DATA].stmt);
+    for (int i = 0; rows[STMT][i] != NULL; ++i) {
+        if (i == 0) {
+            kasprintf(&pstmts[STMT_DATA].stmt, "%s %s", pstmts[STMT_DATA].stmt, rows[STMT][i]);
+            kasprintf(&pstmts[STMT_COUNT].stmt, "%s %s", pstmts[STMT_COUNT].stmt, rows[STMT][i]);
+        } else {
+            kasprintf(&pstmts[STMT_DATA].stmt, "%s,%s", pstmts[STMT_DATA].stmt, rows[STMT][i]);
+            kasprintf(&pstmts[STMT_COUNT].stmt, "%s,%s", pstmts[STMT_COUNT].stmt, rows[STMT][i]);
+        }
+    }
+    kasprintf(&pstmts[STMT_DATA].stmt, "%s %s", pstmts[STMT_DATA].stmt, pstms_data_top[STMT].stmt);
+    kasprintf(&pstmts[STMT_COUNT].stmt, "%s,NULL)) %s", pstmts[STMT_COUNT].stmt, pstms_data_top[STMT].stmt);
+    bool flag = false;
+    for (int i = 0; switch_keys[STMT][i] != KEY__MAX; i++) {
+        if (r.fieldmap[switch_keys[STMT][i]]) {
+            parmsz++;
+            if (!flag) {
+                if (!strstr(pstms_data_top[STMT].stmt, "WHERE")) {
+                    kasprintf(&pstmts[STMT_DATA].stmt, "%s"" WHERE ", pstmts[STMT_DATA].stmt);
+                    kasprintf(&pstmts[STMT_COUNT].stmt, "%s"" WHERE ", pstmts[STMT_COUNT].stmt);
+                } else {
+                    kasprintf(&pstmts[STMT_DATA].stmt, "%s"" AND ", pstmts[STMT_DATA].stmt);
+                    kasprintf(&pstmts[STMT_COUNT].stmt, "%s"" AND ", pstmts[STMT_COUNT].stmt);
+                }
+                flag = true;
+            } else {
+                kasprintf(&pstmts[STMT_DATA].stmt, "%s"" AND ", pstmts[STMT_DATA].stmt);
+                kasprintf(&pstmts[STMT_COUNT].stmt, "%s"" AND ", pstmts[STMT_COUNT].stmt);
+            }
+            kasprintf(&pstmts[STMT_DATA].stmt, "%s%s", pstmts[STMT_DATA].stmt, pstmts_switches[STMT][i]);
+            kasprintf(&pstmts[STMT_COUNT].stmt, "%s%s", pstmts[STMT_COUNT].stmt, pstmts_switches[STMT][i]);
+        }
 
-void fill_params(const enum statement STATEMENT) {
+        if ((STMT == STMTS_HISTORY || STMT == STMTS_ACCOUNT || STMT == STMTS_SESSIONS || STMT == STMTS_INVENTORY)) {
+            if (switch_keys[STMT][i] == KEY_SWITCH_UUID && !r.fieldmap[KEY_SWITCH_UUID]) {
+                if (!curr_usr.perms.admin && !curr_usr.perms.staff) {
+                    if (!((curr_usr.perms.monitor_history && STMT == STMTS_HISTORY) || (
+                              curr_usr.perms.manage_inventories && STMT == STMTS_INVENTORY) || (
+                              curr_usr.perms.see_accounts && STMT == STMTS_ACCOUNT))) {
+                        parmsz++;
+                        if (!flag) {
+                            if (!strstr(pstms_data_top[STMT].stmt, "WHERE")) {
+                                kasprintf(&pstmts[STMT_DATA].stmt, "%s"" WHERE ", pstmts[STMT_DATA].stmt);
+                                kasprintf(&pstmts[STMT_COUNT].stmt, "%s"" WHERE ", pstmts[STMT_COUNT].stmt);
+                            } else {
+                                kasprintf(&pstmts[STMT_DATA].stmt, "%s"" AND ", pstmts[STMT_DATA].stmt);
+                                kasprintf(&pstmts[STMT_COUNT].stmt, "%s"" AND ", pstmts[STMT_COUNT].stmt);
+                            }
+                            flag = true;
+                        } else {
+                            kasprintf(&pstmts[STMT_DATA].stmt, "%s"" AND ", pstmts[STMT_DATA].stmt);
+                            kasprintf(&pstmts[STMT_COUNT].stmt, "%s"" AND ", pstmts[STMT_COUNT].stmt);
+                        }
+                        kasprintf(&pstmts[STMT_DATA].stmt, "%s%s", pstmts[STMT_DATA].stmt, pstmts_switches[STMT][i]);
+                        kasprintf(&pstmts[STMT_COUNT].stmt, "%s%s", pstmts[STMT_COUNT].stmt, pstmts_switches[STMT][i]);
+                    }
+                }
+            }
+        }
+    }
+    flag = false;
+    for (int i = 0; bottom_keys[STMT][i] != KEY__MAX; i++) {
+        if (bottom_keys[STMT][i] == KEY_MANDATORY_GROUP_BY) {
+            kasprintf(&pstmts[STMT_DATA].stmt, "%s"" GROUP BY ", pstmts[STMT_DATA].stmt);
+            kasprintf(&pstmts[STMT_DATA].stmt, "%s%s", pstmts[STMT_DATA].stmt, pstmts_bottom[STMT][i]);
+        } else {
+            if (r.fieldmap[bottom_keys[STMT][i]]) {
+                parmsz++;
+                if (!flag) {
+                    kasprintf(&pstmts[STMT_DATA].stmt, "%s"" ORDER BY ", pstmts[STMT_DATA].stmt);
+                    flag = true;
+                } else {
+                    kasprintf(&pstmts[STMT_DATA].stmt, "%s"",", pstmts[STMT_DATA].stmt);
+                }
+                kasprintf(&pstmts[STMT_DATA].stmt, "%s%s", pstmts[STMT_DATA].stmt, pstmts_bottom[STMT][i]);
+                kasprintf(&pstmts[STMT_DATA].stmt, "%s%s", pstmts[STMT_DATA].stmt,
+                          (r.fieldmap[bottom_keys[STMT][i]]->parsed.i == 0) ? " DESC" : " ASC");
+            }
+        }
+    }
+    kasprintf(&pstmts[STMT_DATA].stmt, "%s"" LIMIT(?),(? * ?)", pstmts[STMT_DATA].stmt);
+    parmsz += 3;
+}
+
+
+int fill_parms(enum statement_pieces STMT) {
+    if ((STMT == STMTS_HISTORY || STMT == STMTS_ACCOUNT || STMT == STMTS_SESSIONS || STMT == STMTS_INVENTORY)) {
+        if (!curr_usr.authenticated)
+            return 0;
+    }
+    if (STMT == STMTS_INVENTORY && !curr_usr.perms.has_inventory)
+        return 0;
+    parms = kcalloc(parmsz, sizeof(struct sqlbox_parm));
+    int n = 0;
     struct kpair *field;
-    switch (STATEMENT) {
-        case STMTS_ACTION:
-            parmsz = 4;
-            parms = kcalloc(parmsz, sizeof(struct sqlbox_parm));
-            parms[0] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = ((field = r.fieldmap[KEY_FILTER_BY_NAME])) ? field->parsed.s : ""
-            };
-            break;
-        case STMTS_PUBLISHER:
-        case STMTS_AUTHOR:
-        case STMTS_LANG:
-        case STMTS_TYPE:
-            parmsz = 8;
-            parms = kcalloc(parmsz, sizeof(struct sqlbox_parm));
-            parms[0] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = !((field = r.fieldmap[KEY_FILTER_BY_NAME])) || field->valsz <= 0
-                             ? "IGNORE_NAME"
-                             : "NAME"
-            };
-            parms[1] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = ((field = r.fieldmap[KEY_FILTER_BY_NAME])) ? field->parsed.s : ""
-            };
-            parms[2] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = !((field = r.fieldmap[KEY_FILTER_BY_BOOK])) || field->valsz <= 0
-                             ? "IGNORE_BOOK"
-                             : "BOOK"
-            };
-            parms[3] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = ((field = r.fieldmap[KEY_FILTER_BY_BOOK])) ? field->parsed.s : ""
-            };
-            parms[4] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = (r.fieldmap[KEY_FILTER_BY_POPULARITY]) ? "POPULAR" : "DEFAULT_SORT"
-            };
-            break;
-        case STMTS_CAMPUS:
-            parmsz = 9;
-            parms = kcalloc(parmsz, sizeof(struct sqlbox_parm));
-            parms[0] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = !((field = r.fieldmap[KEY_FILTER_BY_NAME])) || field->valsz <= 0
-                             ? "IGNORE_NAME"
-                             : "NAME"
-            };
-            parms[1] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = ((field = r.fieldmap[KEY_FILTER_BY_NAME])) ? field->parsed.s : ""
-            };
-            parms[2] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = !((field = r.fieldmap[KEY_FILTER_BY_BOOK])) || field->valsz <= 0
-                             ? "IGNORE_BOOK"
-                             : "BOOK"
-
-            };
-            parms[3] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = ((field = r.fieldmap[KEY_FILTER_BY_BOOK])) ? field->parsed.s : ""
-            };
-            parms[4] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = !((field = r.fieldmap[KEY_FILTER_BY_ACCOUNT])) || field->valsz <= 0
-                             ? "IGNORE_ACCOUNT"
-                             : "ACCOUNT"
-            };
-            parms[5] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = ((field = r.fieldmap[KEY_FILTER_BY_ACCOUNT])) ? field->parsed.s : ""
-            };
-            break;
-        case STMTS_ROLE:
-            parmsz = 9;
-            parms = kcalloc(parmsz, sizeof(struct sqlbox_parm));
-            parms[0] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = !((field = r.fieldmap[KEY_FILTER_BY_NAME])) || field->valsz <= 0
-                             ? "IGNORE_NAME"
-                             : "NAME"
-            };
-            parms[1] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = ((field = r.fieldmap[KEY_FILTER_BY_NAME])) ? field->parsed.s : ""
-            };
-            parms[2] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = !((field = r.fieldmap[KEY_FILTER_BY_PERM])) || field->valsz <= 0
-                             ? "IGNORE_PERMS"
-                             : "PERMS"
-            };
-            parms[3] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_INT,
-                .iparm = ((field = r.fieldmap[KEY_FILTER_BY_PERM])) ? field->parsed.i : 0
-            };
-            parms[4] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = !((field = r.fieldmap[KEY_FILTER_BY_ACCOUNT])) || field->valsz <= 0
-                             ? "IGNORE_ACCOUNT"
-                             : "ACCOUNT"
-            };
-            parms[5] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = ((field = r.fieldmap[KEY_FILTER_BY_ACCOUNT])) ? field->parsed.s : ""
-            };
-
-            break;
-        case STMTS_CATEGORY:
-            parmsz = 13;
-            parms = kcalloc(parmsz, sizeof(struct sqlbox_parm));
-
-            parms[0] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = (r.fieldmap[KEY_FILTER_TREE] && (!((field = r.fieldmap[KEY_FILTER_BY_PARENT])) || field->valsz
-                                                          <= 0))
-                             ? "ROOT"
-                             : "NOT_ROOT"
-            };
-            parms[1] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = !((field = r.fieldmap[KEY_FILTER_BY_NAME])) || field->valsz <= 0
-                             ? "IGNORE_NAME"
-                             : "NAME"
-            };
-            parms[2] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = ((field = r.fieldmap[KEY_FILTER_BY_NAME])) ? field->parsed.s : ""
-            };
-            parms[3] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = !((field = r.fieldmap[KEY_FILTER_BY_CLASS])) || field->valsz <= 0
-                             ? "IGNORE_CLASS"
-                             : "CLASS"
-            };
-            parms[4] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = ((field = r.fieldmap[KEY_FILTER_BY_CLASS])) ? field->parsed.s : ""
-            };
-            parms[5] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = !((field = r.fieldmap[KEY_FILTER_BY_PARENT])) || field->valsz <= 0
-                             ? "IGNORE_PARENT_CLASS"
-                             : "PARENT_CLASS"
-            };
-            parms[6] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = ((field = r.fieldmap[KEY_FILTER_BY_PARENT])) ? field->parsed.s : ""
-            };
-            parms[7] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = !((field = r.fieldmap[KEY_FILTER_BY_BOOK])) || field->valsz <= 0
-                             ? "IGNORE_BOOK"
-                             : "BOOK"
-
-            };
-            parms[8] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = ((field = r.fieldmap[KEY_FILTER_BY_BOOK])) ? field->parsed.s : ""
-            };
-            parms[9] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = (r.fieldmap[KEY_FILTER_BY_POPULARITY]) ? "POPULAR" : "DEFAULT_SORT"
-            };
-            break;
-        case STMTS_CATEGORY_CASCADE:
-            parmsz = 13;
-            parms = kcalloc(parmsz, sizeof(struct sqlbox_parm));
-
-            parms[0] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = !((field = r.fieldmap[KEY_FILTER_BY_PARENT])) || field->valsz
-                         <= 0
-                             ? "ROOT"
-                             : "NOT_ROOT"
-            };
-            parms[1] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = !((field = r.fieldmap[KEY_FILTER_BY_NAME])) || field->valsz <= 0
-                             ? "IGNORE_NAME"
-                             : "NAME"
-            };
-            parms[2] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = ((field = r.fieldmap[KEY_FILTER_BY_NAME])) ? field->parsed.s : ""
-            };
-            parms[3] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = !((field = r.fieldmap[KEY_FILTER_BY_CLASS])) || field->valsz <= 0
-                             ? "IGNORE_CLASS"
-                             : "CLASS"
-            };
-            parms[4] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = ((field = r.fieldmap[KEY_FILTER_BY_CLASS])) ? field->parsed.s : ""
-            };
-            parms[5] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = !((field = r.fieldmap[KEY_FILTER_BY_PARENT])) || field->valsz <= 0
-                             ? "IGNORE_PARENT_CLASS"
-                             : "PARENT_CLASS"
-            };
-            parms[6] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = ((field = r.fieldmap[KEY_FILTER_BY_PARENT])) ? field->parsed.s : ""
-            };
-
-            parms[7] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = !((field = r.fieldmap[KEY_FILTER_BY_BOOK])) || field->valsz <= 0
-                             ? "IGNORE_BOOK"
-                             : "BOOK"
-
-            };
-            parms[8] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = ((field = r.fieldmap[KEY_FILTER_BY_BOOK])) ? field->parsed.s : ""
-            };
-            parms[9] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = (r.fieldmap[KEY_FILTER_GET_PARENTS]) ? "GET_PARENTS" : "DONT_GET_PARENTS"
-            };
-            break;
-        case STMTS_ACCOUNT:
-            parmsz = 17;
-            parms = kcalloc(parmsz, sizeof(struct sqlbox_parm));
-            if (r.fieldmap[KEY_FILTER_ME] && curr_usr.authenticated) {
-                parms[0] = (struct sqlbox_parm){
-                    .type = SQLBOX_PARM_STRING,
-                    .sparm = "SELF"
-                };
-                parms[1] = (struct sqlbox_parm){
-                    .type = SQLBOX_PARM_STRING,
-                    .sparm = curr_usr.UUID
-                };
-            } else {
-                parms[0] = (struct sqlbox_parm){
-                    .type = SQLBOX_PARM_STRING,
-                    .sparm = !((field = r.fieldmap[KEY_FILTER_BY_ID])) || field->valsz <= 0
-                                 ? "IGNORE_ID"
-                                 : "ID"
-                };
-                parms[1] = (struct sqlbox_parm){
-                    .type = SQLBOX_PARM_STRING,
-                    .sparm = ((field = r.fieldmap[KEY_FILTER_BY_ID])) ? field->parsed.s : ""
-                };
+    if (STMT == STMTS_BOOK && r.fieldmap[KEY_SWITCH_CLASS]) {
+        parms[0].sparm = r.fieldmap[KEY_SWITCH_CLASS]->parsed.s;
+        parms[0].type = SQLBOX_PARM_STRING;
+        n++;
+    }
+    for (int i = 0; switch_keys[STMT][i] != KEY__MAX; i++) {
+        if ((field = r.fieldmap[switch_keys[STMT][i]])) {
+            switch (field->type) {
+                case KPAIR_INTEGER:
+                    parms[n++] = (struct sqlbox_parm){.type = SQLBOX_PARM_INT, .iparm = field->parsed.i};
+                    break;
+                case KPAIR_STRING:
+                    parms[n++] = (struct sqlbox_parm){.type = SQLBOX_PARM_STRING, .sparm = field->parsed.s};
+                    break;
+                default:
+                    break;
             }
-
-            parms[2] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = !((field = r.fieldmap[KEY_FILTER_BY_NAME])) || field->valsz <= 0
-                             ? "IGNORE_NAME"
-                             : "NAME"
-            };
-            parms[3] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = ((field = r.fieldmap[KEY_FILTER_BY_NAME])) ? field->parsed.s : ""
-            };
-            parms[4] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = !((field = r.fieldmap[KEY_FILTER_BY_BOOK])) || field->valsz <= 0
-                             ? "IGNORE_BOOK"
-                             : "BOOK"
-
-            };
-            parms[5] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = ((field = r.fieldmap[KEY_FILTER_BY_BOOK])) ? field->parsed.s : ""
-            };
-            parms[6] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = !((field = r.fieldmap[KEY_FILTER_BY_CAMPUS])) || field->valsz <= 0
-                             ? "IGNORE_CAMPUS"
-                             : "CAMPUS"
-            };
-            parms[7] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = ((field = r.fieldmap[KEY_FILTER_BY_CAMPUS])) ? field->parsed.s : ""
-            };
-            parms[8] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = !((field = r.fieldmap[KEY_FILTER_BY_ROLE])) || field->valsz <= 0
-                             ? "IGNORE_ROLE"
-                             : "ROLE"
-            };
-            parms[9] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = ((field = r.fieldmap[KEY_FILTER_BY_ROLE])) ? field->parsed.s : ""
-            };
-            parms[10] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = !((field = r.fieldmap[KEY_FILTER_FROZEN])) || field->valsz <= 0
-                             ? "IGNORE_FREEZE"
-                             : "FREEZE"
-            };
-            parms[11] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_INT,
-                .iparm = ((field = r.fieldmap[KEY_FILTER_FROZEN])) ? field->parsed.i : 0
-            };
-
-            parms[12] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = !((field = r.fieldmap[KEY_FILTER_BY_SESSION])) || field->valsz <= 0
-                             ? "IGNORE_SESSION"
-                             : "SESSION"
-            };
-            parms[13] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_INT,
-                .iparm = ((field = r.fieldmap[KEY_FILTER_BY_SESSION])) ? field->parsed.i : 0
-            };
-            break;
-        case STMTS_BOOK:
-            parmsz = 26;
-            parms = kcalloc(parmsz, sizeof(struct sqlbox_parm));
-            parms[0] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = !((field = r.fieldmap[KEY_FILTER_BY_CATEGORY])) || field->valsz <= 0 ? "ROOT" : "NOT_ROOT"
-            };
-            parms[1] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = ((field = r.fieldmap[KEY_FILTER_BY_CATEGORY])) ? field->parsed.s : ""
-            };
-
-            parms[2] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = !((field = r.fieldmap[KEY_FILTER_BY_ID])) || field->valsz <= 0 ? "IGNORE_ID" : "ID"
-            };
-            parms[3] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = ((field = r.fieldmap[KEY_FILTER_BY_ID])) ? field->parsed.s : ""
-            };
-            parms[4] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = !((field = r.fieldmap[KEY_FILTER_BY_NAME])) || field->valsz <= 0
-                             ? "IGNORE_NAME"
-                             : "NAME"
-            };
-            parms[5] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = ((field = r.fieldmap[KEY_FILTER_BY_NAME])) ? field->parsed.s : ""
-            };
-            parms[6] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = !((field = r.fieldmap[KEY_FILTER_BY_LANG])) || field->valsz <= 0
-                             ? "IGNORE_LANG"
-                             : "LANG"
-            };
-            parms[7] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = ((field = r.fieldmap[KEY_FILTER_BY_LANG])) ? field->parsed.s : ""
-            };
-            parms[8] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = !((field = r.fieldmap[KEY_FILTER_BY_AUTHOR])) || field->valsz <= 0
-                             ? "IGNORE_AUTHOR"
-                             : "AUTHOR"
-            };
-            parms[9] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = ((field = r.fieldmap[KEY_FILTER_BY_AUTHOR])) ? field->parsed.s : ""
-            };
-            parms[10] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = !((field = r.fieldmap[KEY_FILTER_BY_TYPE])) || field->valsz <= 0
-                             ? "IGNORE_TYPE"
-                             : "TYPE"
-            };
-            parms[11] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = ((field = r.fieldmap[KEY_FILTER_BY_TYPE])) ? field->parsed.s : ""
-            };
-            parms[12] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = !((field = r.fieldmap[KEY_FILTER_BY_PUBLISHER])) || field->valsz <= 0
-                             ? "IGNORE_PUBLISHER"
-                             : "PUBLISHER"
-            };
-            parms[13] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = ((field = r.fieldmap[KEY_FILTER_BY_PUBLISHER])) ? field->parsed.s : ""
-            };
-            parms[14] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = !((field = r.fieldmap[KEY_FILTER_BY_CAMPUS])) || field->valsz <= 0
-                             ? "IGNORE_CAMPUS"
-                             : "CAMPUS"
-            };
-            parms[15] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = ((field = r.fieldmap[KEY_FILTER_BY_CAMPUS])) ? field->parsed.s : ""
-            };
-            parms[16] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = !((field = r.fieldmap[KEY_FILTER_BY_ACCOUNT])) || field->valsz <= 0
-                             ? "IGNORE_ACCOUNT"
-                             : "ACCOUNT"
-            };
-            parms[17] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = ((field = r.fieldmap[KEY_FILTER_BY_ACCOUNT])) ? field->parsed.s : ""
-            };
-
-            parms[18] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = !((field = r.fieldmap[KEY_FILTER_FROM_YEAR])) || field->valsz <= 0
-                             ? "IGNORE_FROM_DATE"
-                             : "FROM_DATE"
-            };
-            parms[19] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_INT,
-                .iparm = ((field = r.fieldmap[KEY_FILTER_FROM_YEAR])) ? field->parsed.i : 0
-            };
-            parms[20] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = !((field = r.fieldmap[KEY_FILTER_TO_YEAR])) || field->valsz <= 0
-                             ? "IGNORE_TO_DATE"
-                             : "TO_DATE"
-            };
-            parms[21] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_INT,
-                .iparm = ((field = r.fieldmap[KEY_FILTER_TO_YEAR])) ? field->parsed.i : 0
-            };
-            parms[22] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = (r.fieldmap[KEY_FILTER_BY_POPULARITY]) ? "POPULAR" : "DEFAULT_SORT"
-            };
-            break;
-        case STMTS_STOCK:
-            parmsz = 9;
-            parms = kcalloc(parmsz, sizeof(struct sqlbox_parm));
-            parms[0] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = !((field = r.fieldmap[KEY_FILTER_BY_BOOK])) || field->valsz <= 0
-                             ? "IGNORE_BOOK"
-                             : "BOOK"
-
-            };
-            parms[1] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = ((field = r.fieldmap[KEY_FILTER_BY_BOOK])) ? field->parsed.s : ""
-            };
-            parms[2] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = !((field = r.fieldmap[KEY_FILTER_BY_CAMPUS])) || field->valsz <= 0
-                             ? "IGNORE_CAMPUS"
-                             : "CAMPUS"
-            };
-            parms[3] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = ((field = r.fieldmap[KEY_FILTER_BY_CAMPUS])) ? field->parsed.s : ""
-            };
-            parms[4] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = (r.fieldmap[KEY_FILTER_IGNORE_EMPTY]) ? "AVAILABLE" : "IGNORE_EMPTY"
-            };
-            parms[5] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = (r.fieldmap[KEY_FILTER_BY_POPULARITY]) ? "POPULAR" : "DEFAULT_SORT"
-            };
-            break;
-        case STMTS_INVENTORY:
-            parmsz = 7;
-            parms = kcalloc(parmsz, sizeof(struct sqlbox_parm));
-
-            if (r.fieldmap[KEY_FILTER_ME] && curr_usr.authenticated) {
-                parms[0] = (struct sqlbox_parm){
-                    .type = SQLBOX_PARM_STRING,
-                    .sparm = "SELF"
-                };
-                parms[1] = (struct sqlbox_parm){
-                    .type = SQLBOX_PARM_STRING,
-                    .sparm = curr_usr.UUID
-                };
-            } else {
-                parms[0] = (struct sqlbox_parm){
-                    .type = SQLBOX_PARM_STRING,
-                    .sparm = !((field = r.fieldmap[KEY_FILTER_BY_ACCOUNT])) || field->valsz <= 0
-                                 ? "IGNORE_ACCOUNT"
-                                 : "ACCOUNT"
-                };
-                parms[1] = (struct sqlbox_parm){
-                    .type = SQLBOX_PARM_STRING,
-                    .sparm = ((field = r.fieldmap[KEY_FILTER_BY_ACCOUNT])) ? field->parsed.s : ""
-                };
+            if (switch_keys[STMT][i] == KEY_SWITCH_UUID) {
+                if (!curr_usr.perms.admin && !curr_usr.perms.staff) {
+                    if (!((curr_usr.perms.monitor_history && STMT == STMTS_HISTORY) || (
+                              curr_usr.perms.manage_inventories && STMT == STMTS_INVENTORY) || (
+                              curr_usr.perms.see_accounts && STMT == STMTS_ACCOUNT))) {
+                        parms[n - 1] = (struct sqlbox_parm){.type = SQLBOX_PARM_STRING, .sparm = curr_usr.UUID};
+                    }
+                }
             }
-
-            parms[2] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = !((field = r.fieldmap[KEY_FILTER_BY_BOOK])) || field->valsz <= 0
-                             ? "IGNORE_BOOK"
-                             : "BOOK"
-
-            };
-            parms[3] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = ((field = r.fieldmap[KEY_FILTER_BY_BOOK])) ? field->parsed.s : ""
-            };
-            break;
-        case STMTS_HISTORY:
-            parmsz = 15;
-            parms = kcalloc(parmsz, sizeof(struct sqlbox_parm));
-            if (r.fieldmap[KEY_FILTER_ME] && curr_usr.authenticated) {
-                parms[0] = (struct sqlbox_parm){
-                    .type = SQLBOX_PARM_STRING,
-                    .sparm = "SELF"
-                };
-                parms[1] = (struct sqlbox_parm){
-                    .type = SQLBOX_PARM_STRING,
-                    .sparm = curr_usr.UUID
-                };
-            } else {
-                parms[0] = (struct sqlbox_parm){
-                    .type = SQLBOX_PARM_STRING,
-                    .sparm = !((field = r.fieldmap[KEY_FILTER_BY_ACCOUNT])) || field->valsz <= 0
-                                 ? "IGNORE_ACCOUNT"
-                                 : "ACCOUNT"
-                };
-                parms[1] = (struct sqlbox_parm){
-                    .type = SQLBOX_PARM_STRING,
-                    .sparm = ((field = r.fieldmap[KEY_FILTER_BY_ACCOUNT])) ? field->parsed.s : ""
-                };
-            }
-            parms[2] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = !((field = r.fieldmap[KEY_FILTER_BY_ISSUER])) || field->valsz <= 0
-                             ? "IGNORE_ISSUER"
-                             : "ISSUER"
-            };
-            parms[3] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = ((field = r.fieldmap[KEY_FILTER_BY_ISSUER])) ? field->parsed.s : ""
-            };
-            parms[4] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = !((field = r.fieldmap[KEY_FILTER_BY_BOOK])) || field->valsz <= 0
-                             ? "IGNORE_BOOK"
-                             : "BOOK"
-
-            };
-            parms[5] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = ((field = r.fieldmap[KEY_FILTER_BY_BOOK])) ? field->parsed.s : ""
-            };
-
-            parms[6] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = !((field = r.fieldmap[KEY_FILTER_BY_ACTION])) || field->valsz <= 0
-                             ? "IGNORE_ACTION"
-                             : "ACTION"
-
-            };
-            parms[7] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = ((field = r.fieldmap[KEY_FILTER_BY_ACTION])) ? field->parsed.s : ""
-            };
-            parms[8] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = !((field = r.fieldmap[KEY_FILTER_FROM_DATE])) || field->valsz <= 0
-                             ? "IGNORE_FROM_DATE"
-                             : "FROM_DATE"
-            };
-            parms[9] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_INT,
-                .iparm = ((field = r.fieldmap[KEY_FILTER_FROM_DATE])) ? field->parsed.i : 0
-            };
-            parms[10] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = !((field = r.fieldmap[KEY_FILTER_TO_DATE])) || field->valsz <= 0
-                             ? "IGNORE_TO_DATE"
-                             : "TO_DATE"
-            };
-            parms[11] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_INT,
-                .iparm = ((field = r.fieldmap[KEY_FILTER_TO_DATE])) ? field->parsed.i : 0
-            };
-            break;
-        case STMTS_SESSIONS:
-
-            parmsz = 7;
-            parms = kcalloc(parmsz, sizeof(struct sqlbox_parm));
-            parms[0] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = !((field = r.fieldmap[KEY_FILTER_BY_ID])) || field->valsz <= 0
-                             ? "IGNORE_ID"
-                             : "ID"
-            };
-            parms[1] = (struct sqlbox_parm){
-                .type = SQLBOX_PARM_STRING,
-                .sparm = ((field = r.fieldmap[KEY_FILTER_BY_ID])) ? field->parsed.s : ""
-            };
-
-            if (r.fieldmap[KEY_FILTER_ME] && curr_usr.authenticated) {
-                parms[2] = (struct sqlbox_parm){
-                    .type = SQLBOX_PARM_STRING,
-                    .sparm = "SELF"
-                };
-                parms[3] = (struct sqlbox_parm){
-                    .type = SQLBOX_PARM_STRING,
-                    .sparm = curr_usr.UUID
-                };
-            } else {
-                parms[2] = (struct sqlbox_parm){
-                    .type = SQLBOX_PARM_STRING,
-                    .sparm = !((field = r.fieldmap[KEY_FILTER_BY_ACCOUNT])) || field->valsz <= 0
-                                 ? "IGNORE_ACCOUNT"
-                                 : "ACCOUNT"
-                };
-                parms[3] = (struct sqlbox_parm){
-                    .type = SQLBOX_PARM_STRING,
-                    .sparm = ((field = r.fieldmap[KEY_FILTER_BY_ACCOUNT])) ? field->parsed.s : ""
-                };
-            }
-            break;
-        default:
-            errx(EXIT_FAILURE, "params");
+        }
     }
 
 
-    parms[parmsz - 3] = (struct sqlbox_parm){
-        .type = SQLBOX_PARM_INT,
-        .iparm = ((field = r.fieldmap[KEY_LIMIT])) ? ((field->parsed.i < 100) ? field->parsed.i : 100) : 20
-    };
-    parms[parmsz - 2] = (struct sqlbox_parm){
-        .type = SQLBOX_PARM_INT, .iparm = ((field = r.fieldmap[KEY_PAGE])) ? field->parsed.i : 0
-    };
+    for (int i = 0; bottom_keys[STMT][i] != KEY__MAX; i++) {
+        if ((field = r.fieldmap[bottom_keys[STMT][i]])) {
+            switch (field->type) {
+                case KPAIR_INTEGER:
+                    parms[n++] = (struct sqlbox_parm){.type = SQLBOX_PARM_INT, .iparm = field->parsed.i};
+                    break;
+                case KPAIR_STRING:
+                    parms[n++] = (struct sqlbox_parm){.type = SQLBOX_PARM_STRING, .sparm = field->parsed.s};
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
 
-    parms[parmsz - 1] = (struct sqlbox_parm){
-        .type = SQLBOX_PARM_INT,
-        .iparm = ((field = r.fieldmap[KEY_LIMIT])) ? ((field->parsed.i < 100) ? field->parsed.i : 100) : 20
+    parms[n++] = (struct sqlbox_parm){
+        .type = SQLBOX_PARM_INT, .iparm = r.fieldmap[KEY_OFFSET] ? r.fieldmap[KEY_OFFSET]->parsed.i : 0
     };
+    parms[n++] = (struct sqlbox_parm){
+        .type = SQLBOX_PARM_INT, .iparm = r.fieldmap[KEY_LIMIT] ? r.fieldmap[KEY_LIMIT]->parsed.i : 25
+    };
+    parms[n++] = (struct sqlbox_parm){
+        .type = SQLBOX_PARM_INT, .iparm = r.fieldmap[KEY_LIMIT] ? r.fieldmap[KEY_LIMIT]->parsed.i : 25
+    };
+    return 1;
 }
 
 void get_cat_children(const char *class) {
     size_t stmtid;
-    size_t parmsz2 = 13;
+    size_t parmsz2 = 1;
     const struct sqlbox_parmset *res;
     struct sqlbox_parm parms2[] = {
-        {.type = SQLBOX_PARM_STRING, .sparm = "NOT_ROOT"},
-        {.type = SQLBOX_PARM_STRING, .sparm = "IGNORE_NAME"},
-        {.type = SQLBOX_PARM_STRING, .sparm = ""},
-        {.type = SQLBOX_PARM_STRING, .sparm = "IGNORE_CLASS"},
-        {.type = SQLBOX_PARM_STRING, .sparm = ""},
-        {.type = SQLBOX_PARM_STRING, .sparm = "DONT_IGNORE"},
         {.type = SQLBOX_PARM_STRING, .sparm = class},
-        {.type = SQLBOX_PARM_STRING, .sparm = "IGNORE_BOOK"},
-        {.type = SQLBOX_PARM_STRING, .sparm = ""},
-        {.type = SQLBOX_PARM_STRING, .sparm = "DONT_IGNORE"},
-        {.type = SQLBOX_PARM_INT, .iparm = -1},
-        {.type = SQLBOX_PARM_INT, .iparm = 0},
-        {.type = SQLBOX_PARM_INT, .iparm = 0}
     };
-    if (!(stmtid = sqlbox_prepare_bind(boxctx_data, dbid_data, STMTS_CATEGORY, parmsz2, parms2, SQLBOX_STMT_MULTI)))
+    if (!(stmtid = sqlbox_prepare_bind(boxctx_data, dbid_data, STMT_CATEGORY_CHILD, parmsz2, parms2,
+                                       SQLBOX_STMT_MULTI)))
         errx(EXIT_FAILURE, "sqlbox_prepare_bind");
     while ((res = sqlbox_step(boxctx_data, stmtid)) != NULL && res->code == SQLBOX_CODE_OK && res->psz != 0) {
         kjson_obj_open(&req);
@@ -1496,26 +933,24 @@ void get_cat_children(const char *class) {
                     break;
             }
         }
-        if (r.fieldmap[KEY_FILTER_TREE]) {
+        if (r.fieldmap[KEY_TREE]) {
             kjson_arrayp_open(&req, "children");
             get_cat_children(res->ps[0].sparm);
             kjson_array_close(&req);
         }
         kjson_obj_close(&req);
+        if (r.fieldmap[KEY_CASCADE]) {
+            get_cat_children(res->ps[0].sparm);
+        }
     }
     if (!sqlbox_finalise(boxctx_data, stmtid))
         errx(EXIT_FAILURE, "sqlbox_finalise");
 }
 
-void process(const enum statement STATEMENT) {
+void process(const enum statement_pieces STATEMENT) {
     size_t stmtid_data;
-    size_t stmtid_count;
     const struct sqlbox_parmset *res;
-    if (!(stmtid_data = sqlbox_prepare_bind(boxctx_data, dbid_data, STATEMENT, parmsz, parms, SQLBOX_STMT_MULTI)))
-        errx(EXIT_FAILURE, "sqlbox_prepare_bind");
-
-    if (!(stmtid_count = sqlbox_prepare_bind(boxctx_count, dbid_count, STATEMENT, parmsz, parms,
-                                             SQLBOX_STMT_MULTI)))
+    if (!(stmtid_data = sqlbox_prepare_bind(boxctx_data, dbid_data, STMT_DATA, parmsz, parms, SQLBOX_STMT_MULTI)))
         errx(EXIT_FAILURE, "sqlbox_prepare_bind");
     khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
     khttp_head(&r, kresps[KRESP_CONTENT_TYPE], "%s", kmimetypes[KMIME_APP_JSON]);
@@ -1544,14 +979,13 @@ void process(const enum statement STATEMENT) {
         kjson_obj_close(&req);
     }
     kjson_obj_close(&req);
-
     kjson_arrayp_open(&req, "res");
     while ((res = sqlbox_step(boxctx_data, stmtid_data)) != NULL && res->code == SQLBOX_CODE_OK && res->psz != 0) {
         kjson_obj_open(&req);
         for (int i = 0; i < (int) res->psz; ++i) {
             switch (res->ps[i].type) {
                 case SQLBOX_PARM_INT:
-                    if (STATEMENT == STMTS_ROLE && r.fieldmap[KEY_PERMS_DETAILS]) {
+                    if (STATEMENT == STMTS_ROLE) {
                         struct accperms perms = int_to_accperms((int) res->ps[i].iparm);
                         kjson_objp_open(&req, rows[STATEMENT][i]);
                         kjson_putintp(&req, "numerical", res->ps[i].iparm);
@@ -1582,10 +1016,15 @@ void process(const enum statement STATEMENT) {
                     break;
             }
         }
-        if (r.fieldmap[KEY_FILTER_TREE] && STATEMENT == STMTS_CATEGORY) {
-            kjson_arrayp_open(&req, "children");
-            get_cat_children(res->ps[0].sparm);
-            kjson_array_close(&req);
+        if (STATEMENT == STMTS_CATEGORY) {
+            if (r.fieldmap[KEY_TREE]) {
+                kjson_arrayp_open(&req, "children");
+                get_cat_children(res->ps[0].sparm);
+                kjson_array_close(&req);
+            } else if (r.fieldmap[KEY_CASCADE]) {
+                kjson_obj_close(&req);
+                get_cat_children(res->ps[0].sparm);
+            }
         }
         if (STATEMENT == STMTS_BOOK) {
             size_t stmtid_book_data;
@@ -1595,12 +1034,13 @@ void process(const enum statement STATEMENT) {
                 {.type = SQLBOX_PARM_STRING, .sparm = res->ps[0].sparm},
             };
             if (!(stmtid_book_data =
-                  sqlbox_prepare_bind(boxctx_data, dbid_data, __STMT_BOOK_AUTHORED__, parmsz_book, parms_book,
+                  sqlbox_prepare_bind(boxctx_data, dbid_data, STMT_AUTHORED, parmsz_book, parms_book,
                                       SQLBOX_STMT_MULTI)))
                 errx(EXIT_FAILURE, "sqlbox_prepare_bind");
 
             kjson_arrayp_open(&req, "authors");
-            while ((res_book = sqlbox_step(boxctx_data, stmtid_book_data)) != NULL && res_book->code == SQLBOX_CODE_OK
+            while ((res_book = sqlbox_step(boxctx_data, stmtid_book_data)) != NULL && res_book->code ==
+                   SQLBOX_CODE_OK
                    && res_book->psz != 0)
                 kjson_putstring(&req, res_book->ps[0].sparm);
             kjson_array_close(&req);
@@ -1609,12 +1049,13 @@ void process(const enum statement STATEMENT) {
                 errx(EXIT_FAILURE, "sqlbox_finalise");
 
             if (!(stmtid_book_data =
-                  sqlbox_prepare_bind(boxctx_data, dbid_data, __STMT_BOOK_LANGUAGES__, parmsz_book, parms_book,
+                  sqlbox_prepare_bind(boxctx_data, dbid_data, STMT_LANGUAGED, parmsz_book, parms_book,
                                       SQLBOX_STMT_MULTI)))
                 errx(EXIT_FAILURE, "sqlbox_prepare_bind");
 
             kjson_arrayp_open(&req, "langs");
-            while ((res_book = sqlbox_step(boxctx_data, stmtid_book_data)) != NULL && res_book->code == SQLBOX_CODE_OK
+            while ((res_book = sqlbox_step(boxctx_data, stmtid_book_data)) != NULL && res_book->code ==
+                   SQLBOX_CODE_OK
                    && res_book->psz != 0)
                 kjson_putstring(&req, res_book->ps[0].sparm);
             kjson_array_close(&req);
@@ -1623,16 +1064,17 @@ void process(const enum statement STATEMENT) {
                 errx(EXIT_FAILURE, "sqlbox_finalise");
 
             if (!(stmtid_book_data =
-                  sqlbox_prepare_bind(boxctx_data, dbid_data, __STMT_BOOK_STOCK__, parmsz_book, parms_book,
+                  sqlbox_prepare_bind(boxctx_data, dbid_data, STMT_STOCKED, parmsz_book, parms_book,
                                       SQLBOX_STMT_MULTI)))
                 errx(EXIT_FAILURE, "sqlbox_prepare_bind");
 
             kjson_arrayp_open(&req, "stock");
-            while ((res_book = sqlbox_step(boxctx_data, stmtid_book_data)) != NULL && res_book->code == SQLBOX_CODE_OK
+            while ((res_book = sqlbox_step(boxctx_data, stmtid_book_data)) != NULL && res_book->code ==
+                   SQLBOX_CODE_OK
                    && res_book->psz != 0) {
                 kjson_obj_open(&req);
-                kjson_putstringp(&req,"campus", res_book->ps[0].sparm);
-                kjson_putintp(&req,"stock", res_book->ps[1].iparm);
+                kjson_putstringp(&req, "campus", res_book->ps[0].sparm);
+                kjson_putintp(&req, "stock", res_book->ps[1].iparm);
                 kjson_obj_close(&req);
             }
             kjson_array_close(&req);
@@ -1640,25 +1082,27 @@ void process(const enum statement STATEMENT) {
             if (!sqlbox_finalise(boxctx_data, stmtid_book_data))
                 errx(EXIT_FAILURE, "sqlbox_finalise");
         }
-        kjson_obj_close(&req);
+        if (!(STATEMENT == STMTS_CATEGORY && r.fieldmap[KEY_CASCADE]))
+            kjson_obj_close(&req);
     }
     if (!sqlbox_finalise(boxctx_data, stmtid_data))
         errx(EXIT_FAILURE, "sqlbox_finalise");
     kjson_array_close(&req);
-    if ((res = sqlbox_step(boxctx_count, stmtid_count)) == NULL)
+    if (!(stmtid_data = sqlbox_prepare_bind(boxctx_data, dbid_data, STMT_COUNT, parmsz - 3, parms, SQLBOX_STMT_MULTI)))
+        errx(EXIT_FAILURE, "sqlbox_prepare_bind");
+    if ((res = sqlbox_step(boxctx_data, stmtid_data)) == NULL)
         errx(EXIT_FAILURE, "sqlbox_step");
     kjson_putintp(&req, "nbrres", res->ps[0].iparm);
-    if (!sqlbox_finalise(boxctx_count, stmtid_count))
+    if (!sqlbox_finalise(boxctx_data, stmtid_data))
         errx(EXIT_FAILURE, "sqlbox_finalise");
-
     kjson_obj_close(&req);
     kjson_close(&req);
 }
 
-void save(const enum statement STATEMENT, const bool failed) {
+void save(const bool failed) {
     char *requestDesc = NULL;
     if (!failed) {
-        kasprintf(&requestDesc, "Stmt:%s, Parms:(", statement_string[STATEMENT]);
+        kasprintf(&requestDesc, "Stmt:%s, Parms:(", pages[r.page]);
         for (int i = 0; i < (int) parmsz; ++i) {
             switch (parms[i].type) {
                 case SQLBOX_PARM_INT:
@@ -1677,7 +1121,7 @@ void save(const enum statement STATEMENT, const bool failed) {
         }
         kasprintf(&requestDesc, "%s)", requestDesc);
     } else {
-        kasprintf(&requestDesc, "Stmt:%s, ACCESS DENIED", statement_string[STATEMENT]);
+        kasprintf(&requestDesc, "Stmt:%s, ACCESS DENIED", pages[r.page]);
     }
     size_t parmsz_save = 3;
     struct sqlbox_parm parms_save[] = {
@@ -1694,55 +1138,30 @@ void save(const enum statement STATEMENT, const bool failed) {
             .sparm = requestDesc
         },
     };
-    if (sqlbox_exec(boxctx_data, dbid_data, __STMT_STORE__, parmsz_save, parms_save,SQLBOX_STMT_CONSTRAINT) !=
+    if (sqlbox_exec(boxctx_data, dbid_data, STMT_SAVE, parmsz_save, parms_save,SQLBOX_STMT_CONSTRAINT) !=
         SQLBOX_CODE_OK)
         errx(EXIT_FAILURE, "sqlbox_exec");
 }
 
-enum khttp sanitize() {
-    if (r.method != KMETHOD_GET)
-        return KHTTP_405;
-    if (r.page == PG__MAX)
-        return KHTTP_404;
-    return KHTTP_200;
-}
-
 int main(void) {
     enum khttp er;
-    // Parse the http request and match the keys to the keys, and pages to the pages, default to
-    // querying the INVENTORY if no page was found
     if (khttp_parse(&r, keys, KEY__MAX, pages, PG__MAX, PG_BOOK) != KCGI_OK)
         return EXIT_FAILURE;
     if ((er = sanitize()) != KHTTP_200) {
         khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[er]);
-
         khttp_body(&r);
         if (r.mime == KMIME_TEXT_HTML)
             khttp_puts(&r, "Could not service request.");
         khttp_free(&r);
         return 0;
     }
-    const enum statement STMT = get_stmts();
+    const enum statement_pieces STMT = get_stmts();
+    build_stmt(STMT);
     alloc_ctx_cfg();
     fill_user();
-    if ((STMT == STMTS_HISTORY || STMT == STMTS_ACCOUNT || STMT == STMTS_SESSIONS || STMT == STMTS_INVENTORY)) {
-        if (!curr_usr.authenticated)
-            goto access_denied;
-        if (!curr_usr.perms.admin && !curr_usr.perms.staff) {
-            if (!r.fieldmap[KEY_FILTER_ME]) {
-                if (!((curr_usr.perms.monitor_history && STMT == STMTS_HISTORY) || (
-                          curr_usr.perms.manage_inventories && STMT == STMTS_INVENTORY) || (
-                          curr_usr.perms.see_accounts && STMT == STMTS_ACCOUNT))) {
-                    goto access_denied;
-                }
-            } else if (STMT == STMTS_INVENTORY && !curr_usr.perms.has_inventory) {
-                goto access_denied;
-            }
-        }
-    }
-    fill_params(STMT);
+    if (!fill_parms(STMT)) goto access_denied;
     process(STMT);
-    save(STMT,false);
+    save(false);
     goto cleanup;
 access_denied:
     khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_403]);
@@ -1756,10 +1175,9 @@ access_denied:
     kjson_putstringp(&req, "error", "You don't have the permissions to access this ressource");
     kjson_obj_close(&req);
     kjson_close(&req);
-    save(STMT,true);
+    save(true);
 cleanup:
     khttp_free(&r);
     sqlbox_free(boxctx_data);
-    sqlbox_free(boxctx_count);
     return EXIT_SUCCESS;
 }
