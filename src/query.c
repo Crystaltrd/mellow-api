@@ -577,7 +577,8 @@ int main(void) {
     khttp_body(&r);
     khttp_puts(&r, pstms_data_top[STMT].stmt);
     for (int i = 0; switch_keys[STMT][i] != KEY__SWITCH__MAX; i++) {
-        khttp_puts(&r, " AND ");
+        if (i != 0)
+            khttp_puts(&r, " AND ");
         khttp_puts(&r, pstmts_switches[STMT][i].stmt);
     }
     khttp_free(&r);
