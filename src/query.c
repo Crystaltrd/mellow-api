@@ -572,7 +572,7 @@ int main(void) {
     for (int i = 0; i < n; ++i) {
         field = r.fieldmap[KEY_TEST];
         int m = 0;
-        while (m < n - i - 1) {
+        while (m < n - i - 1 && field != NULL) {
             m++;
             field = field->next;
         }
