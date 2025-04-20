@@ -928,45 +928,13 @@ void process(const enum statement STATEMENT) {
     khttp_body(&r);
     kjson_open(&req, &r);
     kjson_obj_open(&req);
-    kjson_objp_open(&req, "user");
-    kjson_putstringp(&req, "IP", r.remote);
-    kjson_putboolp(&req, "authenticated", curr_usr.authenticated);
-    if (curr_usr.authenticated) {
-        kjson_putstringp(&req, "UUID", curr_usr.UUID);
-        kjson_putstringp(&req, "disp_name", curr_usr.disp_name);
-        kjson_putstringp(&req, "campus", curr_usr.campus);
-        kjson_putstringp(&req, "role", curr_usr.role);
-        kjson_putboolp(&req, "frozen", curr_usr.frozen);
-
-        kjson_objp_open(&req, "perms");
-        kjson_putintp(&req, "numeric", curr_usr.perms.numeric);
-        kjson_putboolp(&req, "admin", curr_usr.perms.admin);
-        kjson_putboolp(&req, "staff", curr_usr.perms.staff);
-        kjson_putboolp(&req, "manage_stock", curr_usr.perms.manage_stock);
-        kjson_putboolp(&req, "manage_inventories", curr_usr.perms.manage_inventories);
-        kjson_putboolp(&req, "see_accounts", curr_usr.perms.see_accounts);
-        kjson_putboolp(&req, "monitor_history", curr_usr.perms.monitor_history);
-        kjson_putboolp(&req, "has_inventory", curr_usr.perms.has_inventory);
-        kjson_obj_close(&req);
-    }
-    kjson_obj_close(&req);
-    kjson_arrayp_open(&req, "res");
+    kjson_array_open(&req);
     while ((res = sqlbox_step(boxctx_data, stmtid_data)) != NULL && res->code == SQLBOX_CODE_OK && res->psz != 0) {
-        kjson_obj_open(&req);
-        kjson_putstringp(&req,"Hello","World");
-        kjson_obj_close(&req);
+        kjson_putstring(&req,"Hello World");
     }
-    if (!sqlbox_finalise(boxctx_data, stmtid_data))
-        errx(EXIT_FAILURE, "sqlbox_finalise");
     kjson_array_close(&req);
-    if (!(stmtid_data = sqlbox_prepare_bind(boxctx_data, dbid_data, STMT_COUNT, parmsz-3, parms, SQLBOX_STMT_MULTI)))
-        errx(EXIT_FAILURE, "sqlbox_prepare_bind");
-    if ((res = sqlbox_step(boxctx_data, stmtid_data)) == NULL)
-        errx(EXIT_FAILURE, "sqlbox_step");
-    kjson_putintp(&req, "nbrres", res->ps[0].iparm);
     if (!sqlbox_finalise(boxctx_data, stmtid_data))
         errx(EXIT_FAILURE, "sqlbox_finalise");
-    kjson_obj_close(&req);
     kjson_close(&req);
 }
 
