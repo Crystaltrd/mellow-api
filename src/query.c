@@ -110,7 +110,7 @@ static const char *rows[STMTS__MAX][10] = {
     {"campusName",NULL},
     {"roleName", "perms",NULL},
     {"categoryClass", "categoryName", "parentCategoryID",NULL},
-    {"UUID", "displayname", "pwhash", "campus", "role", "perm", "frozen",NULL},
+    {"ACCOUNT.UUID", "displayname", "pwhash", "campus", "role", "perms", "frozen",NULL},
     {
         "BOOK.serialnum", "type", "category", "categoryName", "publisher", "booktitle", "bookreleaseyear", "bookcover",
         "hits",NULL
@@ -191,7 +191,6 @@ static struct sqlbox_pstmt pstms_data_top[STMTS__MAX] = {
     },
     {
         (char *)
-        "SELECT UUID, serialnum, rentduration, rentdate, extended "
         "FROM INVENTORY "
     },
     {
