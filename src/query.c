@@ -556,31 +556,15 @@ int main(void) {
     const enum statement STMT = get_stmts();
     khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
     khttp_body(&r);
-    /*khttp_puts(&r, pstms_data_top[STMT].stmt);
+    khttp_puts(&r, pstms_data_top[STMT].stmt);
     for (int i = 0; switch_keys[STMT][i] != KEY__SWITCH__MAX; i++) {
         if (i != 0)
             khttp_puts(&r, " AND ");
         khttp_puts(&r, pstmts_switches[STMT][i].stmt);
-    }*/
+    }
     bool ordered = false;
-    struct kpair *field = r.fieldmap[KEY_TEST];
-    int n = 0;
-    while (field != NULL) {
-        n++;
-        field = field->next;
-    }
-    for (int i = 0; i < n; ++i) {
-        field = r.fieldmap[KEY_TEST];
-        int m = 0;
-        while (m < n - i - 1 && field != NULL) {
-            m++;
-            field = field->next;
-        }
-        if (field != NULL)
-            khttp_puts(&r, field->parsed.s);
-    }
-
-    /*for (int i = 0; bottom_keys[STMT][i] != KEY__SWITCH__MAX; i++) {
+    struct kpair *order_field = r.fieldmap[KEY_TEST];
+    for (int i = 0; bottom_keys[STMT][i] != KEY__SWITCH__MAX; i++) {
         if (bottom_keys[STMT][i] == KEY_MANDATORY_GROUP_BY)
             khttp_puts(&r, " GROUP BY ");
         else {
@@ -590,14 +574,19 @@ int main(void) {
             } else {
                 khttp_puts(&r, ",");
             }
-
-
         }
         khttp_puts(&r, pstmts_bottom[STMT][i].stmt);
-
-
+        if (bottom_keys[STMT][i] != KEY_MANDATORY_GROUP_BY) {
+            if (order_field != NULL) {
+               khttp_puts(&r,(order_field->parsed.i > 0) ? " ASC " : " DESC ");
+                order_field= order_field->next;
+            }
+            else {
+               khttp_puts(&r," DESC ");
+            }
+        }
     }
-    khttp_puts(&r, " LIMIT(?),(? * ?) ");*/
+    khttp_puts(&r, " LIMIT(?),(? * ?) ");
 
     khttp_free(&r);
     return EXIT_SUCCESS;
