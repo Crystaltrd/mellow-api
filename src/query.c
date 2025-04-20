@@ -72,82 +72,7 @@ static const char *pages[PG__MAX] = {
     "inventory", "history", "sessions"
 };
 
-/*
- * All possible keys that can be passed to the backend, the first 11 ones are used as a fix for some hosting providers
- * not providing URL normalisation and require that the binaries end with .cgi
- */
-enum key {
-    KEY_PAGE,
-    KEY_LIMIT,
-    KEY_FILTER_BY_NAME,
-    KEY_FILTER_BY_BOOK,
-    KEY_FILTER_BY_POPULARITY,
-    KEY_FILTER_BY_ACCOUNT,
-    KEY_FILTER_BY_PERM,
-    KEY_FILTER_BY_CLASS,
-    KEY_FILTER_BY_PARENT,
-    KEY_FILTER_CASCADE,
-    KEY_FILTER_TREE,
-    KEY_FILTER_GET_PARENTS,
-    KEY_FILTER_BY_ID,
-    KEY_FILTER_BY_CAMPUS,
-    KEY_FILTER_BY_ROLE,
-    KEY_FILTER_FROZEN,
-    KEY_FILTER_BY_CATEGORY,
-    KEY_FILTER_BY_LANG,
-    KEY_FILTER_BY_AUTHOR,
-    KEY_FILTER_BY_TYPE,
-    KEY_FILTER_BY_PUBLISHER,
-    KEY_FILTER_IGNORE_EMPTY,
-    KEY_FILTER_FROM_YEAR,
-    KEY_FILTER_TO_YEAR,
-    KEY_FILTER_ME,
-    KEY_FILTER_BY_ISSUER,
-    KEY_FILTER_BY_ACTION,
-    KEY_FILTER_FROM_DATE,
-    KEY_FILTER_TO_DATE,
-    KEY_FILTER_BY_SESSION,
-    COOKIE_SESSIONID,
-    KEY_PERMS_DETAILS,
-    KEY__MAX
-};
 
-
-static const struct kvalid keys[KEY__MAX] = {
-
-    {kvalid_uint, "page"},
-    {kvalid_uint, "limit"},
-    {kvalid_stringne, "by_name"},
-    {kvalid_stringne, "by_book"},
-    {NULL, "by_popularity"},
-    {kvalid_stringne, "by_account"},
-    {kvalid_uint, "by_perm"},
-    {kvalid_stringne, "by_class"},
-    {kvalid_stringne, "by_parent"},
-    {NULL, "cascade"},
-    {NULL, "tree"},
-    {NULL, "get_parents"},
-    {kvalid_stringne, "by_ID"},
-    {kvalid_stringne, "by_campus"},
-    {kvalid_stringne, "by_role"},
-    {kvalid_bit, "frozen"},
-    {kvalid_stringne, "by_category"},
-    {kvalid_stringne, "by_lang"},
-    {kvalid_stringne, "by_author"},
-    {kvalid_stringne, "by_type"},
-    {kvalid_stringne, "by_publisher"},
-    {kvalid_bit, "ignore_empty"},
-    {kvalid_int, "from_year"},
-    {kvalid_int, "to_year"},
-    {NULL, "me"},
-    {kvalid_stringne, "by_issuer"},
-    {kvalid_stringne, "by_action"},
-    {kvalid_date, "from_date"},
-    {kvalid_date, "to_date"},
-    {kvalid_int, "by_session"},
-    {kvalid_stringne, "sessionID"},
-    {NULL, "details"},
-};
 /*
  * Pre-made SQL statements
  */
@@ -636,7 +561,7 @@ int main(void) {
     enum khttp er;
     // Parse the http request and match the keys to the keys, and pages to the pages, default to
     // querying the INVENTORY if no page was found
-    if (khttp_parse(&r, keys, KEY__MAX, pages, PG__MAX, PG_BOOK) != KCGI_OK)
+    if (khttp_parse(&r, 0, 0, pages, PG__MAX, PG_BOOK) != KCGI_OK)
         return EXIT_FAILURE;
     if ((er = sanitize()) != KHTTP_200) {
         khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[er]);
@@ -650,7 +575,10 @@ int main(void) {
     const enum statement STMT = get_stmts();
     khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
     khttp_body(&r);
-    khttp_puts(&r,pstms_data_top[STMT].stmt);
+    khttp_puts(&r, pstms_data_top[STMT].stmt);
+    for (int i = 0; switch_keys[STMT][i] != KEY__SWITCH__MAX; i++) {
+        khttp_puts(&r, pstmts_switches[STMT][i].stmt);
+    }
     khttp_free(&r);
     return EXIT_SUCCESS;
 }
