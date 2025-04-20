@@ -770,6 +770,7 @@ int main(void) {
     for (int i = 0; i < parmsz; ++i) {
         if (parms[i].type == SQLBOX_PARM_STRING) {
             khttp_puts(&r,parms[i].sparm);
+            khttp_puts(&r,"\r\n");
         }
     }
     khttp_puts(&r, pstmts[STMT_DATA].stmt);
