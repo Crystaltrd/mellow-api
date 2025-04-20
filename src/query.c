@@ -587,15 +587,15 @@ int main(void) {
             khttp_puts(&r, " GROUP BY ");
         else {
             if (!ordered) {
-                khttp_puts(&r," ORDER BY ");
+                khttp_puts(&r, " ORDER BY ");
                 ordered = true;
-            }
-            else {
-                khttp_puts(&r,",");
+            } else {
+                khttp_puts(&r, ",");
             }
         }
         khttp_puts(&r, pstmts_bottom[STMT][i].stmt);
     }
+    khttp_puts(&r, " LIMIT(?),(? * ?) ");
     khttp_free(&r);
     return EXIT_SUCCESS;
 }
