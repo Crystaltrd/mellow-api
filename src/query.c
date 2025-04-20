@@ -414,6 +414,13 @@ static enum key bottom_keys[STMTS__MAX][8] = {
         KEY_ORDER_NAME,
         KEY__MAX
     },
+
+    {
+        KEY_MANDATORY_GROUP_BY,
+        KEY_ORDER_HITS,
+        KEY_ORDER_NAME,
+        KEY__MAX
+    },
     {
         KEY_MANDATORY_GROUP_BY,
         KEY_ORDER_NAME,
@@ -601,7 +608,7 @@ int main(void) {
                     khttp_puts(&r, ",");
                 }
                 khttp_puts(&r, pstmts_bottom[STMT][i].stmt);
-                khttp_puts(&r,(r.fieldmap[bottom_keys[STMT][i]] == 0) ? "DESC" : "ASC");
+                khttp_puts(&r, (r.fieldmap[bottom_keys[STMT][i]] == 0) ? "DESC" : "ASC");
             }
         }
     }
