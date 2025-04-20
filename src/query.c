@@ -578,7 +578,7 @@ int main(void) {
         return 0;
     }
     const enum statement STMT = get_stmts();
-    char *stmt = NULL;
+    char *stmt = "";
     khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
     khttp_body(&r);
     if (STMT == STMTS_BOOK) {
