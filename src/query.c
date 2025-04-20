@@ -923,7 +923,7 @@ void process(const enum statement STATEMENT) {
     const struct sqlbox_parmset *res;
     if (!(stmtid_data = sqlbox_prepare_bind(boxctx_data, dbid_data, STMT_DATA, parmsz, parms, SQLBOX_STMT_MULTI)))
         errx(EXIT_FAILURE, "sqlbox_prepare_bind");
-        errx(EXIT_FAILURE, "STMT: %s",pstmts[STMT_DATA].stmt);
+        errx(EXIT_FAILURE, "STMT: %s, LIMIT & OFFSET : %ld %ld %ld",pstmts[STMT_DATA].stmt, parms[parmsz-3].iparm, parms[parmsz-2].iparm, parms[parmsz-1].iparm);
     khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
     khttp_head(&r, kresps[KRESP_CONTENT_TYPE], "%s", kmimetypes[KMIME_APP_JSON]);
     khttp_body(&r);
