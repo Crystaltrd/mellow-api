@@ -591,21 +591,26 @@ int main(void) {
     khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
     khttp_body(&r);
     khttp_puts(&r, pstms_data_top[STMT].stmt);
+    bool flag = false;
     for (int i = 0; switch_keys[STMT][i] != KEY__MAX; i++) {
-        if (i != 0)
-            khttp_puts(&r, " AND ");
-        khttp_puts(&r, pstmts_switches[STMT][i].stmt);
+        if (r.fieldmap[switch_keys[STMT][i]]) {
+            if (!flag) {
+                khttp_puts(&r, " AND ");
+                flag = true;
+            }
+            khttp_puts(&r, pstmts_switches[STMT][i].stmt);
+        }
     }
-    bool ordered = false;
+    flag = false;
     for (int i = 0; bottom_keys[STMT][i] != KEY__MAX; i++) {
         if (bottom_keys[STMT][i] == KEY_MANDATORY_GROUP_BY) {
             khttp_puts(&r, " GROUP BY ");
             khttp_puts(&r, pstmts_bottom[STMT][i].stmt);
         } else {
             if (r.fieldmap[bottom_keys[STMT][i]]) {
-                if (!ordered) {
+                if (!flag) {
                     khttp_puts(&r, " ORDER BY ");
-                    ordered = true;
+                    flag = true;
                 } else {
                     khttp_puts(&r, ",");
                 }
