@@ -746,7 +746,7 @@ void build_stmt(enum statement_pieces STMT) {
                       pstmts[STMT_DATA].stmt);
         }
     }
-    kasprintf(&pstmts[STMT_COUNT].stmt, "%s SELECT COUNT(DISTINCT", pstmts[STMT_DATA].stmt);
+    kasprintf(&pstmts[STMT_COUNT].stmt, "%s SELECT COUNT(DISTINCT COALESCE(", pstmts[STMT_DATA].stmt);
     kasprintf(&pstmts[STMT_DATA].stmt, "%s SELECT", pstmts[STMT_DATA].stmt);
     for (int i = 0; rows[STMT][i] != NULL; ++i) {
         if (i == 0) {
@@ -757,7 +757,7 @@ void build_stmt(enum statement_pieces STMT) {
         kasprintf(&pstmts[STMT_COUNT].stmt, "%s,%s", pstmts[STMT_COUNT].stmt, rows[STMT][i]);
     }
     kasprintf(&pstmts[STMT_DATA].stmt, "%s %s", pstmts[STMT_DATA].stmt, pstms_data_top[STMT].stmt);
-    kasprintf(&pstmts[STMT_COUNT].stmt, "%s) %s", pstmts[STMT_COUNT].stmt, pstms_data_top[STMT].stmt);
+    kasprintf(&pstmts[STMT_COUNT].stmt, "%s)) %s", pstmts[STMT_COUNT].stmt, pstms_data_top[STMT].stmt);
     bool flag = false;
     for (int i = 0; switch_keys[STMT][i] != KEY__MAX; i++) {
         if (r.fieldmap[switch_keys[STMT][i]]) {
