@@ -919,7 +919,7 @@ void get_cat_children(const char *class) {
         errx(EXIT_FAILURE, "sqlbox_finalise");
 }
 
-void process(const enum statement STATEMENT) {
+void process(const enum statement_pieces STATEMENT) {
     size_t stmtid_data;
     const struct sqlbox_parmset *res;
     if (!(stmtid_data = sqlbox_prepare_bind(boxctx_data, dbid_data, STMT_DATA, parmsz, parms, SQLBOX_STMT_MULTI)))
