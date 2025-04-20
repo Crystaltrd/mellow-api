@@ -1103,7 +1103,7 @@ void process(const enum statement_pieces STATEMENT) {
 void save(const bool failed) {
     char *requestDesc = NULL;
     if (!failed) {
-        kasprintf(&requestDesc, "Stmt:%s, Parms:(", pages[r.page]);
+        kasprintf(&requestDesc, "Stmt:%s,parmsz: %ld, Parms:(", pages[r.page], parmsz);
         for (int i = 0; i < (int) parmsz; ++i) {
             switch (parms[i].type) {
                 case SQLBOX_PARM_INT:
