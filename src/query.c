@@ -648,11 +648,9 @@ int main(void) {
         return 0;
     }
     const enum statement STMT = get_stmts();
-    char *buf;
-    kasprintf(&buf,"Statement num %d",STMT);
     khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
     khttp_body(&r);
-    khttp_puts(&r, buf);
+    khttp_puts(&r,pstms_data_top[STMT].stmt);
     khttp_free(&r);
     return EXIT_SUCCESS;
 }
