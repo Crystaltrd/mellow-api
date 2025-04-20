@@ -785,25 +785,18 @@ void build_stmt(enum statement_pieces STMT) {
     for (int i = 0; bottom_keys[STMT][i] != KEY__MAX; i++) {
         if (bottom_keys[STMT][i] == KEY_MANDATORY_GROUP_BY) {
             kasprintf(&pstmts[STMT_DATA].stmt, "%s"" GROUP BY ", pstmts[STMT_DATA].stmt);
-            kasprintf(&pstmts[STMT_COUNT].stmt, "%s"" GROUP BY ", pstmts[STMT_COUNT].stmt);
             kasprintf(&pstmts[STMT_DATA].stmt, "%s%s", pstmts[STMT_DATA].stmt, pstmts_bottom[STMT][i]);
-            kasprintf(&pstmts[STMT_COUNT].stmt, "%s%s", pstmts[STMT_COUNT].stmt, pstmts_bottom[STMT][i]);
         } else {
             if (r.fieldmap[bottom_keys[STMT][i]]) {
                 parmsz++;
                 if (!flag) {
                     kasprintf(&pstmts[STMT_DATA].stmt, "%s"" ORDER BY ", pstmts[STMT_DATA].stmt);
-                    kasprintf(&pstmts[STMT_COUNT].stmt, "%s"" ORDER BY ", pstmts[STMT_COUNT].stmt);
                     flag = true;
                 } else {
                     kasprintf(&pstmts[STMT_DATA].stmt, "%s"",", pstmts[STMT_DATA].stmt);
-                    kasprintf(&pstmts[STMT_COUNT].stmt, "%s"",", pstmts[STMT_COUNT].stmt);
                 }
                 kasprintf(&pstmts[STMT_DATA].stmt, "%s%s", pstmts[STMT_DATA].stmt, pstmts_bottom[STMT][i]);
-                kasprintf(&pstmts[STMT_COUNT].stmt, "%s%s", pstmts[STMT_COUNT].stmt, pstmts_bottom[STMT][i]);
                 kasprintf(&pstmts[STMT_DATA].stmt, "%s%s", pstmts[STMT_DATA].stmt,
-                          (r.fieldmap[bottom_keys[STMT][i]]->parsed.i == 0) ? " DESC" : " ASC");
-                kasprintf(&pstmts[STMT_COUNT].stmt, "%s%s", pstmts[STMT_COUNT].stmt,
                           (r.fieldmap[bottom_keys[STMT][i]]->parsed.i == 0) ? " DESC" : " ASC");
             }
         }
