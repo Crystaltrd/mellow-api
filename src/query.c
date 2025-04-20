@@ -583,64 +583,62 @@ int main(void) {
     khttp_body(&r);
     if (STMT == STMTS_BOOK) {
         if (r.fieldmap[KEY_SWITCH_CLASS]) {
-            kasprintf(&stmt,"%s""WITH RECURSIVE CategoryCascade AS (SELECT categoryClass, parentCategoryID "
-                       "FROM CATEGORY "
-                       "WHERE "
-                       "categoryClass = (?)) "
-                       "UNION ALL "
-                       "SELECT c.categoryClass, c.parentCategoryID "
-                       "FROM CATEGORY c "
-                       "INNER JOIN CategoryCascade ct ON c.parentCategoryID = ct.categoryClass) ",stmt);
-        }
-        else {
-
-            kasprintf(&stmt,"%s""WITH RECURSIVE CategoryCascade AS (SELECT categoryClass, parentCategoryID,stmt "
-                       "FROM CATEGORY "
-                       "WHERE "
-                       "parentCategoryID IS NULL "
-                       "UNION ALL "
-                       "SELECT c.categoryClass, c.parentCategoryID "
-                       "FROM CATEGORY c "
-                       "INNER JOIN CategoryCascade ct ON c.parentCategoryID = ct.categoryClass) ",stmt);
+            kasprintf(&stmt, "%s""WITH RECURSIVE CategoryCascade AS (SELECT categoryClass, parentCategoryID "
+                      "FROM CATEGORY "
+                      "WHERE "
+                      "categoryClass = (?)) "
+                      "UNION ALL "
+                      "SELECT c.categoryClass, c.parentCategoryID "
+                      "FROM CATEGORY c "
+                      "INNER JOIN CategoryCascade ct ON c.parentCategoryID = ct.categoryClass) ", stmt);
+        } else {
+            kasprintf(&stmt, "%s""WITH RECURSIVE CategoryCascade AS (SELECT categoryClass, parentCategoryID,stmt "
+                      "FROM CATEGORY "
+                      "WHERE "
+                      "parentCategoryID IS NULL "
+                      "UNION ALL "
+                      "SELECT c.categoryClass, c.parentCategoryID "
+                      "FROM CATEGORY c "
+                      "INNER JOIN CategoryCascade ct ON c.parentCategoryID = ct.categoryClass) ", stmt);
         }
     }
-    kasprintf(&stmt,"%s%s",pstms_data_top[STMT].stmt,stmt);
+    kasprintf(&stmt, "%s%s", pstms_data_top[STMT].stmt, stmt);
     bool flag = false;
     for (int i = 0; switch_keys[STMT][i] != KEY__MAX; i++) {
         if (r.fieldmap[switch_keys[STMT][i]]) {
             if (!flag) {
                 if (!strstr(pstms_data_top[STMT].stmt, "WHERE")) {
-                    kasprintf(&stmt,"%s"" WHERE ",stmt);
+                    kasprintf(&stmt, "%s"" WHERE ", stmt);
                 } else {
-                    kasprintf(&stmt,"%s"" AND ",stmt);
+                    kasprintf(&stmt, "%s"" AND ", stmt);
                 }
                 flag = true;
             } else {
-                kasprintf(&stmt,"%s"" AND ",stmt);
+                kasprintf(&stmt, "%s"" AND ", stmt);
             }
-            kasprintf(&stmt,"%s%s",pstmts_switches[STMT][i].stmt,stmt);
+            kasprintf(&stmt, "%s%s", pstmts_switches[STMT][i].stmt, stmt);
         }
     }
     flag = false;
     for (int i = 0; bottom_keys[STMT][i] != KEY__MAX; i++) {
         if (bottom_keys[STMT][i] == KEY_MANDATORY_GROUP_BY) {
-            kasprintf(&stmt,"%s"" GROUP BY ",stmt);
-            kasprintf(&stmt,"%s%s",pstmts_bottom[STMT][i].stmt,stmt);
+            kasprintf(&stmt, "%s"" GROUP BY ", stmt);
+            kasprintf(&stmt, "%s%s", pstmts_bottom[STMT][i].stmt, stmt);
         } else {
             if (r.fieldmap[bottom_keys[STMT][i]]) {
                 if (!flag) {
-                    kasprintf(&stmt,"%s"" ORDER BY ",stmt);
+                    kasprintf(&stmt, "%s"" ORDER BY ", stmt);
                     flag = true;
                 } else {
-                    kasprintf(&stmt,"%s"",",stmt);
+                    kasprintf(&stmt, "%s"",", stmt);
                 }
-                kasprintf(&stmt,"%s%s",pstmts_bottom[STMT][i].stmt,stmt);
-                kasprintf(&stmt,"%s"(r.fieldmap[bottom_keys[STMT][i]]->parsed.i == 0) ? " DESC" : " ASC",stmt);
+                kasprintf(&stmt, "%s%s", pstmts_bottom[STMT][i].stmt, stmt);
+                kasprintf(&stmt, "%s"(r.fieldmap[bottom_keys[STMT][i]]->parsed.i == 0) ? " DESC" : " ASC", stmt);
             }
         }
     }
-    kasprintf(&stmt,"%s"" LIMIT(?),(? * ?)",stmt);
-
+    kasprintf(&stmt, "%s"" LIMIT(?),(? * ?)", stmt);
+    khttp_puts(&r, stmt);
     khttp_free(&r);
     return EXIT_SUCCESS;
 }
