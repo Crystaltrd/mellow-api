@@ -114,7 +114,6 @@ static struct sqlbox_pstmt pstms_data_top[STMTS__MAX] = {
         "FROM AUTHOR "
         "LEFT JOIN AUTHORED A ON AUTHOR.authorName = A.author "
         "LEFT JOIN BOOK B ON B.serialnum = A.serialnum "
-        "WHERE "
     },
     {
         (char *)
@@ -485,8 +484,8 @@ static struct sqlbox_pstmt pstmts_bottom[STMTS__MAX][5] = {
         {(char *) "langCode"},
     },
     {
-        {(char *)"actionName"},
-        {(char *)"actionName"},
+        {(char *) "actionName"},
+        {(char *) "actionName"},
     },
     {
         {(char *) "typeName"},
@@ -582,8 +581,9 @@ int main(void) {
     for (int i = 0; switch_keys[STMT][i] != KEY__MAX; i++) {
         if (r.fieldmap[switch_keys[STMT][i]]) {
             if (!flag) {
-                khttp_puts(&r, " AND ");
                 flag = true;
+            } else {
+                khttp_puts(&r, " AND ");
             }
             khttp_puts(&r, pstmts_switches[STMT][i].stmt);
         }
