@@ -383,6 +383,42 @@ static struct sqlbox_pstmt pstms_data_top[STMTS__MAX] = {
         "WHERE serialnum = (?)"
     },
 };
+
+enum key_switches {
+    KEY_SWITCH_NAME,
+    KEY_SWITCH_SERIALNUM,
+    KEY_SWITCH_UUID,
+    KEY_SWITCH_PERMS,
+    KEY_SWITCH_ROOT, // MUTUALLY EXCLUSIVE
+    KEY_SWITCH_PARENT, // MUTUALLY EXCLUSIVE
+    KEY_SWITCH_CLASS,
+    KEY_SWITCH_CAMPUS,
+    KEY_SWITCH_ROLE,
+    KEY_SWITCH_FROZEN,
+    KEY_SWITCH_SESSIONID,
+    KEY_SWITCH_LANG,
+    KEY_SWITCH_AUTHOR,
+    KEY_SWITCH_PUBLISHER,
+    KEY_SWITCH_TYPE,
+    KEY_SWITCH_UPPERYEAR,
+    KEY_SWITCH_LOWERYEAR,
+    KEY_SWITCH_NOTEMPTY,
+    KEY_SWITCH_ISSUER,
+    KEY_SWITCH_ACTION,
+    KEY_SWITCH_UPPERDATE,
+    KEY_SWITCH_LOWERDATE,
+    KEY_ORDER_HITS,
+    KEY_ORDER_NAME,
+    KEY_ORDER_PERMS,
+    KEY_ORDER_CLASS,
+    KEY_ORDER_UUID,
+    KEY_ORDER_SERIALNUM,
+    KEY_ORDER_DATE,
+    KEY_ORDER_STOCK,
+    KEY_MANDATORY_GROUP_BY,
+    KEY__SWITCH__MAX
+};
+
 static struct sqlbox_pstmt pstmts_switches[STMTS__MAX][10] = {
     {
         {(char *) "instr(publisherName,(?)) > 0"},
@@ -415,9 +451,9 @@ static struct sqlbox_pstmt pstmts_switches[STMTS__MAX][10] = {
     },
     {
         {(char *) "parentCategoryID IS NULL"},
+        {(char *) "parentCategoryID = (?)"},
         {(char *) "instr(categoryName,(?)) > 0"},
         {(char *) "categoryClass = (?)"},
-        {(char *) "parentCategoryID = (?)"},
         {(char *) "serialnum = (?)"},
     },
     {
@@ -463,92 +499,203 @@ static struct sqlbox_pstmt pstmts_switches[STMTS__MAX][10] = {
         {(char *) "account = (?)"},
     }
 };
-static struct sqlbox_pstmt pstmts_bottom[STMTS__MAX][STMTS__MAX] = {
+
+static enum key_switches switch_keys[STMTS__MAX][11] = {
+
+    {KEY_SWITCH_NAME, KEY_SWITCH_SERIALNUM, KEY__SWITCH__MAX},
+    {KEY_SWITCH_NAME, KEY_SWITCH_SERIALNUM, KEY__SWITCH__MAX},
+    {KEY_SWITCH_NAME, KEY_SWITCH_SERIALNUM, KEY__SWITCH__MAX},
+    {KEY_SWITCH_NAME, KEY__SWITCH__MAX},
+    {KEY_SWITCH_NAME, KEY_SWITCH_SERIALNUM, KEY__SWITCH__MAX},
+    {KEY_SWITCH_NAME, KEY_SWITCH_SERIALNUM, KEY_SWITCH_UUID, KEY__SWITCH__MAX},
+    {KEY_SWITCH_NAME, KEY_SWITCH_PERMS, KEY_SWITCH_UUID, KEY__SWITCH__MAX},
+    {KEY_SWITCH_ROOT, KEY_SWITCH_PARENT, KEY_SWITCH_NAME, KEY_SWITCH_CLASS, KEY_SWITCH_SERIALNUM, KEY__SWITCH__MAX},
     {
-        {(char *) "GROUP BY publisherName"},
-        {(char *) "ORDER BY SUM(hits)"},
-        {(char *) "ORDER BY publisherName"},
-        {(char *) "LIMIT (?),(? * ?)"}
+        KEY_SWITCH_UUID, KEY_SWITCH_NAME, KEY_SWITCH_SERIALNUM, KEY_SWITCH_CAMPUS, KEY_SWITCH_ROLE, KEY_SWITCH_FROZEN,
+        KEY_SWITCH_SESSIONID, KEY__SWITCH__MAX
     },
     {
-        {(char *) "GROUP BY authorName"},
-        {(char *) "ORDER BY SUM(hits)"},
-        {(char *) "ORDER BY authorName"},
-        {(char *) "LIMIT (?),(? * ?)"}
+        KEY_SWITCH_SERIALNUM, KEY_SWITCH_NAME, KEY_SWITCH_LANG, KEY_SWITCH_AUTHOR, KEY_SWITCH_ROLE,
+        KEY_SWITCH_PUBLISHER, KEY_SWITCH_CAMPUS, KEY_SWITCH_UUID, KEY_SWITCH_UPPERYEAR, KEY_SWITCH_LOWERYEAR,
+        KEY__SWITCH__MAX
     },
+    {KEY_SWITCH_SERIALNUM, KEY_SWITCH_CAMPUS, KEY_SWITCH_NOTEMPTY, KEY__SWITCH__MAX},
+    {KEY_SWITCH_UUID, KEY_SWITCH_SERIALNUM, KEY__SWITCH__MAX},
     {
-        {(char *) "GROUP BY langCode"},
-        {(char *) "ORDER BY SUM(hits)"},
-        {(char *) "ORDER BY langCode"},
-        {(char *) "LIMIT (?),(? * ?)"}
+        KEY_SWITCH_UUID, KEY_SWITCH_ISSUER, KEY_SWITCH_SERIALNUM, KEY_SWITCH_ACTION, KEY_SWITCH_UPPERYEAR,
+        KEY_SWITCH_LOWERDATE, KEY__SWITCH__MAX
     },
+    {KEY_SWITCH_SESSIONID, KEY_SWITCH_UUID, KEY__SWITCH__MAX}
+};
+
+
+static enum key_switches bottom_keys[STMTS__MAX][8] = {
     {
-        {(char *) "GROUP BY typeName"},
-        {(char *) "ORDER BY SUM(hits)"},
-        {(char *) "ORDER BY typeName"},
-        {(char *) "LIMIT (?),(? * ?)"}
-    },
-    {
-        {(char *) "GROUP BY campusName "},
-        {(char *) "ORDER BY campusName "},
-        {(char *) "LIMIT (?),(? * ?)"}
-    },
-    {
-        {(char *) "GROUP BY roleName, perms"},
-        {(char *) "ORDER BY perms"},
-        {(char *) "ORDER BY roleName"},
-        {(char *) "LIMIT (?),(? * ?)"},
-    },
-    {
-        {(char *) "GROUP BY categoryClass, categoryName, parentCategoryID"},
-        {(char *) "ORDER BY SUM(hits)"},
-        {(char *) "ORDER BY categoryClass"},
-        {(char *) "ORDER BY categoryName"},
-        {(char *) "LIMIT (?),(? * ?)"},
+        KEY_MANDATORY_GROUP_BY,
+        KEY_ORDER_HITS,
+        KEY_ORDER_NAME,
+        KEY__SWITCH__MAX
     },
     {
 
-        {(char *) "GROUP BY ACCOUNT.UUID, displayname, pwhash, campus, perms, frozen"},
-        {(char *) "ORDER BY UUID"},
-        {(char *) "ORDER BY displayname"},
-        {(char *) "ORDER BY perms"},
-        {(char *) "LIMIT (?),(? * ?)"}
+        KEY_MANDATORY_GROUP_BY,
+        KEY_ORDER_HITS,
+        KEY_ORDER_NAME,
+        KEY__SWITCH__MAX
+    },
+    {
+        KEY_MANDATORY_GROUP_BY,
+        KEY_ORDER_HITS,
+        KEY_ORDER_NAME,
+        KEY__SWITCH__MAX
+    },
+    {
+        KEY_MANDATORY_GROUP_BY,
+        KEY_ORDER_HITS,
+        KEY_ORDER_NAME,
+        KEY__SWITCH__MAX
+    },
+    {
+        KEY_MANDATORY_GROUP_BY,
+        KEY_ORDER_NAME,
+        KEY__SWITCH__MAX
+    },
+
+    {
+        KEY_MANDATORY_GROUP_BY,
+        KEY_ORDER_PERMS,
+        KEY_ORDER_NAME,
+        KEY__SWITCH__MAX
+    },
+
+    {
+        KEY_MANDATORY_GROUP_BY,
+        KEY_ORDER_HITS,
+        KEY_ORDER_CLASS,
+        KEY_ORDER_NAME,
+        KEY__SWITCH__MAX
+    },
+    {
+        KEY_MANDATORY_GROUP_BY,
+        KEY_ORDER_UUID,
+        KEY_ORDER_NAME,
+        KEY_ORDER_PERMS,
+        KEY__SWITCH__MAX
+    },
+    {
+
+        KEY_MANDATORY_GROUP_BY,
+        KEY_ORDER_SERIALNUM,
+        KEY_ORDER_NAME,
+        KEY_ORDER_DATE,
+        KEY_ORDER_HITS,
+        KEY__SWITCH__MAX
+    },
+    {
+
+        KEY_MANDATORY_GROUP_BY,
+        KEY_ORDER_SERIALNUM,
+        KEY_ORDER_STOCK,
+        KEY__SWITCH__MAX
+    },
+    {
+
+        KEY_MANDATORY_GROUP_BY,
+        KEY_ORDER_UUID,
+        KEY_ORDER_SERIALNUM,
+        KEY_ORDER_DATE,
+        KEY__SWITCH__MAX
+    },
+    {
+
+        KEY_MANDATORY_GROUP_BY,
+        KEY_ORDER_UUID,
+        KEY_ORDER_SERIALNUM,
+        KEY_ORDER_DATE,
+        KEY__SWITCH__MAX
+    },
+    {
+
+        KEY_MANDATORY_GROUP_BY,
+        KEY_ORDER_UUID,
+        KEY_ORDER_DATE,
+        KEY__SWITCH__MAX
+    }
+};
+static struct sqlbox_pstmt pstmts_bottom[STMTS__MAX][5] = {
+    {
+        {(char *) "publisherName"},
+        {(char *) "SUM(hits)"},
+        {(char *) "publisherName"},
+    },
+    {
+        {(char *) "authorName"},
+        {(char *) "SUM(hits)"},
+        {(char *) "authorName"},
+    },
+    {
+        {(char *) "langCode"},
+        {(char *) "SUM(hits)"},
+        {(char *) "langCode"},
+    },
+    {
+        {(char *) "typeName"},
+        {(char *) "SUM(hits)"},
+        {(char *) "typeName"},
+    },
+    {
+        {(char *) "campusName "},
+        {(char *) "campusName "},
+    },
+    {
+        {(char *) "roleName, perms"},
+        {(char *) "perms"},
+        {(char *) "roleName"},
+    },
+    {
+        {(char *) "categoryClass, categoryName, parentCategoryID"},
+        {(char *) "SUM(hits)"},
+        {(char *) "categoryClass"},
+        {(char *) "categoryName"},
+    },
+    {
+
+        {(char *) "ACCOUNT.UUID, displayname, pwhash, campus, perms, frozen"},
+        {(char *) "UUID"},
+        {(char *) "displayname"},
+        {(char *) "perms"},
     },
     {
         {
             (char *)
-            "GROUP BY BOOK.serialnum, type, category, categoryName, publisher, booktitle, bookreleaseyear, bookcover, hits"
+            "BOOK.serialnum, type, category, categoryName, publisher, booktitle, bookreleaseyear, bookcover, hits"
         },
-        {(char *) "ORDER BY serialnum"},
-        {(char *) "ORDER BY booktitle"},
-        {(char *) "ORDER BY hits"},
-        {(char *) "LIMIT (?),(? * ?)"}
+        {(char *) "serialnum"},
+        {(char *) "booktitle"},
+        {(char *) "bookreleaseyear"},
+        {(char *) "hits"},
     },
     {
-        {(char *) "GROUP BY STOCK.serialnum, campus, instock,hits"},
-        {(char *) "ORDER BY BOOK.serialnum"},
-        {(char *) "ORDER BY instock"},
-        {(char *) "LIMIT (?),(? * ?)"},
+        {(char *) "STOCK.serialnum, campus, instock,hits"},
+        {(char *) "BOOK.serialnum"},
+        {(char *) "instock"},
     },
     {
-        {(char *) "GROUP BY UUID, serialnum, rentduration, rentdate, extended"},
-        {(char *) "ORDER BY UUID"},
-        {(char *) "ORDER BY serialnum"},
-        {(char *) "ORDER BY rentdate"},
-        {(char *) "LIMIT (?),(? * ?)"},
+        {(char *) "UUID, serialnum, rentduration, rentdate, extended"},
+        {(char *) "UUID"},
+        {(char *) "serialnum"},
+        {(char *) "rentdate"},
     },
     {
-        {(char *)"GROUP BY UUID, UUID_ISSUER, serialnum, action, actiondate"},
-        {(char *)"ORDER BY UUID"},
-        {(char *)"ORDER BY serialnum"},
-        {(char *)"ORDER BY actiondate"},
-        {(char *)"LIMIT (?),(? * ?)"}
+        {(char *) "UUID, UUID_ISSUER, serialnum, action, actiondate"},
+        {(char *) "UUID"},
+        {(char *) "serialnum"},
+        {(char *) "actiondate"},
     },
     {
-        {(char *)"GROUP BY account,sessionID,expiresAt "},
-        {(char *)"ORDER BY account"},
-        {(char *)"ORDER BY expiresAt"},
-        {(char *)"LIMIT (?),(? * ?)"},
+        {(char *) "account,sessionID,expiresAt "},
+        {(char *) "account"},
+        {(char *) "expiresAt"},
     }
 };
 static struct sqlbox_pstmt pstmts_data[STMTS__MAX] = {
