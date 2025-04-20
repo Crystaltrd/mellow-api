@@ -865,7 +865,6 @@ int fill_parms(enum statement_pieces STMT) {
                               curr_usr.perms.manage_inventories && STMT == STMTS_INVENTORY) || (
                               curr_usr.perms.see_accounts && STMT == STMTS_ACCOUNT))) {
                         parms[n - 1] = (struct sqlbox_parm){.type = SQLBOX_PARM_STRING, .sparm = curr_usr.UUID};
-                        errx(EXIT_FAILURE, "index %d", n);
                     }
                 }
             }
@@ -1158,9 +1157,9 @@ int main(void) {
         return 0;
     }
     const enum statement_pieces STMT = get_stmts();
+    fill_user();
     build_stmt(STMT);
     alloc_ctx_cfg();
-    fill_user();
     if (!fill_parms(STMT)) goto access_denied;
     save(false);
     process(STMT);
