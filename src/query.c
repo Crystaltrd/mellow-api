@@ -896,6 +896,7 @@ int fill_parms(enum statement_pieces STMT) {
     parms[n++] = (struct sqlbox_parm){
         .type = SQLBOX_PARM_INT, .iparm = r.fieldmap[KEY_LIMIT] ? r.fieldmap[KEY_LIMIT]->parsed.i : 25
     };
+        errx(EXIT_FAILURE, "UUID: %s",parms[0].sparm);
     return 1;
 }
 
