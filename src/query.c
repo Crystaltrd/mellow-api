@@ -578,6 +578,29 @@ int main(void) {
     const enum statement STMT = get_stmts();
     khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
     khttp_body(&r);
+    if (STMT == STMTS_BOOK) {
+        if (r.fieldmap[KEY_SWITCH_CLASS]) {
+            khttp_puts(&r, "WITH RECURSIVE CategoryCascade AS (SELECT categoryClass, parentCategoryID "
+                       "FROM CATEGORY "
+                       "WHERE "
+                       "categoryClass = (?)) "
+                       "UNION ALL "
+                       "SELECT c.categoryClass, c.parentCategoryID "
+                       "FROM CATEGORY c "
+                       "INNER JOIN CategoryCascade ct ON c.parentCategoryID = ct.categoryClass) ");
+        }
+        else {
+
+            khttp_puts(&r, "WITH RECURSIVE CategoryCascade AS (SELECT categoryClass, parentCategoryID "
+                       "FROM CATEGORY "
+                       "WHERE "
+                       "parentCategoryID IS NULL "
+                       "UNION ALL "
+                       "SELECT c.categoryClass, c.parentCategoryID "
+                       "FROM CATEGORY c "
+                       "INNER JOIN CategoryCascade ct ON c.parentCategoryID = ct.categoryClass) ");
+        }
+    }
     khttp_puts(&r, pstms_data_top[STMT].stmt);
     bool flag = false;
     for (int i = 0; switch_keys[STMT][i] != KEY__MAX; i++) {
