@@ -644,6 +644,9 @@ struct sqlbox_src srcs[] = {
 struct sqlbox *boxctx_data;
 struct sqlbox_cfg cfg_data;
 size_t dbid_data; // Database associated with a config and a context for query results
+struct sqlbox *boxctx_login;
+struct sqlbox_cfg cfg_login;
+size_t dbid_login;
 struct sqlbox_parm *parms; //Array of statement parameters
 size_t parmsz;
 /*
@@ -663,6 +666,18 @@ void alloc_ctx_cfg() {
 }
 
 
+void alloc_ctx_cfg_login() {
+    memset(&cfg_login, 0, sizeof(struct sqlbox_cfg));
+    cfg_login.msg.func_short = warnx;
+    cfg_login.srcs.srcsz = 1;
+    cfg_login.srcs.srcs = srcs;
+    cfg_login.stmts.stmtsz = 1;
+    cfg_login.stmts.stmts = &pstmts[STMT_LOGIN];
+    if ((boxctx_login = sqlbox_alloc(&cfg_login)) == NULL)
+        errx(EXIT_FAILURE, "sqlbox_alloc");
+    if (!(dbid_login = sqlbox_open(boxctx_login, 0)))
+        errx(EXIT_FAILURE, "sqlbox_open");
+}
 struct usr {
     char *UUID;
     char *disp_name;
@@ -695,9 +710,9 @@ void fill_user() {
         struct sqlbox_parm parms[] = {
             {.type = SQLBOX_PARM_STRING, .sparm = field->parsed.s},
         };
-        if (!(stmtid = sqlbox_prepare_bind(boxctx_data, dbid_data, STMT_LOGIN, parmsz, parms, 0)))
+        if (!(stmtid = sqlbox_prepare_bind(boxctx_login, dbid_login, 0, parmsz, parms, 0)))
             errx(EXIT_FAILURE, "sqlbox_prepare_bind");
-        if ((res = sqlbox_step(boxctx_data, stmtid)) == NULL)
+        if ((res = sqlbox_step(boxctx_login, stmtid)) == NULL)
             errx(EXIT_FAILURE, "sqlbox_step");
         if (res->psz != 0) {
             curr_usr.authenticated = true;
@@ -715,7 +730,7 @@ void fill_user() {
 
             curr_usr.frozen = res->ps[6].iparm;
         }
-        sqlbox_finalise(boxctx_data, stmtid);
+        sqlbox_finalise(boxctx_login, stmtid);
     }
 }
 
@@ -1157,10 +1172,11 @@ int main(void) {
         return 0;
     }
     const enum statement_pieces STMT = get_stmts();
-
-    alloc_ctx_cfg();
+    alloc_ctx_cfg_login();
     fill_user();
+    sqlbox_free(boxctx_login);
     build_stmt(STMT);
+    alloc_ctx_cfg();
     if (!fill_parms(STMT)) goto access_denied;
     save(false);
     process(STMT);
