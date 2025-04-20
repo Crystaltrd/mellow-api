@@ -752,8 +752,7 @@ void build_stmt(enum statement_pieces STMT) {
         if (i == 0) {
             kasprintf(&pstmts[STMT_DATA].stmt, "%s %s", pstmts[STMT_DATA].stmt, rows[STMT][i]);
             kasprintf(&pstmts[STMT_COUNT].stmt, "%s %s", pstmts[STMT_COUNT].stmt, rows[STMT][i]);
-        }
-        else {
+        } else {
             kasprintf(&pstmts[STMT_DATA].stmt, "%s,%s", pstmts[STMT_DATA].stmt, rows[STMT][i]);
             kasprintf(&pstmts[STMT_COUNT].stmt, "%s,%s", pstmts[STMT_COUNT].stmt, rows[STMT][i]);
         }
@@ -923,7 +922,6 @@ void process(const enum statement STATEMENT) {
     const struct sqlbox_parmset *res;
     if (!(stmtid_data = sqlbox_prepare_bind(boxctx_data, dbid_data, STMT_DATA, parmsz, parms, SQLBOX_STMT_MULTI)))
         errx(EXIT_FAILURE, "sqlbox_prepare_bind");
-        errx(EXIT_FAILURE, "STMT: %s, LIMIT & OFFSET : %ld %ld %ld",pstmts[STMT_DATA].stmt, parms[parmsz-3].iparm, parms[parmsz-2].iparm, parms[parmsz-1].iparm);
     khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
     khttp_head(&r, kresps[KRESP_CONTENT_TYPE], "%s", kmimetypes[KMIME_APP_JSON]);
     khttp_body(&r);
@@ -931,6 +929,17 @@ void process(const enum statement STATEMENT) {
     kjson_obj_open(&req);
     kjson_objp_open(&req, "user");
     kjson_putstringp(&req, "IP", r.remote);
+    kjson_putstringp(&req, "STMT", pstmts[STMT_DATA].stmt);
+    kjson_arrayp_open(&req, "parms");
+    for (int i = 0; i < parmsz; ++i) {
+        if (parms[i].type == SQLBOX_PARM_INT) {
+            kjson_putint(&req, parms[i].iparm);
+        }
+        if (parms[i].type == SQLBOX_PARM_STRING) {
+            kjson_putstring(&req, parms[i].sparm);
+        }
+    }
+    kjson_array_close(&req);
     kjson_putboolp(&req, "authenticated", curr_usr.authenticated);
     if (curr_usr.authenticated) {
         kjson_putstringp(&req, "UUID", curr_usr.UUID);
@@ -1060,7 +1069,7 @@ void process(const enum statement STATEMENT) {
     if (!sqlbox_finalise(boxctx_data, stmtid_data))
         errx(EXIT_FAILURE, "sqlbox_finalise");
     kjson_array_close(&req);
-    if (!(stmtid_data = sqlbox_prepare_bind(boxctx_data, dbid_data, STMT_COUNT, parmsz-3, parms, SQLBOX_STMT_MULTI)))
+    if (!(stmtid_data = sqlbox_prepare_bind(boxctx_data, dbid_data, STMT_COUNT, parmsz - 3, parms, SQLBOX_STMT_MULTI)))
         errx(EXIT_FAILURE, "sqlbox_prepare_bind");
     if ((res = sqlbox_step(boxctx_data, stmtid_data)) == NULL)
         errx(EXIT_FAILURE, "sqlbox_step");
