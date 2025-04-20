@@ -578,11 +578,11 @@ int main(void) {
         khttp_puts(&r, pstmts_bottom[STMT][i].stmt);
         if (bottom_keys[STMT][i] != KEY_MANDATORY_GROUP_BY) {
             if (order_field != NULL) {
-               khttp_puts(&r,(order_field->parsed.i > 0) ? " ASC " : " DESC ");
+               khttp_puts(&r,(order_field->parsed.i > 0) ? " ASC" : " DESC");
                 order_field= order_field->next;
             }
             else {
-               khttp_puts(&r," DESC ");
+               khttp_puts(&r," DESC");
             }
         }
     }
