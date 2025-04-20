@@ -291,8 +291,8 @@ enum statement {
 };
 
 static struct sqlbox_pstmt pstmts[STMT__MAX] = {
-    {(char *)""},
-    {(char *)""},
+    {(char *) ""},
+    {(char *) ""},
     {
         (char *)
         "SELECT ACCOUNT.UUID, displayname, pwhash, campus, role, perms, frozen "
@@ -318,82 +318,82 @@ static struct sqlbox_pstmt pstmts[STMT__MAX] = {
 };
 static char *pstmts_switches[STMTS__MAX][10] = {
     {
-        {(char *) "instr(publisherName,(?)) > 0"},
-        {(char *) "serialnum = (?)"}
+        "instr(publisherName,(?)) > 0",
+        "serialnum = (?)}
     },
     {
-        {(char *) "instr(authorName,(?)) > 0"},
-        {(char *) "A.serialnum = (?)"}
+        "instr(authorName,(?)) > 0",
+        "A.serialnum = (?)}
     },
     {
-        {(char *) "instr(langCode,(?)) > 0"},
-        {(char *) "A.serialnum = (?)"}
+        "instr(langCode,(?)) > 0",
+        "A.serialnum = (?)}
     },
     {
-        {(char *) "instr(actionName,(?)) > 0"}
+        "instr(actionName,(?)) > 0}
     },
     {
-        {(char *) "instr(typeName,(?)) > 0"},
-        {(char *) "serialnum = (?)"}
+        "instr(typeName,(?)) > 0",
+        "serialnum = (?)}
     },
     {
-        {(char *) "instr(campusName,(?)) > 0"},
-        {(char *) "serialnum = (?)"},
-        {(char *) "UUID = (?)"}
+        "instr(campusName,(?)) > 0",
+        "serialnum = (?)",
+        "UUID = (?)}
     },
     {
-        {(char *) "instr(roleName,(?)) > 0"},
-        {(char *) "perms = (?)"},
-        {(char *) "UUID = (?)"}
+        "instr(roleName,(?)) > 0",
+        "perms = (?)",
+        "UUID = (?)}
     },
     {
-        {(char *) "parentCategoryID IS NULL"},
-        {(char *) "parentCategoryID = (?)"},
-        {(char *) "instr(categoryName,(?)) > 0"},
-        {(char *) "categoryClass = (?)"},
-        {(char *) "serialnum = (?)"},
+        "parentCategoryID IS NULL",
+        "parentCategoryID = (?)",
+        "instr(categoryName,(?)) > 0",
+        "categoryClass = (?)",
+        "serialnum = (?)",
     },
     {
-        {(char *) "ACCOUNT.UUID = (?)"},
-        {(char *) "instr(displayname, (?))> 0"},
-        {(char *) "serialnum = (?)"},
-        {(char *) "campus = (?)"},
-        {(char *) "role = (?)"},
-        {(char *) "frozen = (?)"},
-        {(char *) "sessionID = (?)"},
+        "ACCOUNT.UUID = (?)",
+        "instr(displayname, (?))> 0",
+        "serialnum = (?)",
+        "campus = (?)",
+        "role = (?)",
+        "frozen = (?)",
+        "sessionID = (?)",
     },
     {
-        {(char *) "BOOK.serialnum = (?)"},
-        {(char *) "instr(booktitle, (?))"},
-        {(char *) "lang = (?)"},
-        {(char *) "instr(author, (?)) > 0"},
-        {(char *) "type = (?)"},
-        {(char *) "instr(publisher, (?)) > 0"},
-        {(char *) "campus = (?)"},
-        {(char *) "UUID = (?)"},
-        {(char *) "bookreleaseyear >= (?)"},
-        {(char *) "bookreleaseyear <= (?)"},
+        "BOOK.serialnum = (?)",
+        "instr(booktitle, (?))",
+        "lang = (?)",
+        "instr(author, (?)) > 0",
+        "type = (?)",
+        "instr(publisher, (?)) > 0",
+        "campus = (?)",
+        "UUID = (?)",
+        "bookreleaseyear >= (?)",
+        "bookreleaseyear <= (?)",
     },
     {
-        {(char *) "STOCK.serialnum = (?)"},
-        {(char *) "campus = (?)"},
-        {(char *) "instock > 0"},
+        "STOCK.serialnum = (?)",
+        "campus = (?)",
+        "instock > 0",
     },
     {
-        {(char *) "UUID = (?)"},
-        {(char *) "serialnum = (?)"}
+        "UUID = (?)",
+        "serialnum = (?)}
     },
     {
-        {(char *) "UUID = (?)"},
-        {(char *) "UUID_ISSUER = (?)"},
-        {(char *) "serialnum = (?)"},
-        {(char *) "action = (?)"},
-        {(char *) "actiondate >= datetime((?),'unixepoch')"},
-        {(char *) "actiondate <= datetime((?),'unixepoch')"},
+        "UUID = (?)",
+        "UUID_ISSUER = (?)",
+        "serialnum = (?)",
+        "action = (?)",
+        "actiondate >= datetime((?),'unixepoch')",
+        "actiondate <= datetime((?),'unixepoch')",
     },
     {
-        {(char *) "sessionID = (?)"},
-        {(char *) "account = (?)"},
+        "sessionID = (?)",
+        "account = (?)",
     }
 };
 
@@ -614,24 +614,28 @@ int build_stmt(enum statement_pieces STMT) {
     int n = 0;
     if (STMT == STMTS_BOOK) {
         if (r.fieldmap[KEY_SWITCH_CLASS]) {
-            kasprintf(&pstmts[STMT_DATA].stmt, "%s""WITH RECURSIVE CategoryCascade AS (SELECT categoryClass, parentCategoryID "
+            kasprintf(&pstmts[STMT_DATA].stmt,
+                      "%s""WITH RECURSIVE CategoryCascade AS (SELECT categoryClass, parentCategoryID "
                       "FROM CATEGORY "
                       "WHERE "
                       "categoryClass = (?)) "
                       "UNION ALL "
                       "SELECT c.categoryClass, c.parentCategoryID "
                       "FROM CATEGORY c "
-                      "INNER JOIN CategoryCascade ct ON c.parentCategoryID = ct.categoryClass) ", pstmts[STMT_DATA].stmt);
-           n++;
+                      "INNER JOIN CategoryCascade ct ON c.parentCategoryID = ct.categoryClass) ",
+                      pstmts[STMT_DATA].stmt);
+            n++;
         } else {
-            kasprintf(&pstmts[STMT_DATA].stmt, "%s""WITH RECURSIVE CategoryCascade AS (SELECT categoryClass, parentCategoryID "
+            kasprintf(&pstmts[STMT_DATA].stmt,
+                      "%s""WITH RECURSIVE CategoryCascade AS (SELECT categoryClass, parentCategoryID "
                       "FROM CATEGORY "
                       "WHERE "
                       "parentCategoryID IS NULL "
                       "UNION ALL "
                       "SELECT c.categoryClass, c.parentCategoryID "
                       "FROM CATEGORY c "
-                      "INNER JOIN CategoryCascade ct ON c.parentCategoryID = ct.categoryClass) ", pstmts[STMT_DATA].stmt);
+                      "INNER JOIN CategoryCascade ct ON c.parentCategoryID = ct.categoryClass) ",
+                      pstmts[STMT_DATA].stmt);
         }
     }
     kasprintf(&pstmts[STMT_DATA].stmt, "%s SELECT", pstmts[STMT_DATA].stmt);
@@ -687,13 +691,15 @@ int build_stmt(enum statement_pieces STMT) {
                 }
                 kasprintf(&pstmts[STMT_DATA].stmt, "%s%s", pstmts[STMT_DATA].stmt, pstmts_bottom[STMT][i]);
                 kasprintf(&pstmts[STMT_COUNT].stmt, "%s%s", pstmts[STMT_COUNT].stmt, pstmts_bottom[STMT][i]);
-                kasprintf(&pstmts[STMT_DATA].stmt, "%s%s", pstmts[STMT_DATA].stmt, (r.fieldmap[bottom_keys[STMT][i]]->parsed.i == 0) ? " DESC" : " ASC");
-                kasprintf(&pstmts[STMT_COUNT].stmt, "%s%s", pstmts[STMT_COUNT].stmt, (r.fieldmap[bottom_keys[STMT][i]]->parsed.i == 0) ? " DESC" : " ASC");
+                kasprintf(&pstmts[STMT_DATA].stmt, "%s%s", pstmts[STMT_DATA].stmt,
+                          (r.fieldmap[bottom_keys[STMT][i]]->parsed.i == 0) ? " DESC" : " ASC");
+                kasprintf(&pstmts[STMT_COUNT].stmt, "%s%s", pstmts[STMT_COUNT].stmt,
+                          (r.fieldmap[bottom_keys[STMT][i]]->parsed.i == 0) ? " DESC" : " ASC");
             }
         }
     }
     kasprintf(&pstmts[STMT_DATA].stmt, "%s"" LIMIT(?),(? * ?)", pstmts[STMT_DATA].stmt);
-    return n+=3;
+    return n += 3;
 }
 
 int main(void) {
@@ -713,11 +719,11 @@ int main(void) {
     }
     const enum statement_pieces STMT = get_stmts();
     char *buf;
-    kasprintf(&buf,"NBR: %d",build_stmt(STMT));
+    kasprintf(&buf, "NBR: %d", build_stmt(STMT));
     khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
     khttp_body(&r);
     khttp_puts(&r, pstmts[STMT_DATA].stmt);
-    khttp_puts(&r,buf);
+    khttp_puts(&r, buf);
     khttp_free(&r);
     return EXIT_SUCCESS;
 }
