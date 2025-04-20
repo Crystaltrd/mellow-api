@@ -584,6 +584,9 @@ int main(void) {
                 if (!strstr(pstms_data_top[STMT].stmt,"WHERE")) {
                 khttp_puts(&r, " WHERE ");
                 }
+                else {
+                khttp_puts(&r, " AND ");
+                }
                 flag = true;
             } else {
                 khttp_puts(&r, " AND ");
