@@ -572,11 +572,11 @@ int main(void) {
     for (int i = 0; i < n; ++i) {
         field = r.fieldmap[KEY_TEST];
         int m = 0;
-        while (m < n-i) {
+        while (m < n - i) {
             m++;
-            khttp_puts(&r,field->parsed.s);
             field = field->next;
         }
+        khttp_puts(&r, field->parsed.s);
     }
 
     /*for (int i = 0; bottom_keys[STMT][i] != KEY__SWITCH__MAX; i++) {
