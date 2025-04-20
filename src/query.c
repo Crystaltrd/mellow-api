@@ -230,11 +230,11 @@ enum key {
     KEY_ORDER_SERIALNUM,
     KEY_ORDER_DATE,
     KEY_ORDER_STOCK,
-    KEY_MANDATORY_GROUP_BY,
     KEY_LIMIT,
     KEY_OFFSET,
     KEY_CASCADE,
     KEY_TREE,
+    KEY_MANDATORY_GROUP_BY,
     KEY__MAX
 };
 
@@ -574,6 +574,8 @@ enum khttp sanitize() {
         return KHTTP_404;
     if (r.fieldmap[KEY_SWITCH_ROOT] && r.fieldmap[KEY_SWITCH_PARENT])
         return KHTTP_400;
+    if (r.fieldmap[KEY_TREE] && r.fieldmap[KEY_CASCADE])
+        return KHTTP_404;
     return KHTTP_200;
 }
 
@@ -636,7 +638,7 @@ int main(void) {
             kasprintf(&stmt, "%s%s", stmt, pstmts_switches[STMT][i].stmt);
         }
         if (switch_keys[STMT][i] == KEY_SWITCH_PARENT && (r.fieldmap[KEY_TREE] || r.fieldmap[KEY_CASCADE]))
-            kasprintf(&stmt_cat, "%sparentCategoryID = (?)", stmt);
+            kasprintf(&stmt_cat, "%sWHERE parentCategoryID = (?)", stmt);
     }
     flag = false;
     for (int i = 0; bottom_keys[STMT][i] != KEY__MAX; i++) {
