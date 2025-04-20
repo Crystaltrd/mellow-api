@@ -613,7 +613,6 @@ enum khttp sanitize() {
 int build_stmt(enum statement_pieces STMT) {
     int n = 0;
     if (STMT == STMTS_BOOK) {
-        n++;
         if (r.fieldmap[KEY_SWITCH_CLASS]) {
             kasprintf(&pstmts[STMT_DATA].stmt, "%s""WITH RECURSIVE CategoryCascade AS (SELECT categoryClass, parentCategoryID "
                       "FROM CATEGORY "
@@ -623,6 +622,7 @@ int build_stmt(enum statement_pieces STMT) {
                       "SELECT c.categoryClass, c.parentCategoryID "
                       "FROM CATEGORY c "
                       "INNER JOIN CategoryCascade ct ON c.parentCategoryID = ct.categoryClass) ", pstmts[STMT_DATA].stmt);
+           n++;
         } else {
             kasprintf(&pstmts[STMT_DATA].stmt, "%s""WITH RECURSIVE CategoryCascade AS (SELECT categoryClass, parentCategoryID "
                       "FROM CATEGORY "
