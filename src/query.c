@@ -410,11 +410,9 @@ static enum key bottom_keys[STMTS__MAX][8] = {
     },
     {
         KEY_MANDATORY_GROUP_BY,
-        KEY_ORDER_HITS,
         KEY_ORDER_NAME,
         KEY__MAX
     },
-
     {
         KEY_MANDATORY_GROUP_BY,
         KEY_ORDER_HITS,
@@ -498,6 +496,10 @@ static struct sqlbox_pstmt pstmts_bottom[STMTS__MAX][5] = {
         {(char *) "langCode"},
         {(char *) "SUM(hits)"},
         {(char *) "langCode"},
+    },
+    {
+        {(char *)"actionName"},
+        {(char *)"actionName"},
     },
     {
         {(char *) "typeName"},
