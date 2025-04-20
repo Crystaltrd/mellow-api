@@ -211,7 +211,7 @@ static struct sqlbox_pstmt pstms_data_top[STMTS__MAX] = {
     },
 };
 
-enum key_switches {
+enum key {
     KEY_SWITCH_NAME,
     KEY_SWITCH_SERIALNUM,
     KEY_SWITCH_UUID,
@@ -243,7 +243,40 @@ enum key_switches {
     KEY_ORDER_DATE,
     KEY_ORDER_STOCK,
     KEY_MANDATORY_GROUP_BY,
-    KEY__SWITCH__MAX
+    KEY__MAX
+};
+
+static const struct kvalid keys[KEY__MAX] = {
+    {kvalid_stringne, "name"},
+    {kvalid_stringne, "serialnum"},
+    {kvalid_stringne, "uuid"},
+    {kvalid_stringne, "perms"},
+    {kvalid_bit, "root"},
+    {kvalid_stringne, "parent"},
+    {kvalid_stringne, "class"},
+    {kvalid_stringne, "campus"},
+    {kvalid_stringne, "role"},
+    {kvalid_bit, "frozen"},
+    {kvalid_stringne, "sessionid"},
+    {kvalid_stringne, "lang"},
+    {kvalid_stringne, "author"},
+    {kvalid_stringne, "publisher"},
+    {kvalid_stringne, "type"},
+    {kvalid_int, "upperyear"},
+    {kvalid_int, "loweryear"},
+    {kvalid_bit, "notempty"},
+    {kvalid_stringne, "issuer"},
+    {kvalid_stringne, "action"},
+    {kvalid_date, "upperdate"},
+    {kvalid_date, "lowerdate"},
+    {kvalid_bit, "order_hits"},
+    {kvalid_bit, "order_name"},
+    {kvalid_bit, "order_perms"},
+    {kvalid_bit, "order_class"},
+    {kvalid_bit, "order_uuid"},
+    {kvalid_bit, "order_serialnum"},
+    {kvalid_bit, "order_date"},
+    {kvalid_bit, "order_stock"},
 };
 
 static struct sqlbox_pstmt pstmts_switches[STMTS__MAX][10] = {
@@ -329,30 +362,30 @@ static struct sqlbox_pstmt pstmts_switches[STMTS__MAX][10] = {
 
 static enum key_switches switch_keys[STMTS__MAX][11] = {
 
-    {KEY_SWITCH_NAME, KEY_SWITCH_SERIALNUM, KEY__SWITCH__MAX},
-    {KEY_SWITCH_NAME, KEY_SWITCH_SERIALNUM, KEY__SWITCH__MAX},
-    {KEY_SWITCH_NAME, KEY_SWITCH_SERIALNUM, KEY__SWITCH__MAX},
-    {KEY_SWITCH_NAME, KEY__SWITCH__MAX},
-    {KEY_SWITCH_NAME, KEY_SWITCH_SERIALNUM, KEY__SWITCH__MAX},
-    {KEY_SWITCH_NAME, KEY_SWITCH_SERIALNUM, KEY_SWITCH_UUID, KEY__SWITCH__MAX},
-    {KEY_SWITCH_NAME, KEY_SWITCH_PERMS, KEY_SWITCH_UUID, KEY__SWITCH__MAX},
-    {KEY_SWITCH_ROOT, KEY_SWITCH_PARENT, KEY_SWITCH_NAME, KEY_SWITCH_CLASS, KEY_SWITCH_SERIALNUM, KEY__SWITCH__MAX},
+    {KEY_SWITCH_NAME, KEY_SWITCH_SERIALNUM, KEY__MAX},
+    {KEY_SWITCH_NAME, KEY_SWITCH_SERIALNUM, KEY__MAX},
+    {KEY_SWITCH_NAME, KEY_SWITCH_SERIALNUM, KEY__MAX},
+    {KEY_SWITCH_NAME, KEY__MAX},
+    {KEY_SWITCH_NAME, KEY_SWITCH_SERIALNUM, KEY__MAX},
+    {KEY_SWITCH_NAME, KEY_SWITCH_SERIALNUM, KEY_SWITCH_UUID, KEY__MAX},
+    {KEY_SWITCH_NAME, KEY_SWITCH_PERMS, KEY_SWITCH_UUID, KEY__MAX},
+    {KEY_SWITCH_ROOT, KEY_SWITCH_PARENT, KEY_SWITCH_NAME, KEY_SWITCH_CLASS, KEY_SWITCH_SERIALNUM, KEY__MAX},
     {
         KEY_SWITCH_UUID, KEY_SWITCH_NAME, KEY_SWITCH_SERIALNUM, KEY_SWITCH_CAMPUS, KEY_SWITCH_ROLE, KEY_SWITCH_FROZEN,
-        KEY_SWITCH_SESSIONID, KEY__SWITCH__MAX
+        KEY_SWITCH_SESSIONID, KEY__MAX
     },
     {
         KEY_SWITCH_SERIALNUM, KEY_SWITCH_NAME, KEY_SWITCH_LANG, KEY_SWITCH_AUTHOR, KEY_SWITCH_ROLE,
         KEY_SWITCH_PUBLISHER, KEY_SWITCH_CAMPUS, KEY_SWITCH_UUID, KEY_SWITCH_UPPERYEAR, KEY_SWITCH_LOWERYEAR,
-        KEY__SWITCH__MAX
+        KEY__MAX
     },
-    {KEY_SWITCH_SERIALNUM, KEY_SWITCH_CAMPUS, KEY_SWITCH_NOTEMPTY, KEY__SWITCH__MAX},
-    {KEY_SWITCH_UUID, KEY_SWITCH_SERIALNUM, KEY__SWITCH__MAX},
+    {KEY_SWITCH_SERIALNUM, KEY_SWITCH_CAMPUS, KEY_SWITCH_NOTEMPTY, KEY__MAX},
+    {KEY_SWITCH_UUID, KEY_SWITCH_SERIALNUM, KEY__MAX},
     {
         KEY_SWITCH_UUID, KEY_SWITCH_ISSUER, KEY_SWITCH_SERIALNUM, KEY_SWITCH_ACTION, KEY_SWITCH_UPPERYEAR,
-        KEY_SWITCH_LOWERDATE, KEY__SWITCH__MAX
+        KEY_SWITCH_LOWERDATE, KEY__MAX
     },
-    {KEY_SWITCH_SESSIONID, KEY_SWITCH_UUID, KEY__SWITCH__MAX}
+    {KEY_SWITCH_SESSIONID, KEY_SWITCH_UUID, KEY__MAX}
 };
 
 
@@ -361,37 +394,37 @@ static enum key_switches bottom_keys[STMTS__MAX][8] = {
         KEY_MANDATORY_GROUP_BY,
         KEY_ORDER_HITS,
         KEY_ORDER_NAME,
-        KEY__SWITCH__MAX
+        KEY__MAX
     },
     {
         KEY_MANDATORY_GROUP_BY,
         KEY_ORDER_HITS,
         KEY_ORDER_NAME,
-        KEY__SWITCH__MAX
+        KEY__MAX
     },
     {
         KEY_MANDATORY_GROUP_BY,
         KEY_ORDER_HITS,
         KEY_ORDER_NAME,
-        KEY__SWITCH__MAX
+        KEY__MAX
     },
     {
         KEY_MANDATORY_GROUP_BY,
         KEY_ORDER_HITS,
         KEY_ORDER_NAME,
-        KEY__SWITCH__MAX
+        KEY__MAX
     },
     {
         KEY_MANDATORY_GROUP_BY,
         KEY_ORDER_NAME,
-        KEY__SWITCH__MAX
+        KEY__MAX
     },
 
     {
         KEY_MANDATORY_GROUP_BY,
         KEY_ORDER_PERMS,
         KEY_ORDER_NAME,
-        KEY__SWITCH__MAX
+        KEY__MAX
     },
 
     {
@@ -399,14 +432,14 @@ static enum key_switches bottom_keys[STMTS__MAX][8] = {
         KEY_ORDER_HITS,
         KEY_ORDER_CLASS,
         KEY_ORDER_NAME,
-        KEY__SWITCH__MAX
+        KEY__MAX
     },
     {
         KEY_MANDATORY_GROUP_BY,
         KEY_ORDER_UUID,
         KEY_ORDER_NAME,
         KEY_ORDER_PERMS,
-        KEY__SWITCH__MAX
+        KEY__MAX
     },
     {
         KEY_MANDATORY_GROUP_BY,
@@ -414,33 +447,33 @@ static enum key_switches bottom_keys[STMTS__MAX][8] = {
         KEY_ORDER_NAME,
         KEY_ORDER_DATE,
         KEY_ORDER_HITS,
-        KEY__SWITCH__MAX
+        KEY__MAX
     },
     {
         KEY_MANDATORY_GROUP_BY,
         KEY_ORDER_SERIALNUM,
         KEY_ORDER_STOCK,
-        KEY__SWITCH__MAX
+        KEY__MAX
     },
     {
         KEY_MANDATORY_GROUP_BY,
         KEY_ORDER_UUID,
         KEY_ORDER_SERIALNUM,
         KEY_ORDER_DATE,
-        KEY__SWITCH__MAX
+        KEY__MAX
     },
     {
         KEY_MANDATORY_GROUP_BY,
         KEY_ORDER_UUID,
         KEY_ORDER_SERIALNUM,
         KEY_ORDER_DATE,
-        KEY__SWITCH__MAX
+        KEY__MAX
     },
     {
         KEY_MANDATORY_GROUP_BY,
         KEY_ORDER_UUID,
         KEY_ORDER_DATE,
-        KEY__SWITCH__MAX
+        KEY__MAX
     }
 };
 static struct sqlbox_pstmt pstmts_bottom[STMTS__MAX][5] = {
@@ -529,14 +562,6 @@ enum khttp sanitize() {
     return KHTTP_200;
 }
 
-enum key {
-    KEY_TEST,
-    KEY__MAX
-};
-
-static const struct kvalid keys[KEY__MAX] = {
-    {kvalid_int, "order"}
-};
 
 int main(void) {
     enum khttp er;
@@ -557,32 +582,26 @@ int main(void) {
     khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
     khttp_body(&r);
     khttp_puts(&r, pstms_data_top[STMT].stmt);
-    for (int i = 0; switch_keys[STMT][i] != KEY__SWITCH__MAX; i++) {
+    for (int i = 0; switch_keys[STMT][i] != KEY__MAX; i++) {
         if (i != 0)
             khttp_puts(&r, " AND ");
         khttp_puts(&r, pstmts_switches[STMT][i].stmt);
     }
     bool ordered = false;
-    struct kpair *order_field = r.fieldmap[KEY_TEST];
-    for (int i = 0; bottom_keys[STMT][i] != KEY__SWITCH__MAX; i++) {
-        if (bottom_keys[STMT][i] == KEY_MANDATORY_GROUP_BY)
+    for (int i = 0; bottom_keys[STMT][i] != KEY__MAX; i++) {
+        if (bottom_keys[STMT][i] == KEY_MANDATORY_GROUP_BY) {
             khttp_puts(&r, " GROUP BY ");
-        else {
-            if (!ordered) {
-                khttp_puts(&r, " ORDER BY ");
-                ordered = true;
-            } else {
-                khttp_puts(&r, ",");
-            }
-        }
-        khttp_puts(&r, pstmts_bottom[STMT][i].stmt);
-        if (bottom_keys[STMT][i] != KEY_MANDATORY_GROUP_BY) {
-            if (order_field != NULL) {
-               khttp_puts(&r,(order_field->parsed.i > 0) ? " ASC" : " DESC");
-                order_field= order_field->next;
-            }
-            else {
-               khttp_puts(&r," DESC");
+            khttp_puts(&r, pstmts_bottom[STMT][i].stmt);
+        } else {
+            if (r.fieldmap[bottom_keys[STMT][i]]) {
+                if (!ordered) {
+                    khttp_puts(&r, " ORDER BY ");
+                    ordered = true;
+                } else {
+                    khttp_puts(&r, ",");
+                }
+                khttp_puts(&r, pstmts_bottom[STMT][i].stmt);
+                khttp_puts(&r,(r.fieldmap[bottom_keys[STMT][i]] == 0) ? "DESC" : "ASC");
             }
         }
     }
