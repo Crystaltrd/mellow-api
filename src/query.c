@@ -274,7 +274,6 @@ static const struct kvalid keys[KEY__MAX] = {
     {NULL, "cascade"},
     {NULL, "tree"},
 };
-
 enum statement {
     STMT_DATA,
     STMT_COUNT,
@@ -282,7 +281,6 @@ enum statement {
     STMT_SAVE,
     STMT_CATEGORY_CHILD,
 };
-
 static struct sqlbox_pstmt pstmts_switches[STMTS__MAX][10] = {
     {
         {(char *) "instr(publisherName,(?)) > 0"},
@@ -575,7 +573,7 @@ enum khttp sanitize() {
     if (r.fieldmap[KEY_SWITCH_ROOT] && r.fieldmap[KEY_SWITCH_PARENT])
         return KHTTP_400;
     if (r.fieldmap[KEY_TREE] && r.fieldmap[KEY_CASCADE])
-        return KHTTP_404;
+        return KHTTP_400;
     return KHTTP_200;
 }
 
@@ -597,7 +595,6 @@ int main(void) {
     }
     const enum statement_pieces STMT = get_stmts();
     char *stmt = "";
-    char *stmt_cat = "";
     khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
     khttp_body(&r);
     if (STMT == STMTS_BOOK) {
@@ -621,7 +618,7 @@ int main(void) {
                       "INNER JOIN CategoryCascade ct ON c.parentCategoryID = ct.categoryClass) ", stmt);
         }
     }
-    kasprintf(&stmt, "%s%s", stmt, pstms_data_top[STMT].stmt);
+    kasprintf(&stmt, "%s%s", stmt,pstms_data_top[STMT].stmt);
     bool flag = false;
     for (int i = 0; switch_keys[STMT][i] != KEY__MAX; i++) {
         if (r.fieldmap[switch_keys[STMT][i]]) {
@@ -635,16 +632,14 @@ int main(void) {
             } else {
                 kasprintf(&stmt, "%s"" AND ", stmt);
             }
-            kasprintf(&stmt, "%s%s", stmt, pstmts_switches[STMT][i].stmt);
+            kasprintf(&stmt, "%s%s", stmt,pstmts_switches[STMT][i].stmt);
         }
-        if (switch_keys[STMT][i] == KEY_SWITCH_PARENT && (r.fieldmap[KEY_TREE] || r.fieldmap[KEY_CASCADE]))
-            kasprintf(&stmt_cat, "%sWHERE parentCategoryID = (?)", stmt);
     }
     flag = false;
     for (int i = 0; bottom_keys[STMT][i] != KEY__MAX; i++) {
         if (bottom_keys[STMT][i] == KEY_MANDATORY_GROUP_BY) {
             kasprintf(&stmt, "%s"" GROUP BY ", stmt);
-            kasprintf(&stmt, "%s%s", stmt, pstmts_bottom[STMT][i].stmt);
+            kasprintf(&stmt, "%s%s", stmt,pstmts_bottom[STMT][i].stmt);
         } else {
             if (r.fieldmap[bottom_keys[STMT][i]]) {
                 if (!flag) {
@@ -653,13 +648,13 @@ int main(void) {
                 } else {
                     kasprintf(&stmt, "%s"",", stmt);
                 }
-                kasprintf(&stmt, "%s%s", stmt, pstmts_bottom[STMT][i].stmt);
-                kasprintf(&stmt, "%s%s", stmt, (r.fieldmap[bottom_keys[STMT][i]]->parsed.i == 0) ? " DESC" : " ASC");
+                kasprintf(&stmt, "%s%s",stmt, pstmts_bottom[STMT][i].stmt);
+                kasprintf(&stmt, "%s%s",stmt,(r.fieldmap[bottom_keys[STMT][i]]->parsed.i == 0) ? " DESC" : " ASC");
             }
         }
     }
-    kasprintf(&stmt, "%s"" LIMIT(?),(? * ?)", stmt);
-    khttp_puts(&r, stmt_cat);
+    kasprintf(&stmt, "%s"" LIMIT(?),(? * ?)",stmt);
+    khttp_puts(&r, stmt);
     khttp_free(&r);
     return EXIT_SUCCESS;
 }
