@@ -581,6 +581,9 @@ int main(void) {
     for (int i = 0; switch_keys[STMT][i] != KEY__MAX; i++) {
         if (r.fieldmap[switch_keys[STMT][i]]) {
             if (!flag) {
+                if (!strstr(pstms_data_top[STMT].stmt,"WHERE")) {
+                khttp_puts(&r, " WHERE ");
+                }
                 flag = true;
             } else {
                 khttp_puts(&r, " AND ");
