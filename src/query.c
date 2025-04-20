@@ -923,17 +923,151 @@ void process(const enum statement STATEMENT) {
     const struct sqlbox_parmset *res;
     if (!(stmtid_data = sqlbox_prepare_bind(boxctx_data, dbid_data, STMT_DATA, parmsz, parms, SQLBOX_STMT_MULTI)))
         errx(EXIT_FAILURE, "sqlbox_prepare_bind");
+        errx(EXIT_FAILURE, "STMT: %s",pstmts[STMT_DATA].stmt);
     khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
     khttp_head(&r, kresps[KRESP_CONTENT_TYPE], "%s", kmimetypes[KMIME_APP_JSON]);
     khttp_body(&r);
     kjson_open(&req, &r);
-    kjson_array_open(&req);
-    while ((res = sqlbox_step(boxctx_data, stmtid_data)) != NULL && res->code == SQLBOX_CODE_OK && res->psz != 0) {
-        kjson_putstring(&req,"Hello World");
+    kjson_obj_open(&req);
+    kjson_objp_open(&req, "user");
+    kjson_putstringp(&req, "IP", r.remote);
+    kjson_putboolp(&req, "authenticated", curr_usr.authenticated);
+    if (curr_usr.authenticated) {
+        kjson_putstringp(&req, "UUID", curr_usr.UUID);
+        kjson_putstringp(&req, "disp_name", curr_usr.disp_name);
+        kjson_putstringp(&req, "campus", curr_usr.campus);
+        kjson_putstringp(&req, "role", curr_usr.role);
+        kjson_putboolp(&req, "frozen", curr_usr.frozen);
+
+        kjson_objp_open(&req, "perms");
+        kjson_putintp(&req, "numeric", curr_usr.perms.numeric);
+        kjson_putboolp(&req, "admin", curr_usr.perms.admin);
+        kjson_putboolp(&req, "staff", curr_usr.perms.staff);
+        kjson_putboolp(&req, "manage_stock", curr_usr.perms.manage_stock);
+        kjson_putboolp(&req, "manage_inventories", curr_usr.perms.manage_inventories);
+        kjson_putboolp(&req, "see_accounts", curr_usr.perms.see_accounts);
+        kjson_putboolp(&req, "monitor_history", curr_usr.perms.monitor_history);
+        kjson_putboolp(&req, "has_inventory", curr_usr.perms.has_inventory);
+        kjson_obj_close(&req);
     }
-    kjson_array_close(&req);
+    kjson_obj_close(&req);
+    kjson_arrayp_open(&req, "res");
+    while ((res = sqlbox_step(boxctx_data, stmtid_data)) != NULL && res->code == SQLBOX_CODE_OK && res->psz != 0) {
+        kjson_obj_open(&req);
+        for (int i = 0; i < (int) res->psz; ++i) {
+            switch (res->ps[i].type) {
+                case SQLBOX_PARM_INT:
+                    if (STATEMENT == STMTS_ROLE) {
+                        struct accperms perms = int_to_accperms((int) res->ps[i].iparm);
+                        kjson_objp_open(&req, rows[STATEMENT][i]);
+                        kjson_putintp(&req, "numerical", res->ps[i].iparm);
+                        kjson_putboolp(&req, "admin", perms.admin);
+                        kjson_putboolp(&req, "staff", perms.staff);
+                        kjson_putboolp(&req, "manage_stock", perms.manage_stock);
+                        kjson_putboolp(&req, "manage_inventories", perms.manage_inventories);
+                        kjson_putboolp(&req, "see_accounts", perms.see_accounts);
+                        kjson_putboolp(&req, "monitor_history", perms.monitor_history);
+                        kjson_putboolp(&req, "has_inventory", perms.has_inventory);
+                        kjson_obj_close(&req);
+                    } else
+                        kjson_putintp(&req, rows[STATEMENT][i], res->ps[i].iparm);
+                    break;
+                case SQLBOX_PARM_STRING:
+                    kjson_putstringp(&req, rows[STATEMENT][i], res->ps[i].sparm);
+                    break;
+                case SQLBOX_PARM_FLOAT:
+                    kjson_putdoublep(&req, rows[STATEMENT][i], res->ps[i].fparm);
+                    break;
+                case SQLBOX_PARM_BLOB:
+                    kjson_putstringp(&req, rows[STATEMENT][i], res->ps[i].bparm);
+                    break;
+                case SQLBOX_PARM_NULL:
+                    kjson_putnullp(&req, rows[STATEMENT][i]);
+                    break;
+                default:
+                    break;
+            }
+        }
+        if (STATEMENT == STMTS_CATEGORY) {
+            if (r.fieldmap[KEY_TREE]) {
+                kjson_arrayp_open(&req, "children");
+                get_cat_children(res->ps[0].sparm);
+                kjson_array_close(&req);
+            } else if (r.fieldmap[KEY_CASCADE]) {
+                kjson_obj_close(&req);
+                get_cat_children(res->ps[0].sparm);
+            }
+        }
+        if (STATEMENT == STMTS_BOOK) {
+            size_t stmtid_book_data;
+            size_t parmsz_book = 1;
+            const struct sqlbox_parmset *res_book;
+            struct sqlbox_parm parms_book[] = {
+                {.type = SQLBOX_PARM_STRING, .sparm = res->ps[0].sparm},
+            };
+            if (!(stmtid_book_data =
+                  sqlbox_prepare_bind(boxctx_data, dbid_data, STMT_AUTHORED, parmsz_book, parms_book,
+                                      SQLBOX_STMT_MULTI)))
+                errx(EXIT_FAILURE, "sqlbox_prepare_bind");
+
+            kjson_arrayp_open(&req, "authors");
+            while ((res_book = sqlbox_step(boxctx_data, stmtid_book_data)) != NULL && res_book->code ==
+                   SQLBOX_CODE_OK
+                   && res_book->psz != 0)
+                kjson_putstring(&req, res_book->ps[0].sparm);
+            kjson_array_close(&req);
+
+            if (!sqlbox_finalise(boxctx_data, stmtid_book_data))
+                errx(EXIT_FAILURE, "sqlbox_finalise");
+
+            if (!(stmtid_book_data =
+                  sqlbox_prepare_bind(boxctx_data, dbid_data, STMT_LANGUAGED, parmsz_book, parms_book,
+                                      SQLBOX_STMT_MULTI)))
+                errx(EXIT_FAILURE, "sqlbox_prepare_bind");
+
+            kjson_arrayp_open(&req, "langs");
+            while ((res_book = sqlbox_step(boxctx_data, stmtid_book_data)) != NULL && res_book->code ==
+                   SQLBOX_CODE_OK
+                   && res_book->psz != 0)
+                kjson_putstring(&req, res_book->ps[0].sparm);
+            kjson_array_close(&req);
+
+            if (!sqlbox_finalise(boxctx_data, stmtid_book_data))
+                errx(EXIT_FAILURE, "sqlbox_finalise");
+
+            if (!(stmtid_book_data =
+                  sqlbox_prepare_bind(boxctx_data, dbid_data, STMT_STOCKED, parmsz_book, parms_book,
+                                      SQLBOX_STMT_MULTI)))
+                errx(EXIT_FAILURE, "sqlbox_prepare_bind");
+
+            kjson_arrayp_open(&req, "stock");
+            while ((res_book = sqlbox_step(boxctx_data, stmtid_book_data)) != NULL && res_book->code ==
+                   SQLBOX_CODE_OK
+                   && res_book->psz != 0) {
+                kjson_obj_open(&req);
+                kjson_putstringp(&req, "campus", res_book->ps[0].sparm);
+                kjson_putintp(&req, "stock", res_book->ps[1].iparm);
+                kjson_obj_close(&req);
+            }
+            kjson_array_close(&req);
+
+            if (!sqlbox_finalise(boxctx_data, stmtid_book_data))
+                errx(EXIT_FAILURE, "sqlbox_finalise");
+        }
+        if (!(STATEMENT == STMTS_CATEGORY && r.fieldmap[KEY_CASCADE]))
+            kjson_obj_close(&req);
+    }
     if (!sqlbox_finalise(boxctx_data, stmtid_data))
         errx(EXIT_FAILURE, "sqlbox_finalise");
+    kjson_array_close(&req);
+    if (!(stmtid_data = sqlbox_prepare_bind(boxctx_data, dbid_data, STMT_COUNT, parmsz-3, parms, SQLBOX_STMT_MULTI)))
+        errx(EXIT_FAILURE, "sqlbox_prepare_bind");
+    if ((res = sqlbox_step(boxctx_data, stmtid_data)) == NULL)
+        errx(EXIT_FAILURE, "sqlbox_step");
+    kjson_putintp(&req, "nbrres", res->ps[0].iparm);
+    if (!sqlbox_finalise(boxctx_data, stmtid_data))
+        errx(EXIT_FAILURE, "sqlbox_finalise");
+    kjson_obj_close(&req);
     kjson_close(&req);
 }
 
