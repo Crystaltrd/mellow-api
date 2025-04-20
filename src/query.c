@@ -576,7 +576,8 @@ int main(void) {
             m++;
             field = field->next;
         }
-        khttp_puts(&r, field->parsed.s);
+        if (field != NULL)
+            khttp_puts(&r, field->parsed.s);
     }
 
     /*for (int i = 0; bottom_keys[STMT][i] != KEY__SWITCH__MAX; i++) {
