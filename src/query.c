@@ -76,7 +76,7 @@ static const char *pages[PG__MAX] = {
 /*
  * Pre-made SQL statements
  */
-enum statement {
+enum statement_pieces {
     STMTS_PUBLISHER,
     STMTS_AUTHOR,
     STMTS_LANG,
@@ -97,8 +97,8 @@ enum statement {
 /*
  * Helper function to get the Statement for a specific page
  */
-enum statement get_stmts() {
-    return (enum statement) r.page;
+enum statement_pieces get_stmts() {
+    return (enum statement_pieces) r.page;
 }
 
 static struct sqlbox_pstmt pstms_data_top[STMTS__MAX] = {
@@ -231,6 +231,10 @@ enum key {
     KEY_ORDER_DATE,
     KEY_ORDER_STOCK,
     KEY_MANDATORY_GROUP_BY,
+    KEY_LIMIT,
+    KEY_OFFSET,
+    KEY_CASCADE,
+    KEY_TREE,
     KEY__MAX
 };
 
@@ -265,6 +269,18 @@ static const struct kvalid keys[KEY__MAX] = {
     {kvalid_int, "order_serialnum"},
     {kvalid_int, "order_date"},
     {kvalid_int, "order_stock"},
+    {kvalid_int, "limit"},
+    {kvalid_int, "page"},
+    {NULL, "cascade"},
+    {NULL, "tree"},
+};
+
+enum statement {
+    STMT_DATA,
+    STMT_COUNT,
+    STMT_LOGIN,
+    STMT_SAVE,
+    STMT_CATEGORY_CHILD,
 };
 
 static struct sqlbox_pstmt pstmts_switches[STMTS__MAX][10] = {
@@ -577,8 +593,9 @@ int main(void) {
         khttp_free(&r);
         return 0;
     }
-    const enum statement STMT = get_stmts();
+    const enum statement_pieces STMT = get_stmts();
     char *stmt = "";
+    char *stmt_cat = "";
     khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
     khttp_body(&r);
     if (STMT == STMTS_BOOK) {
@@ -602,7 +619,7 @@ int main(void) {
                       "INNER JOIN CategoryCascade ct ON c.parentCategoryID = ct.categoryClass) ", stmt);
         }
     }
-    kasprintf(&stmt, "%s%s", stmt,pstms_data_top[STMT].stmt);
+    kasprintf(&stmt, "%s%s", stmt, pstms_data_top[STMT].stmt);
     bool flag = false;
     for (int i = 0; switch_keys[STMT][i] != KEY__MAX; i++) {
         if (r.fieldmap[switch_keys[STMT][i]]) {
@@ -616,14 +633,16 @@ int main(void) {
             } else {
                 kasprintf(&stmt, "%s"" AND ", stmt);
             }
-            kasprintf(&stmt, "%s%s", stmt,pstmts_switches[STMT][i].stmt);
+            if (switch_keys[STMT][i] == KEY_SWITCH_PARENT && (r.fieldmap[KEY_TREE] || r.fieldmap[KEY_CASCADE]))
+                kasprintf(&stmt_cat, "%sparentCategoryID = (?)", stmt);
+            kasprintf(&stmt, "%s%s", stmt, pstmts_switches[STMT][i].stmt);
         }
     }
     flag = false;
     for (int i = 0; bottom_keys[STMT][i] != KEY__MAX; i++) {
         if (bottom_keys[STMT][i] == KEY_MANDATORY_GROUP_BY) {
             kasprintf(&stmt, "%s"" GROUP BY ", stmt);
-            kasprintf(&stmt, "%s%s", stmt,pstmts_bottom[STMT][i].stmt);
+            kasprintf(&stmt, "%s%s", stmt, pstmts_bottom[STMT][i].stmt);
         } else {
             if (r.fieldmap[bottom_keys[STMT][i]]) {
                 if (!flag) {
@@ -632,13 +651,13 @@ int main(void) {
                 } else {
                     kasprintf(&stmt, "%s"",", stmt);
                 }
-                kasprintf(&stmt, "%s%s",stmt, pstmts_bottom[STMT][i].stmt);
-                kasprintf(&stmt, "%s%s",stmt,(r.fieldmap[bottom_keys[STMT][i]]->parsed.i == 0) ? " DESC" : " ASC");
+                kasprintf(&stmt, "%s%s", stmt, pstmts_bottom[STMT][i].stmt);
+                kasprintf(&stmt, "%s%s", stmt, (r.fieldmap[bottom_keys[STMT][i]]->parsed.i == 0) ? " DESC" : " ASC");
             }
         }
     }
-    kasprintf(&stmt, "%s"" LIMIT(?),(? * ?)",stmt);
-    khttp_puts(&r, stmt);
+    kasprintf(&stmt, "%s"" LIMIT(?),(? * ?)", stmt);
+    khttp_puts(&r, stmt_cat);
     khttp_free(&r);
     return EXIT_SUCCESS;
 }
