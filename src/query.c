@@ -319,32 +319,32 @@ static struct sqlbox_pstmt pstmts[STMT__MAX] = {
 static char *pstmts_switches[STMTS__MAX][10] = {
     {
         "instr(publisherName,(?)) > 0",
-        "serialnum = (?)}
+        "serialnum = (?)"
     },
     {
         "instr(authorName,(?)) > 0",
-        "A.serialnum = (?)}
+        "A.serialnum = (?)"
     },
     {
         "instr(langCode,(?)) > 0",
-        "A.serialnum = (?)}
+        "A.serialnum = (?)"
     },
     {
-        "instr(actionName,(?)) > 0}
+        "instr(actionName,(?)) > 0"
     },
     {
         "instr(typeName,(?)) > 0",
-        "serialnum = (?)}
+        "serialnum = (?)"
     },
     {
         "instr(campusName,(?)) > 0",
         "serialnum = (?)",
-        "UUID = (?)}
+        "UUID = (?)"
     },
     {
         "instr(roleName,(?)) > 0",
         "perms = (?)",
-        "UUID = (?)}
+        "UUID = (?)"
     },
     {
         "parentCategoryID IS NULL",
@@ -381,7 +381,7 @@ static char *pstmts_switches[STMTS__MAX][10] = {
     },
     {
         "UUID = (?)",
-        "serialnum = (?)}
+        "serialnum = (?)"
     },
     {
         "UUID = (?)",
