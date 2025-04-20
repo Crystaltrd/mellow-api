@@ -633,7 +633,7 @@ int main(void) {
                     kasprintf(&stmt, "%s"",", stmt);
                 }
                 kasprintf(&stmt, "%s%s", pstmts_bottom[STMT][i].stmt, stmt);
-                kasprintf(&stmt, "%s"(r.fieldmap[bottom_keys[STMT][i]]->parsed.i == 0) ? " DESC" : " ASC", stmt);
+                kasprintf(&stmt, "%s%s",(r.fieldmap[bottom_keys[STMT][i]]->parsed.i == 0) ? " DESC" : " ASC", stmt);
             }
         }
     }
