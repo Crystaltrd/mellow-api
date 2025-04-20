@@ -633,47 +633,63 @@ void build_stmt(enum statement_pieces STMT) {
         }
     }
     kasprintf(&pstmts[STMT_DATA].stmt, "%s SELECT", pstmts[STMT_DATA].stmt);
+    kasprintf(&pstmts[STMT_COUNT].stmt, "%s SELECT COUNT(DISTINCT", pstmts[STMT_DATA].stmt);
     for (int i = 0; rows[STMT][i] != NULL; ++i) {
-        if (i == 0)
+        if (i == 0) {
             kasprintf(&pstmts[STMT_DATA].stmt, "%s %s", pstmts[STMT_DATA].stmt, rows[STMT][i]);
+            kasprintf(&pstmts[STMT_COUNT].stmt, "%s %s", pstmts[STMT_COUNT].stmt, rows[STMT][i]);
+        }
         kasprintf(&pstmts[STMT_DATA].stmt, "%s,%s", pstmts[STMT_DATA].stmt, rows[STMT][i]);
+        kasprintf(&pstmts[STMT_COUNT].stmt, "%s,%s", pstmts[STMT_COUNT].stmt, rows[STMT][i]);
     }
     kasprintf(&pstmts[STMT_DATA].stmt, "%s %s", pstmts[STMT_DATA].stmt, pstms_data_top[STMT]);
+    kasprintf(&pstmts[STMT_COUNT].stmt, "%s) %s", pstmts[STMT_COUNT].stmt, pstms_data_top[STMT]);
     bool flag = false;
     for (int i = 0; switch_keys[STMT][i] != KEY__MAX; i++) {
         if (r.fieldmap[switch_keys[STMT][i]]) {
             if (!flag) {
                 if (!strstr(pstms_data_top[STMT], "WHERE")) {
                     kasprintf(&pstmts[STMT_DATA].stmt, "%s"" WHERE ", pstmts[STMT_DATA].stmt);
+                    kasprintf(&pstmts[STMT_COUNT].stmt, "%s"" WHERE ", pstmts[STMT_COUNT].stmt);
                 } else {
                     kasprintf(&pstmts[STMT_DATA].stmt, "%s"" AND ", pstmts[STMT_DATA].stmt);
+                    kasprintf(&pstmts[STMT_COUNT].stmt, "%s"" AND ", pstmts[STMT_COUNT].stmt);
                 }
                 flag = true;
             } else {
                 kasprintf(&pstmts[STMT_DATA].stmt, "%s"" AND ", pstmts[STMT_DATA].stmt);
+                kasprintf(&pstmts[STMT_COUNT].stmt, "%s"" AND ", pstmts[STMT_COUNT].stmt);
             }
             kasprintf(&pstmts[STMT_DATA].stmt, "%s%s", pstmts[STMT_DATA].stmt, pstmts_switches[STMT][i]);
+            kasprintf(&pstmts[STMT_COUNT].stmt, "%s%s", pstmts[STMT_COUNT].stmt, pstmts_switches[STMT][i]);
         }
     }
     flag = false;
     for (int i = 0; bottom_keys[STMT][i] != KEY__MAX; i++) {
         if (bottom_keys[STMT][i] == KEY_MANDATORY_GROUP_BY) {
             kasprintf(&pstmts[STMT_DATA].stmt, "%s"" GROUP BY ", pstmts[STMT_DATA].stmt);
+            kasprintf(&pstmts[STMT_COUNT].stmt, "%s"" GROUP BY ", pstmts[STMT_COUNT].stmt);
             kasprintf(&pstmts[STMT_DATA].stmt, "%s%s", pstmts[STMT_DATA].stmt, pstmts_bottom[STMT][i]);
+            kasprintf(&pstmts[STMT_COUNT].stmt, "%s%s", pstmts[STMT_COUNT].stmt, pstmts_bottom[STMT][i]);
         } else {
             if (r.fieldmap[bottom_keys[STMT][i]]) {
                 if (!flag) {
                     kasprintf(&pstmts[STMT_DATA].stmt, "%s"" ORDER BY ", pstmts[STMT_DATA].stmt);
+                    kasprintf(&pstmts[STMT_COUNT].stmt, "%s"" ORDER BY ", pstmts[STMT_COUNT].stmt);
                     flag = true;
                 } else {
                     kasprintf(&pstmts[STMT_DATA].stmt, "%s"",", pstmts[STMT_DATA].stmt);
+                    kasprintf(&pstmts[STMT_COUNT].stmt, "%s"",", pstmts[STMT_COUNT].stmt);
                 }
                 kasprintf(&pstmts[STMT_DATA].stmt, "%s%s", pstmts[STMT_DATA].stmt, pstmts_bottom[STMT][i]);
+                kasprintf(&pstmts[STMT_COUNT].stmt, "%s%s", pstmts[STMT_COUNT].stmt, pstmts_bottom[STMT][i]);
                 kasprintf(&pstmts[STMT_DATA].stmt, "%s%s", pstmts[STMT_DATA].stmt, (r.fieldmap[bottom_keys[STMT][i]]->parsed.i == 0) ? " DESC" : " ASC");
+                kasprintf(&pstmts[STMT_COUNT].stmt, "%s%s", pstmts[STMT_COUNT].stmt, (r.fieldmap[bottom_keys[STMT][i]]->parsed.i == 0) ? " DESC" : " ASC");
             }
         }
     }
     kasprintf(&pstmts[STMT_DATA].stmt, "%s"" LIMIT(?),(? * ?)", pstmts[STMT_DATA].stmt);
+    kasprintf(&pstmts[STMT_COUNT].stmt, "%s"" LIMIT(?),(? * ?)", pstmts[STMT_COUNT].stmt);
 }
 
 int main(void) {
@@ -696,6 +712,7 @@ int main(void) {
     khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
     khttp_body(&r);
     khttp_puts(&r, pstmts[STMT_DATA].stmt);
+    khttp_puts(&r, pstmts[STMT_COUNT].stmt);
     khttp_free(&r);
     return EXIT_SUCCESS;
 }
