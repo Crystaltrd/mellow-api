@@ -360,7 +360,7 @@ static struct sqlbox_pstmt pstmts_switches[STMTS__MAX][10] = {
     }
 };
 
-static enum key_switches switch_keys[STMTS__MAX][11] = {
+static enum key switch_keys[STMTS__MAX][11] = {
 
     {KEY_SWITCH_NAME, KEY_SWITCH_SERIALNUM, KEY__MAX},
     {KEY_SWITCH_NAME, KEY_SWITCH_SERIALNUM, KEY__MAX},
@@ -389,7 +389,7 @@ static enum key_switches switch_keys[STMTS__MAX][11] = {
 };
 
 
-static enum key_switches bottom_keys[STMTS__MAX][8] = {
+static enum key bottom_keys[STMTS__MAX][8] = {
     {
         KEY_MANDATORY_GROUP_BY,
         KEY_ORDER_HITS,
