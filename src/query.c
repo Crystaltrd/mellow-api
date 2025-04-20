@@ -535,7 +535,7 @@ enum key {
 };
 
 static const struct kvalid keys[KEY__MAX] = {
-    {kvalid_bit, "order"}
+    {kvalid_int, "order"}
 };
 
 int main(void) {
