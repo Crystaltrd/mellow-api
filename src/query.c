@@ -753,8 +753,10 @@ void build_stmt(enum statement_pieces STMT) {
             kasprintf(&pstmts[STMT_DATA].stmt, "%s %s", pstmts[STMT_DATA].stmt, rows[STMT][i]);
             kasprintf(&pstmts[STMT_COUNT].stmt, "%s %s", pstmts[STMT_COUNT].stmt, rows[STMT][i]);
         }
-        kasprintf(&pstmts[STMT_DATA].stmt, "%s,%s", pstmts[STMT_DATA].stmt, rows[STMT][i]);
-        kasprintf(&pstmts[STMT_COUNT].stmt, "%s,%s", pstmts[STMT_COUNT].stmt, rows[STMT][i]);
+        else {
+            kasprintf(&pstmts[STMT_DATA].stmt, "%s,%s", pstmts[STMT_DATA].stmt, rows[STMT][i]);
+            kasprintf(&pstmts[STMT_COUNT].stmt, "%s,%s", pstmts[STMT_COUNT].stmt, rows[STMT][i]);
+        }
     }
     kasprintf(&pstmts[STMT_DATA].stmt, "%s %s", pstmts[STMT_DATA].stmt, pstms_data_top[STMT].stmt);
     kasprintf(&pstmts[STMT_COUNT].stmt, "%s)) %s", pstmts[STMT_COUNT].stmt, pstms_data_top[STMT].stmt);
