@@ -281,6 +281,7 @@ static const struct kvalid keys[KEY__MAX] = {
     {NULL, "cascade"},
     {NULL, "tree"},
     {kvalid_stringne, "sessionID"},
+
 };
 
 
@@ -778,6 +779,33 @@ void build_stmt(enum statement_pieces STMT) {
             }
             kasprintf(&pstmts[STMT_DATA].stmt, "%s%s", pstmts[STMT_DATA].stmt, pstmts_switches[STMT][i]);
             kasprintf(&pstmts[STMT_COUNT].stmt, "%s%s", pstmts[STMT_COUNT].stmt, pstmts_switches[STMT][i]);
+        }
+
+        if ((STMT == STMTS_HISTORY || STMT == STMTS_ACCOUNT || STMT == STMTS_SESSIONS || STMT == STMTS_INVENTORY)) {
+            if (switch_keys[STMT][i] == KEY_SWITCH_UUID && !r.fieldmap[KEY_SWITCH_UUID]) {
+                if (!curr_usr.perms.admin && !curr_usr.perms.staff) {
+                    if (!((curr_usr.perms.monitor_history && STMT == STMTS_HISTORY) || (
+                              curr_usr.perms.manage_inventories && STMT == STMTS_INVENTORY) || (
+                              curr_usr.perms.see_accounts && STMT == STMTS_ACCOUNT))) {
+                        parmsz++;
+                        if (!flag) {
+                            if (!strstr(pstms_data_top[STMT].stmt, "WHERE")) {
+                                kasprintf(&pstmts[STMT_DATA].stmt, "%s"" WHERE ", pstmts[STMT_DATA].stmt);
+                                kasprintf(&pstmts[STMT_COUNT].stmt, "%s"" WHERE ", pstmts[STMT_COUNT].stmt);
+                            } else {
+                                kasprintf(&pstmts[STMT_DATA].stmt, "%s"" AND ", pstmts[STMT_DATA].stmt);
+                                kasprintf(&pstmts[STMT_COUNT].stmt, "%s"" AND ", pstmts[STMT_COUNT].stmt);
+                            }
+                            flag = true;
+                        } else {
+                            kasprintf(&pstmts[STMT_DATA].stmt, "%s"" AND ", pstmts[STMT_DATA].stmt);
+                            kasprintf(&pstmts[STMT_COUNT].stmt, "%s"" AND ", pstmts[STMT_COUNT].stmt);
+                        }
+                        kasprintf(&pstmts[STMT_DATA].stmt, "%s%s", pstmts[STMT_DATA].stmt, pstmts_switches[STMT][i]);
+                        kasprintf(&pstmts[STMT_COUNT].stmt, "%s%s", pstmts[STMT_COUNT].stmt, pstmts_switches[STMT][i]);
+                    }
+                }
+            }
         }
     }
     flag = false;
