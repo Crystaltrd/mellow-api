@@ -702,6 +702,51 @@ int build_stmt(enum statement_pieces STMT) {
     return n += 3;
 }
 
+struct sqlbox_parm *parms;
+size_t parmsz;
+
+void fill_parms(enum statement_pieces STMT) {
+    parms = kcalloc(parmsz, sizeof(struct sqlbox_parm));
+    int n = 0;
+    struct kpair *field;
+    if (STMT == STMTS_BOOK && r.fieldmap[KEY_SWITCH_CLASS]) {
+        parms[0].sparm = r.fieldmap[KEY_SWITCH_CLASS]->parsed.s;
+        parms[0].type = SQLBOX_PARM_STRING;
+        n++;
+    }
+    for (int i = 0; switch_keys[STMT][i] != KEY__MAX; i++) {
+        if ((field = r.fieldmap[switch_keys[STMT][i]])) {
+            switch (field->type) {
+                case KPAIR_INTEGER:
+                    parms[n++] = (struct sqlbox_parm){.type = SQLBOX_PARM_INT, .iparm = field->parsed.i};
+                    break;
+                case KPAIR_STRING:
+                    parms[n++] = (struct sqlbox_parm){.type = SQLBOX_PARM_STRING, .sparm = field->parsed.s};
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+    for (int i = 0; bottom_keys[STMT][i] != KEY__MAX; i++) {
+        if ((field = r.fieldmap[bottom_keys[STMT][i]])) {
+            switch (field->type) {
+                case KPAIR_INTEGER:
+                    parms[n++] = (struct sqlbox_parm){.type = SQLBOX_PARM_INT, .iparm = field->parsed.i};
+                    break;
+                case KPAIR_STRING:
+                    parms[n++] = (struct sqlbox_parm){.type = SQLBOX_PARM_STRING, .sparm = field->parsed.s};
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+    parms[n++] = (struct sqlbox_parm){.type = SQLBOX_PARM_INT, .iparm = 0};
+    parms[n++] = (struct sqlbox_parm){.type = SQLBOX_PARM_INT, .iparm = 0};
+    parms[n++] = (struct sqlbox_parm){.type = SQLBOX_PARM_INT, .iparm = 0};
+}
+
 int main(void) {
     enum khttp er;
     // Parse the http request and match the keys to the keys, and pages to the pages, default to
@@ -718,12 +763,16 @@ int main(void) {
         return 0;
     }
     const enum statement_pieces STMT = get_stmts();
-    char *buf;
-    kasprintf(&buf, "NBR: %d", build_stmt(STMT));
+    parmsz = build_stmt(STMT);
+    fill_parms(STMT);
     khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
     khttp_body(&r);
+    for (int i = 0; i < parmsz; ++i) {
+        if (parms[i].type == SQLBOX_PARM_STRING) {
+            khttp_puts(&r,parms[i].sparm);
+        }
+    }
     khttp_puts(&r, pstmts[STMT_DATA].stmt);
-    khttp_puts(&r, buf);
     khttp_free(&r);
     return EXIT_SUCCESS;
 }
