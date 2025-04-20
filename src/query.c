@@ -610,8 +610,10 @@ enum khttp sanitize() {
     return KHTTP_200;
 }
 
-void build_stmt(enum statement_pieces STMT) {
+int build_stmt(enum statement_pieces STMT) {
+    int n = 0;
     if (STMT == STMTS_BOOK) {
+        n++;
         if (r.fieldmap[KEY_SWITCH_CLASS]) {
             kasprintf(&pstmts[STMT_DATA].stmt, "%s""WITH RECURSIVE CategoryCascade AS (SELECT categoryClass, parentCategoryID "
                       "FROM CATEGORY "
@@ -647,6 +649,7 @@ void build_stmt(enum statement_pieces STMT) {
     bool flag = false;
     for (int i = 0; switch_keys[STMT][i] != KEY__MAX; i++) {
         if (r.fieldmap[switch_keys[STMT][i]]) {
+            n++;
             if (!flag) {
                 if (!strstr(pstms_data_top[STMT], "WHERE")) {
                     kasprintf(&pstmts[STMT_DATA].stmt, "%s"" WHERE ", pstmts[STMT_DATA].stmt);
@@ -673,6 +676,7 @@ void build_stmt(enum statement_pieces STMT) {
             kasprintf(&pstmts[STMT_COUNT].stmt, "%s%s", pstmts[STMT_COUNT].stmt, pstmts_bottom[STMT][i]);
         } else {
             if (r.fieldmap[bottom_keys[STMT][i]]) {
+                n++;
                 if (!flag) {
                     kasprintf(&pstmts[STMT_DATA].stmt, "%s"" ORDER BY ", pstmts[STMT_DATA].stmt);
                     kasprintf(&pstmts[STMT_COUNT].stmt, "%s"" ORDER BY ", pstmts[STMT_COUNT].stmt);
@@ -689,7 +693,7 @@ void build_stmt(enum statement_pieces STMT) {
         }
     }
     kasprintf(&pstmts[STMT_DATA].stmt, "%s"" LIMIT(?),(? * ?)", pstmts[STMT_DATA].stmt);
-    kasprintf(&pstmts[STMT_COUNT].stmt, "%s"" LIMIT(?),(? * ?)", pstmts[STMT_COUNT].stmt);
+    return n+=3;
 }
 
 int main(void) {
@@ -708,11 +712,12 @@ int main(void) {
         return 0;
     }
     const enum statement_pieces STMT = get_stmts();
-    build_stmt(STMT);
+    char *buf;
+    kasprintf(&buf,"NBR: %d",build_stmt(STMT));
     khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
     khttp_body(&r);
     khttp_puts(&r, pstmts[STMT_DATA].stmt);
-    khttp_puts(&r, pstmts[STMT_COUNT].stmt);
+    khttp_puts(&r,buf);
     khttp_free(&r);
     return EXIT_SUCCESS;
 }
