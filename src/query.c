@@ -633,10 +633,10 @@ int main(void) {
             } else {
                 kasprintf(&stmt, "%s"" AND ", stmt);
             }
-            if (switch_keys[STMT][i] == KEY_SWITCH_PARENT && (r.fieldmap[KEY_TREE] || r.fieldmap[KEY_CASCADE]))
-                kasprintf(&stmt_cat, "%sparentCategoryID = (?)", stmt);
             kasprintf(&stmt, "%s%s", stmt, pstmts_switches[STMT][i].stmt);
         }
+        if (switch_keys[STMT][i] == KEY_SWITCH_PARENT && (r.fieldmap[KEY_TREE] || r.fieldmap[KEY_CASCADE]))
+            kasprintf(&stmt_cat, "%sparentCategoryID = (?)", stmt);
     }
     flag = false;
     for (int i = 0; bottom_keys[STMT][i] != KEY__MAX; i++) {
