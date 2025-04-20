@@ -101,59 +101,66 @@ enum statement_pieces get_stmts() {
     return (enum statement_pieces) r.page;
 }
 
-static struct sqlbox_pstmt pstms_data_top[STMTS__MAX] = {
+static const char *rows[STMTS__MAX][10] = {
+    {"publisherName",NULL},
+    {"authorName",NULL},
+    {"langcode",NULL},
+    {"actionName",NULL},
+    {"typeName",NULL},
+    {"campusName",NULL},
+    {"roleName", "perms",NULL},
+    {"categoryClass", "categoryName", "parentCategoryID",NULL},
+    {"UUID", "displayname", "pwhash", "campus", "role", "perm", "frozen",NULL},
+    {"BOOK.serialnum", "type", "category", "categoryName", "publisher", "booktitle", "bookreleaseyear", "bookcover", "hits",NULL},
+    {"STOCK.serialnum", "campus", "instock",NULL},
+    {"UUID", "serialnum", "rentduration", "rentdate", "extended",NULL},
+    {"UUID", "UUID_ISSUER", "serialnum", "IP", "action", "actiondate", "details",NULL},
+    {"account", "sessionID", "expiresAt",NULL}
+};
+static char *pstms_data_top[STMTS__MAX] = {
     {
         (char *)
-        "SELECT publisherName "
         "FROM PUBLISHER "
         "LEFT JOIN BOOK B ON B.publisher = PUBLISHER.publisherName "
     },
     {
         (char *)
-        "SELECT authorName "
         "FROM AUTHOR "
         "LEFT JOIN AUTHORED A ON AUTHOR.authorName = A.author "
         "LEFT JOIN BOOK B ON B.serialnum = A.serialnum "
     },
     {
         (char *)
-        "SELECT langCode "
         "FROM LANG "
         "LEFT JOIN LANGUAGES A ON LANG.langCode = A.lang "
         "LEFT JOIN BOOK B ON B.serialnum = A.serialnum "
     },
     {
         (char *)
-        "SELECT actionName "
         "FROM ACTION "
     },
     {
         (char *)
-        "SELECT typeName "
         "FROM DOCTYPE "
         "LEFT JOIN BOOK B ON DOCTYPE.typeName = B.type "
     },
     {
         (char *)
-        "SELECT campusName "
         "FROM CAMPUS "
         "LEFT JOIN STOCK S ON CAMPUS.campusName = S.campus "
         "LEFT JOIN ACCOUNT A on CAMPUS.campusName = A.campus "
     },
     {
         (char *)
-        "SELECT roleName, perms "
         "FROM ROLE LEFT JOIN ACCOUNT A ON A.role = ROLE.roleName "
     },
     {
         (char *)
-        "SELECT categoryClass, categoryName, parentCategoryID "
         "FROM CATEGORY LEFT JOIN BOOK B ON CATEGORY.categoryClass = B.category "
     },
 
     {
         (char *)
-        "SELECT ACCOUNT.UUID, displayname, pwhash, campus, role, perms, frozen "
         "FROM ROLE,"
         "ACCOUNT "
         "LEFT JOIN INVENTORY I on ACCOUNT.UUID = I.UUID "
@@ -162,7 +169,6 @@ static struct sqlbox_pstmt pstms_data_top[STMTS__MAX] = {
     },
     {
         (char *)
-        "SELECT BOOK.serialnum, type, category,categoryName, publisher, booktitle, bookreleaseyear, bookcover, hits "
         "FROM (BOOK LEFT JOIN INVENTORY I ON BOOK.serialnum = I.serialnum),"
         "CATEGORY,"
         "LANGUAGES,"
@@ -177,7 +183,6 @@ static struct sqlbox_pstmt pstms_data_top[STMTS__MAX] = {
     },
     {
         (char *)
-        "SELECT STOCK.serialnum,campus,instock "
         "FROM STOCK,BOOK "
         "WHERE STOCK.serialnum = BOOK.serialnum "
     },
@@ -189,12 +194,10 @@ static struct sqlbox_pstmt pstms_data_top[STMTS__MAX] = {
     {
 
         (char *)
-        "SELECT UUID,UUID_ISSUER,serialnum,IP,action,actiondate,details "
         "FROM HISTORY "
     },
     {
         (char *)
-        "SELECT account,sessionID,expiresAt "
         "FROM SESSIONS "
     },
 };
@@ -274,14 +277,43 @@ static const struct kvalid keys[KEY__MAX] = {
     {NULL, "cascade"},
     {NULL, "tree"},
 };
+
 enum statement {
     STMT_DATA,
     STMT_COUNT,
     STMT_LOGIN,
     STMT_SAVE,
     STMT_CATEGORY_CHILD,
+    STMT__MAX
 };
-static struct sqlbox_pstmt pstmts_switches[STMTS__MAX][10] = {
+
+static struct sqlbox_pstmt pstmts[STMTS__MAX] = {
+    {NULL},
+    {NULL},
+    {
+        (char *)
+        "SELECT ACCOUNT.UUID, displayname, pwhash, campus, role, perms, frozen "
+        "FROM ROLE,"
+        "ACCOUNT "
+        "LEFT JOIN SESSIONS S on ACCOUNT.UUID = S.account "
+        "WHERE ACCOUNT.role = ROLE.roleName "
+        "AND sessionID = (?) "
+        "GROUP BY ACCOUNT.UUID, displayname, pwhash, campus, perms, frozen "
+    },
+    {
+        (char *)
+        "INSERT INTO HISTORY (UUID, IP, action, actiondate, details) "
+        "VALUES ((?),(?),'EDIT',datetime('now','localtime'),(?))"
+    },
+    {
+        (char *)
+        "SELECT categoryClass, categoryName, parentCategoryID "
+        "FROM CATEGORY "
+        "WHERE parentCategoryID = (?) "
+        "ORDER BY categoryClass DESC"
+    }
+};
+static char *pstmts_switches[STMTS__MAX][10] = {
     {
         {(char *) "instr(publisherName,(?)) > 0"},
         {(char *) "serialnum = (?)"}
@@ -483,7 +515,7 @@ static enum key bottom_keys[STMTS__MAX][8] = {
         KEY__MAX
     }
 };
-static struct sqlbox_pstmt pstmts_bottom[STMTS__MAX][5] = {
+static char *pstmts_bottom[STMTS__MAX][5] = {
     {
         {(char *) "publisherName"},
         {(char *) "SUM(hits)"},
@@ -608,7 +640,7 @@ int main(void) {
                       "FROM CATEGORY c "
                       "INNER JOIN CategoryCascade ct ON c.parentCategoryID = ct.categoryClass) ", stmt);
         } else {
-            kasprintf(&stmt, "%s""WITH RECURSIVE CategoryCascade AS (SELECT categoryClass, parentCategoryID,stmt "
+            kasprintf(&stmt, "%s""WITH RECURSIVE CategoryCascade AS (SELECT categoryClass, parentCategoryID "
                       "FROM CATEGORY "
                       "WHERE "
                       "parentCategoryID IS NULL "
@@ -618,12 +650,15 @@ int main(void) {
                       "INNER JOIN CategoryCascade ct ON c.parentCategoryID = ct.categoryClass) ", stmt);
         }
     }
-    kasprintf(&stmt, "%s%s", stmt,pstms_data_top[STMT].stmt);
+    for (int i = 0; rows[STMT][i] != NULL; ++i) {
+    kasprintf(&stmt, "%s,%s", stmt, rows[STMT][i]);
+    }
+    kasprintf(&stmt, "%s%s", stmt, pstms_data_top[STMT]);
     bool flag = false;
     for (int i = 0; switch_keys[STMT][i] != KEY__MAX; i++) {
         if (r.fieldmap[switch_keys[STMT][i]]) {
             if (!flag) {
-                if (!strstr(pstms_data_top[STMT].stmt, "WHERE")) {
+                if (!strstr(pstms_data_top[STMT], "WHERE")) {
                     kasprintf(&stmt, "%s"" WHERE ", stmt);
                 } else {
                     kasprintf(&stmt, "%s"" AND ", stmt);
@@ -632,14 +667,14 @@ int main(void) {
             } else {
                 kasprintf(&stmt, "%s"" AND ", stmt);
             }
-            kasprintf(&stmt, "%s%s", stmt,pstmts_switches[STMT][i].stmt);
+            kasprintf(&stmt, "%s%s", stmt, pstmts_switches[STMT][i]);
         }
     }
     flag = false;
     for (int i = 0; bottom_keys[STMT][i] != KEY__MAX; i++) {
         if (bottom_keys[STMT][i] == KEY_MANDATORY_GROUP_BY) {
             kasprintf(&stmt, "%s"" GROUP BY ", stmt);
-            kasprintf(&stmt, "%s%s", stmt,pstmts_bottom[STMT][i].stmt);
+            kasprintf(&stmt, "%s%s", stmt, pstmts_bottom[STMT][i]);
         } else {
             if (r.fieldmap[bottom_keys[STMT][i]]) {
                 if (!flag) {
@@ -648,12 +683,12 @@ int main(void) {
                 } else {
                     kasprintf(&stmt, "%s"",", stmt);
                 }
-                kasprintf(&stmt, "%s%s",stmt, pstmts_bottom[STMT][i].stmt);
-                kasprintf(&stmt, "%s%s",stmt,(r.fieldmap[bottom_keys[STMT][i]]->parsed.i == 0) ? " DESC" : " ASC");
+                kasprintf(&stmt, "%s%s", stmt, pstmts_bottom[STMT][i]);
+                kasprintf(&stmt, "%s%s", stmt, (r.fieldmap[bottom_keys[STMT][i]]->parsed.i == 0) ? " DESC" : " ASC");
             }
         }
     }
-    kasprintf(&stmt, "%s"" LIMIT(?),(? * ?)",stmt);
+    kasprintf(&stmt, "%s"" LIMIT(?),(? * ?)", stmt);
     khttp_puts(&r, stmt);
     khttp_free(&r);
     return EXIT_SUCCESS;
