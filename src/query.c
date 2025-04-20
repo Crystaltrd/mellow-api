@@ -91,10 +91,6 @@ enum statement {
     STMTS_INVENTORY,
     STMTS_HISTORY,
     STMTS_SESSIONS,
-    __STMT_STORE__,
-    __STMT_BOOK_AUTHORED__,
-    __STMT_BOOK_LANGUAGES__,
-    __STMT_BOOK_STOCK__,
     STMTS__MAX
 };
 
@@ -212,30 +208,6 @@ static struct sqlbox_pstmt pstms_data_top[STMTS__MAX] = {
         "SELECT account,sessionID,expiresAt "
         "FROM SESSIONS "
         "WHERE "
-    },
-    {
-        (char *)
-        "INSERT INTO HISTORY (UUID, IP, action, actiondate, details) "
-        "VALUES ((?),(?),'QUERY',datetime('now','localtime'),(?))"
-    },
-    {
-        (char *)
-        "SELECT author "
-        "FROM AUTHORED "
-        "WHERE serialnum = (?)"
-    },
-    {
-        (char *)
-        "SELECT lang "
-        "FROM LANGUAGES "
-        "WHERE serialnum = (?)"
-    },
-
-    {
-        (char *)
-        "SELECT campus,instock "
-        "FROM STOCK "
-        "WHERE serialnum = (?)"
     },
 };
 
@@ -557,11 +529,20 @@ enum khttp sanitize() {
     return KHTTP_200;
 }
 
+enum key {
+    KEY_TEST,
+    KEY__MAX
+};
+
+static const struct kvalid keys[KEY__MAX] = {
+    {kvalid_stringne, "order"}
+};
+
 int main(void) {
     enum khttp er;
     // Parse the http request and match the keys to the keys, and pages to the pages, default to
     // querying the INVENTORY if no page was found
-    if (khttp_parse(&r, 0, 0, pages, PG__MAX, PG_BOOK) != KCGI_OK)
+    if (khttp_parse(&r, keys, KEY__MAX, pages, PG__MAX, PG_BOOK) != KCGI_OK)
         return EXIT_FAILURE;
     if ((er = sanitize()) != KHTTP_200) {
         khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[er]);
@@ -575,7 +556,7 @@ int main(void) {
     const enum statement STMT = get_stmts();
     khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
     khttp_body(&r);
-    khttp_puts(&r, pstms_data_top[STMT].stmt);
+    /*khttp_puts(&r, pstms_data_top[STMT].stmt);
     for (int i = 0; switch_keys[STMT][i] != KEY__SWITCH__MAX; i++) {
         if (i != 0)
             khttp_puts(&r, " AND ");
@@ -595,7 +576,12 @@ int main(void) {
         }
         khttp_puts(&r, pstmts_bottom[STMT][i].stmt);
     }
-    khttp_puts(&r, " LIMIT(?),(? * ?) ");
+    khttp_puts(&r, " LIMIT(?),(? * ?) ");*/
+   struct kpair *field = r.fieldmap[KEY_TEST];
+    while (field != NULL) {
+       khttp_puts(&r,field->parsed.s);
+        field = field->next;
+    }
     khttp_free(&r);
     return EXIT_SUCCESS;
 }
