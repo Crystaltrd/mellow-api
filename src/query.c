@@ -120,7 +120,7 @@ static const char *rows[STMTS__MAX][10] = {
     {"UUID", "UUID_ISSUER", "serialnum", "IP", "action", "actiondate", "details",NULL},
     {"account", "sessionID", "expiresAt",NULL}
 };
-static char *pstms_data_top[STMTS__MAX] = {
+static struct sqlbox_pstmt pstms_data_top[STMTS__MAX] = {
     {
         (char *)
         "FROM PUBLISHER "
@@ -241,6 +241,7 @@ enum key {
     KEY_CASCADE,
     KEY_TREE,
     KEY_MANDATORY_GROUP_BY,
+    COOKIE_SESSIONID,
     KEY__MAX
 };
 
@@ -279,43 +280,10 @@ static const struct kvalid keys[KEY__MAX] = {
     {kvalid_int, "page"},
     {NULL, "cascade"},
     {NULL, "tree"},
+    {kvalid_stringne, "sessionID"},
 };
 
-enum statement {
-    STMT_DATA,
-    STMT_COUNT,
-    STMT_LOGIN,
-    STMT_SAVE,
-    STMT_CATEGORY_CHILD,
-    STMT__MAX
-};
 
-static struct sqlbox_pstmt pstmts[STMT__MAX] = {
-    {(char *) ""},
-    {(char *) ""},
-    {
-        (char *)
-        "SELECT ACCOUNT.UUID, displayname, pwhash, campus, role, perms, frozen "
-        "FROM ROLE,"
-        "ACCOUNT "
-        "LEFT JOIN SESSIONS S on ACCOUNT.UUID = S.account "
-        "WHERE ACCOUNT.role = ROLE.roleName "
-        "AND sessionID = (?) "
-        "GROUP BY ACCOUNT.UUID, displayname, pwhash, campus, perms, frozen "
-    },
-    {
-        (char *)
-        "INSERT INTO HISTORY (UUID, IP, action, actiondate, details) "
-        "VALUES ((?),(?),'EDIT',datetime('now','localtime'),(?))"
-    },
-    {
-        (char *)
-        "SELECT categoryClass, categoryName, parentCategoryID "
-        "FROM CATEGORY "
-        "WHERE parentCategoryID = (?) "
-        "ORDER BY categoryClass DESC"
-    }
-};
 static char *pstmts_switches[STMTS__MAX][10] = {
     {
         "instr(publisherName,(?)) > 0",
@@ -597,6 +565,63 @@ static char *pstmts_bottom[STMTS__MAX][5] = {
     }
 };
 
+enum statement {
+    STMT_DATA,
+    STMT_COUNT,
+    STMT_LOGIN,
+    STMT_SAVE,
+    STMT_CATEGORY_CHILD,
+    STMT_AUTHORED,
+    STMT_LANGUAGED,
+    STMT_STOCKED,
+    STMT__FINAL__MAX
+};
+
+static struct sqlbox_pstmt pstmts[STMT__FINAL__MAX] = {
+    {(char *) ""},
+    {(char *) ""},
+    {
+        (char *)
+        "SELECT ACCOUNT.UUID, displayname, pwhash, campus, role, perms, frozen "
+        "FROM ROLE,"
+        "ACCOUNT "
+        "LEFT JOIN SESSIONS S on ACCOUNT.UUID = S.account "
+        "WHERE ACCOUNT.role = ROLE.roleName "
+        "AND sessionID = (?) "
+        "GROUP BY ACCOUNT.UUID, displayname, pwhash, campus, perms, frozen "
+    },
+    {
+        (char *)
+        "INSERT INTO HISTORY (UUID, IP, action, actiondate, details) "
+        "VALUES ((?),(?),'EDIT',datetime('now','localtime'),(?))"
+    },
+    {
+        (char *)
+        "SELECT categoryClass, categoryName, parentCategoryID "
+        "FROM CATEGORY "
+        "WHERE parentCategoryID = (?) "
+        "ORDER BY categoryClass DESC"
+    },
+    {
+        (char *)
+        "SELECT author "
+        "FROM AUTHORED "
+        "WHERE serialnum = (?)"
+    },
+    {
+        (char *)
+        "SELECT lang "
+        "FROM LANGUAGES "
+        "WHERE serialnum = (?)"
+    },
+
+    {
+        (char *)
+        "SELECT campus,instock "
+        "FROM STOCK "
+        "WHERE serialnum = (?)"
+    },
+};
 
 enum khttp sanitize() {
     if (r.method != KMETHOD_GET)
@@ -610,8 +635,91 @@ enum khttp sanitize() {
     return KHTTP_200;
 }
 
-int build_stmt(enum statement_pieces STMT) {
-    int n = 0;
+struct sqlbox_src srcs[] = {
+    {
+        .fname = (char *) "db/database.db",
+        .mode = SQLBOX_SRC_RW
+    }
+};
+struct sqlbox *boxctx_data;
+struct sqlbox_cfg cfg_data;
+size_t dbid_data; // Database associated with a config and a context for query results
+struct sqlbox_parm *parms; //Array of statement parameters
+size_t parmsz;
+/*
+ * Allocates the context and source for the current operations
+ */
+void alloc_ctx_cfg() {
+    memset(&cfg_data, 0, sizeof(struct sqlbox_cfg));
+    cfg_data.msg.func_short = warnx;
+    cfg_data.srcs.srcsz = 1;
+    cfg_data.srcs.srcs = srcs;
+    cfg_data.stmts.stmtsz = STMT__FINAL__MAX;
+    cfg_data.stmts.stmts = pstmts;
+    if ((boxctx_data = sqlbox_alloc(&cfg_data)) == NULL)
+        errx(EXIT_FAILURE, "sqlbox_alloc");
+    if (!(dbid_data = sqlbox_open(boxctx_data, 0)))
+        errx(EXIT_FAILURE, "sqlbox_open");
+}
+
+
+struct usr {
+    char *UUID;
+    char *disp_name;
+    char *campus;
+    char *role;
+    char *sessionID;
+    struct accperms perms;
+    bool authenticated;
+    bool frozen;
+};
+
+struct usr curr_usr = {
+    .authenticated = false,
+    .frozen = false,
+    .UUID = NULL,
+    .disp_name = NULL,
+    .campus = NULL,
+    .role = NULL,
+    .sessionID = NULL,
+    .perms = {0, 0, 0, 0, 0, 0, 0, 0}
+};
+
+void fill_user() {
+    struct kpair *field;
+
+    if ((field = r.cookiemap[COOKIE_SESSIONID])) {
+        size_t stmtid;
+        size_t parmsz = 1;
+        const struct sqlbox_parmset *res;
+        struct sqlbox_parm parms[] = {
+            {.type = SQLBOX_PARM_STRING, .sparm = field->parsed.s},
+        };
+        if (!(stmtid = sqlbox_prepare_bind(boxctx_data, dbid_data, STMT_LOGIN, parmsz, parms, 0)))
+            errx(EXIT_FAILURE, "sqlbox_prepare_bind");
+        if ((res = sqlbox_step(boxctx_data, stmtid)) == NULL)
+            errx(EXIT_FAILURE, "sqlbox_step");
+        if (res->psz != 0) {
+            curr_usr.authenticated = true;
+            kasprintf(&curr_usr.UUID, "%s", res->ps[0].sparm);
+
+            kasprintf(&curr_usr.disp_name, "%s", res->ps[1].sparm);
+
+            kasprintf(&curr_usr.campus, "%s", res->ps[3].sparm);
+
+            kasprintf(&curr_usr.role, "%s", res->ps[4].sparm);
+
+            kasprintf(&curr_usr.sessionID, "%s", field->parsed.s);
+
+            curr_usr.perms = int_to_accperms((int) res->ps[5].iparm);
+
+            curr_usr.frozen = res->ps[6].iparm;
+        }
+        sqlbox_finalise(boxctx_data, stmtid);
+    }
+}
+
+void build_stmt(enum statement_pieces STMT) {
     if (STMT == STMTS_BOOK) {
         if (r.fieldmap[KEY_SWITCH_CLASS]) {
             kasprintf(&pstmts[STMT_DATA].stmt,
@@ -624,7 +732,7 @@ int build_stmt(enum statement_pieces STMT) {
                       "FROM CATEGORY c "
                       "INNER JOIN CategoryCascade ct ON c.parentCategoryID = ct.categoryClass) ",
                       pstmts[STMT_DATA].stmt);
-            n++;
+            parmsz++;
         } else {
             kasprintf(&pstmts[STMT_DATA].stmt,
                       "%s""WITH RECURSIVE CategoryCascade AS (SELECT categoryClass, parentCategoryID "
@@ -648,14 +756,14 @@ int build_stmt(enum statement_pieces STMT) {
         kasprintf(&pstmts[STMT_DATA].stmt, "%s,%s", pstmts[STMT_DATA].stmt, rows[STMT][i]);
         kasprintf(&pstmts[STMT_COUNT].stmt, "%s,%s", pstmts[STMT_COUNT].stmt, rows[STMT][i]);
     }
-    kasprintf(&pstmts[STMT_DATA].stmt, "%s %s", pstmts[STMT_DATA].stmt, pstms_data_top[STMT]);
-    kasprintf(&pstmts[STMT_COUNT].stmt, "%s) %s", pstmts[STMT_COUNT].stmt, pstms_data_top[STMT]);
+    kasprintf(&pstmts[STMT_DATA].stmt, "%s %s", pstmts[STMT_DATA].stmt, pstms_data_top[STMT].stmt);
+    kasprintf(&pstmts[STMT_COUNT].stmt, "%s) %s", pstmts[STMT_COUNT].stmt, pstms_data_top[STMT].stmt);
     bool flag = false;
     for (int i = 0; switch_keys[STMT][i] != KEY__MAX; i++) {
         if (r.fieldmap[switch_keys[STMT][i]]) {
-            n++;
+            parmsz++;
             if (!flag) {
-                if (!strstr(pstms_data_top[STMT], "WHERE")) {
+                if (!strstr(pstms_data_top[STMT].stmt, "WHERE")) {
                     kasprintf(&pstmts[STMT_DATA].stmt, "%s"" WHERE ", pstmts[STMT_DATA].stmt);
                     kasprintf(&pstmts[STMT_COUNT].stmt, "%s"" WHERE ", pstmts[STMT_COUNT].stmt);
                 } else {
@@ -680,7 +788,7 @@ int build_stmt(enum statement_pieces STMT) {
             kasprintf(&pstmts[STMT_COUNT].stmt, "%s%s", pstmts[STMT_COUNT].stmt, pstmts_bottom[STMT][i]);
         } else {
             if (r.fieldmap[bottom_keys[STMT][i]]) {
-                n++;
+                parmsz++;
                 if (!flag) {
                     kasprintf(&pstmts[STMT_DATA].stmt, "%s"" ORDER BY ", pstmts[STMT_DATA].stmt);
                     kasprintf(&pstmts[STMT_COUNT].stmt, "%s"" ORDER BY ", pstmts[STMT_COUNT].stmt);
@@ -699,13 +807,17 @@ int build_stmt(enum statement_pieces STMT) {
         }
     }
     kasprintf(&pstmts[STMT_DATA].stmt, "%s"" LIMIT(?),(? * ?)", pstmts[STMT_DATA].stmt);
-    return n += 3;
+    parmsz += 3;
 }
 
-struct sqlbox_parm *parms;
-size_t parmsz;
 
 void fill_parms(enum statement_pieces STMT) {
+    if ((STMT == STMTS_HISTORY || STMT == STMTS_ACCOUNT || STMT == STMTS_SESSIONS || STMT == STMTS_INVENTORY)) {
+        if (!curr_usr.authenticated)
+            errx(EXIT_FAILURE, "perms");
+    }
+    if (STMT == STMTS_INVENTORY && !curr_usr.perms.has_inventory)
+        errx(EXIT_FAILURE, "perms");
     parms = kcalloc(parmsz, sizeof(struct sqlbox_parm));
     int n = 0;
     struct kpair *field;
@@ -726,8 +838,19 @@ void fill_parms(enum statement_pieces STMT) {
                 default:
                     break;
             }
+            if (switch_keys[STMT][i] == KEY_SWITCH_UUID) {
+                if (!curr_usr.perms.admin && !curr_usr.perms.staff) {
+                    if (!((curr_usr.perms.monitor_history && STMT == STMTS_HISTORY) || (
+                              curr_usr.perms.manage_inventories && STMT == STMTS_INVENTORY) || (
+                              curr_usr.perms.see_accounts && STMT == STMTS_ACCOUNT))) {
+                        parms[n - 1] = (struct sqlbox_parm){.type = SQLBOX_PARM_STRING, .sparm = curr_usr.UUID};
+                    }
+                }
+            }
         }
     }
+
+
     for (int i = 0; bottom_keys[STMT][i] != KEY__MAX; i++) {
         if ((field = r.fieldmap[bottom_keys[STMT][i]])) {
             switch (field->type) {
@@ -742,21 +865,267 @@ void fill_parms(enum statement_pieces STMT) {
             }
         }
     }
-    parms[n++] = (struct sqlbox_parm){.type = SQLBOX_PARM_INT, .iparm = r.fieldmap[KEY_LIMIT] ? r.fieldmap[KEY_LIMIT]->parsed.i : 25};
-    parms[n++] = (struct sqlbox_parm){.type = SQLBOX_PARM_INT, .iparm = r.fieldmap[KEY_LIMIT] ? r.fieldmap[KEY_LIMIT]->parsed.i : 25};
-    parms[n++] = (struct sqlbox_parm){.type = SQLBOX_PARM_INT, .iparm = r.fieldmap[KEY_OFFSET] ? r.fieldmap[KEY_OFFSET]->parsed.i : 0};
+    parms[n++] = (struct sqlbox_parm){
+        .type = SQLBOX_PARM_INT, .iparm = r.fieldmap[KEY_LIMIT] ? r.fieldmap[KEY_LIMIT]->parsed.i : 25
+    };
+    parms[n++] = (struct sqlbox_parm){
+        .type = SQLBOX_PARM_INT, .iparm = r.fieldmap[KEY_LIMIT] ? r.fieldmap[KEY_LIMIT]->parsed.i : 25
+    };
+    parms[n++] = (struct sqlbox_parm){
+        .type = SQLBOX_PARM_INT, .iparm = r.fieldmap[KEY_OFFSET] ? r.fieldmap[KEY_OFFSET]->parsed.i : 0
+    };
+}
 
+void get_cat_children(const char *class) {
+    size_t stmtid;
+    size_t parmsz2 = 1;
+    const struct sqlbox_parmset *res;
+    struct sqlbox_parm parms2[] = {
+        {.type = SQLBOX_PARM_STRING, .sparm = class},
+    };
+    if (!(stmtid = sqlbox_prepare_bind(boxctx_data, dbid_data, STMT_CATEGORY_CHILD, parmsz2, parms2,
+                                       SQLBOX_STMT_MULTI)))
+        errx(EXIT_FAILURE, "sqlbox_prepare_bind");
+    while ((res = sqlbox_step(boxctx_data, stmtid)) != NULL && res->code == SQLBOX_CODE_OK && res->psz != 0) {
+        kjson_obj_open(&req);
+        for (int i = 0; i < (int) res->psz; ++i) {
+            switch (res->ps[i].type) {
+                case SQLBOX_PARM_INT:
+                    kjson_putintp(&req, rows[STMTS_CATEGORY][i], res->ps[i].iparm);
+                    break;
+                case SQLBOX_PARM_STRING:
+                    kjson_putstringp(&req, rows[STMTS_CATEGORY][i], res->ps[i].sparm);
+                    break;
+                case SQLBOX_PARM_FLOAT:
+                    kjson_putdoublep(&req, rows[STMTS_CATEGORY][i], res->ps[i].fparm);
+                    break;
+                case SQLBOX_PARM_BLOB:
+                    kjson_putstringp(&req, rows[STMTS_CATEGORY][i], res->ps[i].bparm);
+                    break;
+                case SQLBOX_PARM_NULL:
+                    kjson_putnullp(&req, rows[STMTS_CATEGORY][i]);
+                    break;
+                default:
+                    break;
+            }
+        }
+        if (r.fieldmap[KEY_TREE]) {
+            kjson_arrayp_open(&req, "children");
+            get_cat_children(res->ps[0].sparm);
+            kjson_array_close(&req);
+        }
+        kjson_obj_close(&req);
+        if (r.fieldmap[KEY_CASCADE]) {
+            get_cat_children(res->ps[0].sparm);
+        }
+    }
+    if (!sqlbox_finalise(boxctx_data, stmtid))
+        errx(EXIT_FAILURE, "sqlbox_finalise");
+}
+
+void process(const enum statement STATEMENT) {
+    size_t stmtid_data;
+    const struct sqlbox_parmset *res;
+    if (!(stmtid_data = sqlbox_prepare_bind(boxctx_data, dbid_data, STMT_DATA, parmsz, parms, SQLBOX_STMT_MULTI)))
+        errx(EXIT_FAILURE, "sqlbox_prepare_bind");
+
+    khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
+    khttp_head(&r, kresps[KRESP_CONTENT_TYPE], "%s", kmimetypes[KMIME_APP_JSON]);
+    khttp_body(&r);
+    kjson_open(&req, &r);
+    kjson_obj_open(&req);
+    kjson_objp_open(&req, "user");
+    kjson_putstringp(&req, "IP", r.remote);
+    kjson_putboolp(&req, "authenticated", curr_usr.authenticated);
+    if (curr_usr.authenticated) {
+        kjson_putstringp(&req, "UUID", curr_usr.UUID);
+        kjson_putstringp(&req, "disp_name", curr_usr.disp_name);
+        kjson_putstringp(&req, "campus", curr_usr.campus);
+        kjson_putstringp(&req, "role", curr_usr.role);
+        kjson_putboolp(&req, "frozen", curr_usr.frozen);
+
+        kjson_objp_open(&req, "perms");
+        kjson_putintp(&req, "numeric", curr_usr.perms.numeric);
+        kjson_putboolp(&req, "admin", curr_usr.perms.admin);
+        kjson_putboolp(&req, "staff", curr_usr.perms.staff);
+        kjson_putboolp(&req, "manage_stock", curr_usr.perms.manage_stock);
+        kjson_putboolp(&req, "manage_inventories", curr_usr.perms.manage_inventories);
+        kjson_putboolp(&req, "see_accounts", curr_usr.perms.see_accounts);
+        kjson_putboolp(&req, "monitor_history", curr_usr.perms.monitor_history);
+        kjson_putboolp(&req, "has_inventory", curr_usr.perms.has_inventory);
+        kjson_obj_close(&req);
+    }
+    kjson_obj_close(&req);
+    kjson_arrayp_open(&req, "res");
+    while ((res = sqlbox_step(boxctx_data, stmtid_data)) != NULL && res->code == SQLBOX_CODE_OK && res->psz != 0) {
+        kjson_obj_open(&req);
+        for (int i = 0; i < (int) res->psz; ++i) {
+            switch (res->ps[i].type) {
+                case SQLBOX_PARM_INT:
+                    if (STATEMENT == STMTS_ROLE) {
+                        struct accperms perms = int_to_accperms((int) res->ps[i].iparm);
+                        kjson_objp_open(&req, rows[STATEMENT][i]);
+                        kjson_putintp(&req, "numerical", res->ps[i].iparm);
+                        kjson_putboolp(&req, "admin", perms.admin);
+                        kjson_putboolp(&req, "staff", perms.staff);
+                        kjson_putboolp(&req, "manage_stock", perms.manage_stock);
+                        kjson_putboolp(&req, "manage_inventories", perms.manage_inventories);
+                        kjson_putboolp(&req, "see_accounts", perms.see_accounts);
+                        kjson_putboolp(&req, "monitor_history", perms.monitor_history);
+                        kjson_putboolp(&req, "has_inventory", perms.has_inventory);
+                        kjson_obj_close(&req);
+                    } else
+                        kjson_putintp(&req, rows[STATEMENT][i], res->ps[i].iparm);
+                    break;
+                case SQLBOX_PARM_STRING:
+                    kjson_putstringp(&req, rows[STATEMENT][i], res->ps[i].sparm);
+                    break;
+                case SQLBOX_PARM_FLOAT:
+                    kjson_putdoublep(&req, rows[STATEMENT][i], res->ps[i].fparm);
+                    break;
+                case SQLBOX_PARM_BLOB:
+                    kjson_putstringp(&req, rows[STATEMENT][i], res->ps[i].bparm);
+                    break;
+                case SQLBOX_PARM_NULL:
+                    kjson_putnullp(&req, rows[STATEMENT][i]);
+                    break;
+                default:
+                    break;
+            }
+        }
+        if (STATEMENT == STMTS_CATEGORY) {
+            if (r.fieldmap[KEY_TREE]) {
+                kjson_arrayp_open(&req, "children");
+                get_cat_children(res->ps[0].sparm);
+                kjson_array_close(&req);
+            } else if (r.fieldmap[KEY_CASCADE]) {
+                kjson_obj_close(&req);
+                get_cat_children(res->ps[0].sparm);
+            }
+        }
+        if (STATEMENT == STMTS_BOOK) {
+            size_t stmtid_book_data;
+            size_t parmsz_book = 1;
+            const struct sqlbox_parmset *res_book;
+            struct sqlbox_parm parms_book[] = {
+                {.type = SQLBOX_PARM_STRING, .sparm = res->ps[0].sparm},
+            };
+            if (!(stmtid_book_data =
+                  sqlbox_prepare_bind(boxctx_data, dbid_data, STMT_AUTHORED, parmsz_book, parms_book,
+                                      SQLBOX_STMT_MULTI)))
+                errx(EXIT_FAILURE, "sqlbox_prepare_bind");
+
+            kjson_arrayp_open(&req, "authors");
+            while ((res_book = sqlbox_step(boxctx_data, stmtid_book_data)) != NULL && res_book->code ==
+                   SQLBOX_CODE_OK
+                   && res_book->psz != 0)
+                kjson_putstring(&req, res_book->ps[0].sparm);
+            kjson_array_close(&req);
+
+            if (!sqlbox_finalise(boxctx_data, stmtid_book_data))
+                errx(EXIT_FAILURE, "sqlbox_finalise");
+
+            if (!(stmtid_book_data =
+                  sqlbox_prepare_bind(boxctx_data, dbid_data, STMT_LANGUAGED, parmsz_book, parms_book,
+                                      SQLBOX_STMT_MULTI)))
+                errx(EXIT_FAILURE, "sqlbox_prepare_bind");
+
+            kjson_arrayp_open(&req, "langs");
+            while ((res_book = sqlbox_step(boxctx_data, stmtid_book_data)) != NULL && res_book->code ==
+                   SQLBOX_CODE_OK
+                   && res_book->psz != 0)
+                kjson_putstring(&req, res_book->ps[0].sparm);
+            kjson_array_close(&req);
+
+            if (!sqlbox_finalise(boxctx_data, stmtid_book_data))
+                errx(EXIT_FAILURE, "sqlbox_finalise");
+
+            if (!(stmtid_book_data =
+                  sqlbox_prepare_bind(boxctx_data, dbid_data, STMT_STOCKED, parmsz_book, parms_book,
+                                      SQLBOX_STMT_MULTI)))
+                errx(EXIT_FAILURE, "sqlbox_prepare_bind");
+
+            kjson_arrayp_open(&req, "stock");
+            while ((res_book = sqlbox_step(boxctx_data, stmtid_book_data)) != NULL && res_book->code ==
+                   SQLBOX_CODE_OK
+                   && res_book->psz != 0) {
+                kjson_obj_open(&req);
+                kjson_putstringp(&req, "campus", res_book->ps[0].sparm);
+                kjson_putintp(&req, "stock", res_book->ps[1].iparm);
+                kjson_obj_close(&req);
+            }
+            kjson_array_close(&req);
+
+            if (!sqlbox_finalise(boxctx_data, stmtid_book_data))
+                errx(EXIT_FAILURE, "sqlbox_finalise");
+        }
+        if (!(STATEMENT == STMTS_CATEGORY && r.fieldmap[KEY_CASCADE]))
+            kjson_obj_close(&req);
+    }
+    if (!sqlbox_finalise(boxctx_data, stmtid_data))
+        errx(EXIT_FAILURE, "sqlbox_finalise");
+    kjson_array_close(&req);
+    if (!(stmtid_data = sqlbox_prepare_bind(boxctx_data, dbid_data, STMT_COUNT, parmsz, parms, SQLBOX_STMT_MULTI)))
+        errx(EXIT_FAILURE, "sqlbox_prepare_bind");
+    if ((res = sqlbox_step(boxctx_data, stmtid_data)) == NULL)
+        errx(EXIT_FAILURE, "sqlbox_step");
+    kjson_putintp(&req, "nbrres", res->ps[0].iparm);
+    if (!sqlbox_finalise(boxctx_data, stmtid_data))
+        errx(EXIT_FAILURE, "sqlbox_finalise");
+    kjson_obj_close(&req);
+    kjson_close(&req);
+}
+
+void save(const enum statement STATEMENT, const bool failed) {
+    char *requestDesc = NULL;
+    if (!failed) {
+        kasprintf(&requestDesc, "Stmt:%s, Parms:(", pages[r.page]);
+        for (int i = 0; i < (int) parmsz; ++i) {
+            switch (parms[i].type) {
+                case SQLBOX_PARM_INT:
+                    kasprintf(&requestDesc, "%s\"%"PRId64"\",", requestDesc, parms[i].iparm);
+                    break;
+                case SQLBOX_PARM_STRING:
+                    if (strlen(parms[i].sparm) > 0)
+                        kasprintf(&requestDesc, "%s\"%s\",", requestDesc, parms[i].sparm);
+                    break;
+                case SQLBOX_PARM_FLOAT:
+                    kasprintf(&requestDesc, "%s\"%f\",", requestDesc, parms[i].fparm);
+                    break;
+                default:
+                    break;
+            }
+        }
+        kasprintf(&requestDesc, "%s)", requestDesc);
+    } else {
+        kasprintf(&requestDesc, "Stmt:%s, ACCESS DENIED", pages[r.page]);
+    }
+    size_t parmsz_save = 3;
+    struct sqlbox_parm parms_save[] = {
+        {
+            .type = (curr_usr.UUID != NULL) ? SQLBOX_PARM_STRING : SQLBOX_PARM_NULL,
+            .sparm = curr_usr.UUID
+        },
+        {
+            .type = SQLBOX_PARM_STRING,
+            .sparm = r.remote
+        },
+        {
+            .type = SQLBOX_PARM_STRING,
+            .sparm = requestDesc
+        },
+    };
+    if (sqlbox_exec(boxctx_data, dbid_data, STMT_SAVE, parmsz_save, parms_save,SQLBOX_STMT_CONSTRAINT) !=
+        SQLBOX_CODE_OK)
+        errx(EXIT_FAILURE, "sqlbox_exec");
 }
 
 int main(void) {
     enum khttp er;
-    // Parse the http request and match the keys to the keys, and pages to the pages, default to
-    // querying the INVENTORY if no page was found
     if (khttp_parse(&r, keys, KEY__MAX, pages, PG__MAX, PG_BOOK) != KCGI_OK)
         return EXIT_FAILURE;
     if ((er = sanitize()) != KHTTP_200) {
         khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[er]);
-
         khttp_body(&r);
         if (r.mime == KMIME_TEXT_HTML)
             khttp_puts(&r, "Could not service request.");
@@ -764,14 +1133,16 @@ int main(void) {
         return 0;
     }
     const enum statement_pieces STMT = get_stmts();
-    parmsz = build_stmt(STMT);
+    build_stmt(STMT);
+    alloc_ctx_cfg();
+    fill_user();
     fill_parms(STMT);
     khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
     khttp_body(&r);
     for (size_t i = 0; i < parmsz; ++i) {
         if (parms[i].type == SQLBOX_PARM_STRING) {
-            khttp_puts(&r,parms[i].sparm);
-            khttp_puts(&r,"\r\n");
+            khttp_puts(&r, parms[i].sparm);
+            khttp_puts(&r, "\r\n");
         }
     }
     khttp_puts(&r, pstmts[STMT_DATA].stmt);
