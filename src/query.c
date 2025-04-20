@@ -169,7 +169,7 @@ static struct sqlbox_pstmt pstms_data_top[STMTS__MAX] = {
         "AUTHORED,"
         "STOCK,"
         "CategoryCascade "
-        "WHERE category = categoryClass "
+        "WHERE category = CategoryCascade.categoryClass "
         "AND CATEGORY.categoryClass = BOOK.category "
         "AND AUTHORED.serialnum = BOOK.serialnum "
         "AND LANGUAGES.serialnum = BOOK.serialnum "
