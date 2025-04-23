@@ -678,6 +678,7 @@ void alloc_ctx_cfg_login() {
     if (!(dbid_login = sqlbox_open(boxctx_login, 0)))
         errx(EXIT_FAILURE, "sqlbox_open");
 }
+
 struct usr {
     char *UUID;
     char *disp_name;
@@ -777,7 +778,8 @@ void build_stmt(enum statement_pieces STMT) {
     bool flag = false;
     for (int i = 0; switch_keys[STMT][i] != KEY__MAX; i++) {
         if (r.fieldmap[switch_keys[STMT][i]]) {
-            parmsz++;
+            if (switch_keys[STMT][i] != KEY_SWITCH_ROOT)
+                parmsz++;
             if (!flag) {
                 if (!strstr(pstms_data_top[STMT].stmt, "WHERE")) {
                     kasprintf(&pstmts[STMT_DATA].stmt, "%s"" WHERE ", pstmts[STMT_DATA].stmt);
@@ -864,22 +866,24 @@ int fill_parms(enum statement_pieces STMT) {
     }
     for (int i = 0; switch_keys[STMT][i] != KEY__MAX; i++) {
         if ((field = r.fieldmap[switch_keys[STMT][i]])) {
-            switch (field->type) {
-                case KPAIR_INTEGER:
-                    parms[n++] = (struct sqlbox_parm){.type = SQLBOX_PARM_INT, .iparm = field->parsed.i};
-                    break;
-                case KPAIR_STRING:
-                    parms[n++] = (struct sqlbox_parm){.type = SQLBOX_PARM_STRING, .sparm = field->parsed.s};
-                    break;
-                default:
-                    break;
-            }
-            if (switch_keys[STMT][i] == KEY_SWITCH_UUID) {
-                if (!curr_usr.perms.admin && !curr_usr.perms.staff) {
-                    if (!((curr_usr.perms.monitor_history && STMT == STMTS_HISTORY) || (
-                              curr_usr.perms.manage_inventories && STMT == STMTS_INVENTORY) || (
-                              curr_usr.perms.see_accounts && STMT == STMTS_ACCOUNT))) {
-                        parms[n - 1] = (struct sqlbox_parm){.type = SQLBOX_PARM_STRING, .sparm = curr_usr.UUID};
+            if (switch_keys[STMT][i] != KEY_SWITCH_ROOT) {
+                switch (field->type) {
+                    case KPAIR_INTEGER:
+                        parms[n++] = (struct sqlbox_parm){.type = SQLBOX_PARM_INT, .iparm = field->parsed.i};
+                        break;
+                    case KPAIR_STRING:
+                        parms[n++] = (struct sqlbox_parm){.type = SQLBOX_PARM_STRING, .sparm = field->parsed.s};
+                        break;
+                    default:
+                        break;
+                }
+                if (switch_keys[STMT][i] == KEY_SWITCH_UUID) {
+                    if (!curr_usr.perms.admin && !curr_usr.perms.staff) {
+                        if (!((curr_usr.perms.monitor_history && STMT == STMTS_HISTORY) || (
+                                  curr_usr.perms.manage_inventories && STMT == STMTS_INVENTORY) || (
+                                  curr_usr.perms.see_accounts && STMT == STMTS_ACCOUNT))) {
+                            parms[n - 1] = (struct sqlbox_parm){.type = SQLBOX_PARM_STRING, .sparm = curr_usr.UUID};
+                        }
                     }
                 }
             }
