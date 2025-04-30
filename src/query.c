@@ -1164,6 +1164,10 @@ void save(const bool failed) {
 
 int main(void) {
     enum khttp er;
+
+    puts("Access-Control-Allow-Origin: https://seele.serveo.net\r");
+    puts("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS\r");
+    puts("Access-Control-Allow-Credentials: true");
     if (khttp_parse(&r, keys, KEY__MAX, pages, PG__MAX, PG_BOOK) != KCGI_OK)
         return EXIT_FAILURE;
     if ((er = sanitize()) != KHTTP_200) {
