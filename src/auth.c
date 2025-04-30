@@ -276,16 +276,11 @@ int main() {
     if (khttp_parse(&r, keys, KEY__MAX, NULL, 0, 0) != KCGI_OK)
         return EXIT_FAILURE;
 
-    if (r.method == KMETHOD_OPTIONS && r.reqmap[KREQU_ORIGIN] != NULL) {
-        khttp_head(&r,kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN],"%s", r.reqmap[KREQU_ORIGIN]->val);
-        khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_METHODS], "%s", "GET, POST, PUT, DELETE, OPTIONS");
-        khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_CREDENTIALS], "%s", "true");
-        khttp_head(&r, kresps[KRESP_VARY], "%s", "Origin");
-        khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_204]);
-        khttp_body(&r);
-        return EXIT_SUCCESS;
-    }
-        alloc_ctx_cfg();
+    khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "https://seele.serveo.net/");
+    khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_METHODS], "%s", "GET, POST, PUT, DELETE, OPTIONS");
+    khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_CREDENTIALS], "%s", "true");
+    khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_204]);
+    alloc_ctx_cfg();
     if ((er = sanitize()) != KHTTP_200) {
         khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[er]);
         khttp_head(&r, kresps[KRESP_CONTENT_TYPE], "%s", kmimetypes[KMIME_TEXT_PLAIN]);
