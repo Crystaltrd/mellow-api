@@ -1161,12 +1161,15 @@ void save(const bool failed) {
     if (sqlbox_exec(boxctx_data, dbid_data, STMT_SAVE, parmsz_save, parms_save,SQLBOX_STMT_CONSTRAINT) !=
         SQLBOX_CODE_OK)
         errx(EXIT_FAILURE, "sqlbox_exec");
-}
+} 
 
 int main(void) {
     enum khttp er;
     if (khttp_parse(&r, keys, KEY__MAX, pages, PG__MAX, PG_BOOK) != KCGI_OK)
         return EXIT_FAILURE;
+    khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", r.reqmap[KREQU_ORIGIN]->val);
+    khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_METHODS], "%s", "GET, POST, PUT, DELETE, OPTIONS");
+    khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_CREDENTIALS], "%s", "true");
     if ((er = sanitize()) != KHTTP_200) {
         khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[er]);
         khttp_body(&r);
