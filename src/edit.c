@@ -364,6 +364,7 @@ struct usr curr_usr = {
     .sessionID = NULL,
     .perms = {0, 0, 0, 0, 0, 0, 0, 0}
 };
+
 void fill_user() {
     struct kpair *field;
 

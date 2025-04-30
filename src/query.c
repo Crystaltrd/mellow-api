@@ -1187,7 +1187,6 @@ int main(void) {
 access_denied:
     khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_403]);
     khttp_head(&r, kresps[KRESP_CONTENT_TYPE], "%s", kmimetypes[KMIME_APP_JSON]);
-
     khttp_body(&r);
     kjson_open(&req, &r);
     kjson_obj_open(&req);
