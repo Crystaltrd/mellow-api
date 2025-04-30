@@ -12,7 +12,6 @@
 #include <sqlbox.h>
 #include <stdbool.h>
 #include <stdio.h>
-
 struct kreq r;
 struct kjsonreq req;
 /*
@@ -970,6 +969,7 @@ void process(const enum statement_pieces STATEMENT) {
     const struct sqlbox_parmset *res;
     if (!(stmtid_data = sqlbox_prepare_bind(boxctx_data, dbid_data, STMT_DATA, parmsz, parms, SQLBOX_STMT_MULTI)))
         errx(EXIT_FAILURE, "sqlbox_prepare_bind");
+    khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", r.reqmap[KREQU_ORIGIN]->val);
     khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
     khttp_head(&r, kresps[KRESP_CONTENT_TYPE], "%s", kmimetypes[KMIME_APP_JSON]);
     khttp_body(&r);
