@@ -2,7 +2,7 @@ CFLAGS=-g -Wall -Wextra `pkg-config --static --cflags libargon2 kcgi-html kcgi-j
 LDFLAGS=--static `pkg-config --static --libs libargon2 kcgi-html kcgi-json sqlbox`
 LDFLAGS_LINUX= `pkg-config --static --libs libmd libbsd`
 PBNIX_HTML=${HOME}/public_html/mellow
-DESTDIR=/var/www/cgi-bin/mellow
+DESTDIR=/var/www/cgi-bin
 USER=www
 GROUP=www
 
