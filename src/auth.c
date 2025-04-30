@@ -277,11 +277,21 @@ int main() {
         return EXIT_FAILURE;
     alloc_ctx_cfg();
     if ((er = sanitize()) != KHTTP_200) {
+         if (r.method == KMETHOD_OPTIONS && r.reqmap[KREQU_ORIGIN] != NULL) {
+	/* This is a CORS pre-flight request. */
+            khttp_head(&r,kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN],"%s", r.reqmap[KREQU_ORIGIN]->val);
+            khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_METHODS], "%s", "GET, POST, PUT, DELETE, OPTIONS");
+            khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_CREDENTIALS], "%s", "true");
+	    khttp_head(&r, kresps[KRESP_VARY], "%s", "Origin");
+            khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_204]);
+            khttp_body(&r);
+        } else {
         khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[er]);
         khttp_head(&r, kresps[KRESP_CONTENT_TYPE], "%s", kmimetypes[KMIME_TEXT_PLAIN]);
         khttp_body(&r);
         if (r.mime == KMIME_TEXT_HTML)
             khttp_puts(&r, "Could not service request.");
+        }
         save(true);
         goto cleanup;
     }
