@@ -1172,9 +1172,10 @@ int main(void) {
     if ((er = sanitize()) != KHTTP_200) {
         if (r.method == KMETHOD_OPTIONS && r.reqmap[KREQU_ORIGIN] != NULL) {
 	/* This is a CORS pre-flight request. */
-            khttp_head(&r,kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN],"%s", "https://seele.serveo.net/");
+            khttp_head(&r,kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN],"%s", r.reqmap[KREQU_ORIGIN]->val);
             khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_METHODS], "%s", "GET, POST, PUT, DELETE, OPTIONS");
             khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_CREDENTIALS], "%s", "true");
+	    khttp_head(&r, kresps[KRESP_VARY], "%s", "Origin");
             khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_204]);
             khttp_body(&r);
         } else {
