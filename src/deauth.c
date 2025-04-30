@@ -246,6 +246,10 @@ int main() {
     enum khttp er;
     if (khttp_parse(&r, keys, KEY__MAX, 0, 0, 0) != KCGI_OK)
         return EXIT_FAILURE;
+
+    khttp_head(&r, "Access-Control-Allow-Origin", "https://seele.serveo.net");
+    khttp_head(&r, "Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+    khttp_head(&r, "Access-Control-Allow-Credentials", "true");
     if ((er = sanitize()) != KHTTP_200) goto error;
     alloc_ctx_cfg();
     fill_user();
