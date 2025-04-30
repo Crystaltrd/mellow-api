@@ -1168,22 +1168,14 @@ int main(void) {
     enum khttp er;
     if (khttp_parse(&r, keys, KEY__MAX, pages, PG__MAX, PG_BOOK) != KCGI_OK)
         return EXIT_FAILURE;
-
+    khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_METHODS], "%s", "GET, POST, PUT, DELETE, OPTIONS");
+    khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_CREDENTIALS], "%s", "true");
     khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "https://seele.serveo.net/");
     if ((er = sanitize()) != KHTTP_200) {
-        if (r.method == KMETHOD_OPTIONS && r.reqmap[KREQU_ORIGIN] != NULL) {
-	/* This is a CORS pre-flight request. */
-            khttp_head(&r,kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN],"%s", "https://seele.serveo.net/");
-            khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_METHODS], "%s", "GET, POST, PUT, DELETE, OPTIONS");
-            khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_CREDENTIALS], "%s", "true");
-            khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_204]);
-            khttp_body(&r);
-        } else {
-            khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[er]);
-            khttp_body(&r);
-            if (r.mime == KMIME_TEXT_HTML)
-                khttp_puts(&r, "Could not service request.");
-        }
+        khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[er]);
+        khttp_body(&r);
+        if (r.mime == KMIME_TEXT_HTML)
+            khttp_puts(&r, "Could not service request.");
         khttp_free(&r);
         return 0;
     }
