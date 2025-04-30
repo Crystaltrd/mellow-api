@@ -113,8 +113,8 @@ CREATE TABLE SESSIONS
     expiresAt DATETIME NOT NULL
 );
 INSERT INTO ACCOUNT
-VALUES ('admin', 'Administrator C',
-        '$argon2id$v=19$m=47104,t=1,p=1$c29tZWhhc2g$qq6HFnwYwAuscx21QUlAZAf9PDs6ve5tTAFDisdc0dk', 'El Kseur', 'ADMIN',
+VALUES ('teto', 'Administrator Kasane Teto',
+        '$argon2id$v=19$m=47104,t=2,p=1$MkY1clBFTjlrNnk1bTJySg$DtK/FWEQzbEltEauYnvO/Fo1ED8pIbDlzVME/OfflfI', 'El Kseur', 'ADMIN',
         FALSE);
 
 CREATE TABLE BOOK
