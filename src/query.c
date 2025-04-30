@@ -1167,8 +1167,6 @@ int main(void) {
     enum khttp er;
     if (khttp_parse(&r, keys, KEY__MAX, pages, PG__MAX, PG_BOOK) != KCGI_OK)
         return EXIT_FAILURE;
-
-    khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "https://seele.serveo.net/");
     if ((er = sanitize()) != KHTTP_200) {
         if (r.method == KMETHOD_OPTIONS && r.reqmap[KREQU_ORIGIN] != NULL) {
 	/* This is a CORS pre-flight request. */
