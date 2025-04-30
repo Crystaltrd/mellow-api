@@ -12,7 +12,6 @@
 #include <sqlbox.h>
 #include <stdbool.h>
 #include <stdio.h>
-
 struct kreq r;
 struct kjsonreq req;
 /*
