@@ -279,7 +279,6 @@ int main() {
     khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_ORIGIN], "%s", "https://seele.serveo.net/");
     khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_METHODS], "%s", "GET, POST, PUT, DELETE, OPTIONS");
     khttp_head(&r, kresps[KRESP_ACCESS_CONTROL_ALLOW_CREDENTIALS], "%s", "true");
-    khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_204]);
     alloc_ctx_cfg();
     if ((er = sanitize()) != KHTTP_200) {
         khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[er]);
