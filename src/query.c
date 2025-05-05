@@ -1166,7 +1166,7 @@ int main(void) {
     enum khttp er;
     if (khttp_parse(&r, keys, KEY__MAX, pages, PG__MAX, PG_BOOK) != KCGI_OK)
         return EXIT_FAILURE;
-    khttp_head(&r, "Access-Control-Allow-Origin", "https://seele.serveo.net, http://localhost:5179");
+    khttp_head(&r, "Access-Control-Allow-Origin", "https://seele.serveo.net, http://localhost");
     khttp_head(&r, "Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
     khttp_head(&r, "Access-Control-Allow-Credentials", "true");
     if ((er = sanitize()) != KHTTP_200) {
