@@ -601,7 +601,7 @@ int main() {
     // querying the PG__MAX if no page was found
     if (khttp_parse(&r, keys, KEY__MAX, pages, PG__MAX, PG__MAX) != KCGI_OK)
         return EXIT_FAILURE;
-    khttp_head(&r, "Access-Control-Allow-Origin", "https://seele.serveo.net, http://localhost");
+    khttp_head(&r, "Access-Control-Allow-Origin", "https://seele.serveo.net, http://localhost:5179");
     khttp_head(&r, "Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
     khttp_head(&r, "Access-Control-Allow-Credentials", "true");
     if ((er = sanitize()) != KHTTP_200)goto error;
