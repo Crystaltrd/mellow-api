@@ -114,7 +114,7 @@ CREATE TABLE SESSIONS
 );
 INSERT INTO ACCOUNT
 VALUES ('teto', 'Administrator Kasane Teto',
-        '$argon2id$v=19$m=47104,t=2,p=1$MkY1clBFTjlrNnk1bTJySg$DtK/FWEQzbEltEauYnvO/Fo1ED8pIbDlzVME/OfflfI', 'El Kseur', 'ADMIN',
+        '$argon2id$v=19$m=47104,t=1,p=2$ekVIR1hycXl0Rk9hb0l6Qg$a4F4t8KwYTGXFprw2mI1xdIYtNsir9TWMpCO89v26e8', 'El Kseur', 'ADMIN',
         FALSE);
 
 CREATE TABLE BOOK
