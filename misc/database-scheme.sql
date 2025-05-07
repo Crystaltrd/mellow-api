@@ -5,20 +5,16 @@ CREATE TABLE PUBLISHER
 );
 
 INSERT INTO PUBLISHER
-VALUES ('pub1'),
-       ('pub2'),
-       ('pub3');
-
+VALUES ('Longman Publishing'),
+;
 CREATE TABLE AUTHOR
 (
     authorName TEXT PRIMARY KEY
 );
 
 INSERT INTO AUTHOR
-VALUES ('AUTHOR1'),
-       ('AUTHOR2'),
-       ('AUTHOR3');
-
+VALUES ('Brian Wilson Kernighan'),
+       ('Dennis M Ritchie');
 CREATE TABLE ACTION
 (
     actionName TEXT PRIMARY KEY
@@ -41,9 +37,10 @@ CREATE TABLE LANG
 );
 
 INSERT INTO LANG
-VALUES ('lang1'),
-       ('lang2'),
-       ('lang3');
+VALUES ('kab'),
+       ('en'),
+       ('fr'),
+       ('ar');
 
 CREATE TABLE DOCTYPE
 (
@@ -51,9 +48,10 @@ CREATE TABLE DOCTYPE
 );
 
 INSERT INTO DOCTYPE
-VALUES ('type1'),
-       ('type2'),
-       ('type3');
+VALUES ('Book'),
+       ('Thesis'),
+       ('Report'),
+       ('Article');
 
 CREATE TABLE CAMPUS
 (
@@ -86,16 +84,16 @@ CREATE TABLE CATEGORY
     parentCategoryID TEXT REFERENCES CATEGORY (categoryClass) ON UPDATE CASCADE ON DELETE CASCADE
 );
 INSERT INTO CATEGORY
-VALUES ('0', 'Primary1', null),
-       ('1', 'Primary2', null);
+VALUES ('0', 'Non-Fiction', null),
+       ('1', 'Fiction', null);
 INSERT INTO CATEGORY
-VALUES ('00', 'Sec11', '0'),
-       ('01', 'Sec12', '0'),
-       ('10', 'Sec21', '1'),
-       ('11', 'Sec22', '1');
+VALUES ('00', 'Programming', '0'),
+       ('01', 'Physics', '0'),
+       ('10', 'Fantasy', '1'),
+       ('11', 'Sci-Fi', '1');
 INSERT INTO CATEGORY
-VALUES ('000', 'Sec111', '00'),
-       ('001', 'Sec112', '00');
+VALUES ('110', 'Utopian', '11'),
+       ('111', 'Dystopian', '11');
 
 CREATE TABLE ACCOUNT
 (
@@ -130,15 +128,11 @@ CREATE TABLE BOOK
     description     TEXT,
     hits            INTEGER DEFAULT 0 CHECK (hits >= 0)
 );
-INSERT INTO BOOK
-VALUES ('1', 'type1', '0', 'pub1', 'Book 1', 1950, null, null,0),
-       ('2', 'type1', '1', 'pub2', 'Book 2', 2007, null,null, 9),
-       ('3', 'type2', '01', 'pub2', 'Book 3', 9999, null,null , 7),
-       ('4', 'type1', '001', 'pub2', 'Book 4', 2003, null,null, 15),
-       ('5', 'type1', '000', 'pub1', 'Book 5', 2001, null,null, 94),
-       ('6', 'type1', '00', 'pub2', 'Book 6', 2001, null,null, 95),
-       ('7', 'type1', '10', 'pub1', 'Book 7', 2055, null,null, 93),
-       ('8', 'type2', '11', 'pub1', 'Book 8', 3055, null,null, 19);
+Insert INTO BOOK
+VALUES ('9780131101630', 'Book', '00', 'Longman Publishing',
+        'The C Programming Language', 1978, '9780131101630.jpg',
+        'Known as the bible of C, this classic bestseller introduces the C programming language and illustrates ' ||
+        'algorithms, data structures, and programming techniques.', 0);
 
 CREATE TABLE LANGUAGES
 (
@@ -147,16 +141,7 @@ CREATE TABLE LANGUAGES
     UNIQUE (serialnum, lang)
 );
 INSERT INTO LANGUAGES
-VALUES ('1', 'lang1'),
-       ('2', 'lang2'),
-       ('3', 'lang3'),
-       ('4', 'lang1'),
-       ('4', 'lang2'),
-       ('5', 'lang2'),
-       ('6', 'lang1'),
-       ('6', 'lang3'),
-       ('7', 'lang3'),
-       ('8', 'lang2');
+VALUES ('9780131101630', 'en');
 CREATE TABLE AUTHORED
 (
     serialnum TEXT NOT NULL REFERENCES BOOK (serialnum) ON UPDATE CASCADE ON DELETE CASCADE,
@@ -165,16 +150,8 @@ CREATE TABLE AUTHORED
 );
 
 INSERT INTO AUTHORED
-VALUES ('1', 'AUTHOR1'),
-       ('2', 'AUTHOR2'),
-       ('3', 'AUTHOR3'),
-       ('4', 'AUTHOR1'),
-       ('4', 'AUTHOR2'),
-       ('5', 'AUTHOR2'),
-       ('6', 'AUTHOR1'),
-       ('6', 'AUTHOR3'),
-       ('7', 'AUTHOR3'),
-       ('8', 'AUTHOR2');
+VALUES ('9780131101630', 'Brian Wilson Kernighan'),
+       ('9780131101630', 'Dennis M Ritchie');
 CREATE TABLE STOCK
 (
     serialnum TEXT NOT NULL,
@@ -186,15 +163,10 @@ CREATE TABLE STOCK
 );
 
 INSERT INTO STOCK
-VALUES ('1', 'Aboudaou', 3),
-       ('2', 'El Kseur', 2),
-       ('3', 'Targa Ouzemmour', 5),
-       ('4', 'El Kseur', 6),
-       ('5', 'El Kseur', 6),
-       ('6', 'Aboudaou', 7),
-       ('6', 'El Kseur', 7),
-       ('7', 'Targa Ouzemmour', 74),
-       ('8', 'El Kseur', 1);
+VALUES ('9780131101630', 'Aboudaou', 1),
+       ('9780131101630', 'El Kseur', 1),
+       ('9780131101630', 'Targa Ouzemmour', 1)
+;
 
 CREATE TABLE INVENTORY
 (
