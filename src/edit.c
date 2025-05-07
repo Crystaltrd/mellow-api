@@ -211,7 +211,7 @@ static struct sqlbox_pstmt pstmts_switches[STMTS__MAX][9] = {
         {(char *) "rentdate = (?)"}, {(char *) "extended = (?)"}
     }
 };
-static enum key_mods switch_keys[STMTS__MAX][9] = {
+static enum key_mods switch_keys[STMTS__MAX][10] = {
     {KEY_MOD_NAME, KEY__MAX},
     {KEY_MOD_NAME, KEY__MAX},
     {KEY_MOD_NAME, KEY__MAX},
