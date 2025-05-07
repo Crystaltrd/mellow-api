@@ -114,7 +114,8 @@ CREATE TABLE SESSIONS
 );
 INSERT INTO ACCOUNT
 VALUES ('teto', 'Administrator Kasane Teto',
-        '$argon2id$v=19$m=47104,t=1,p=2$ekVIR1hycXl0Rk9hb0l6Qg$a4F4t8KwYTGXFprw2mI1xdIYtNsir9TWMpCO89v26e8', 'El Kseur', 'ADMIN',
+        '$argon2id$v=19$m=47104,t=1,p=2$ekVIR1hycXl0Rk9hb0l6Qg$a4F4t8KwYTGXFprw2mI1xdIYtNsir9TWMpCO89v26e8', 'El Kseur',
+        'ADMIN',
         FALSE);
 
 CREATE TABLE BOOK
@@ -126,17 +127,18 @@ CREATE TABLE BOOK
     booktitle       TEXT             NOT NULL,
     bookreleaseyear INTEGER          NOT NULL,
     bookcover       TEXT,
+    description     TEXT,
     hits            INTEGER DEFAULT 0 CHECK (hits >= 0)
 );
 INSERT INTO BOOK
-VALUES ('1', 'type1', '0', 'pub1', 'Book 1', 1950, null, 0),
-       ('2', 'type1', '1', 'pub2', 'Book 2', 2007, null, 9),
-       ('3', 'type2', '01', 'pub2', 'Book 3', 9999, null, 7),
-       ('4', 'type1', '001', 'pub2', 'Book 4', 2003, null, 15),
-       ('5', 'type1', '000', 'pub1', 'Book 5', 2001, null, 94),
-       ('6', 'type1', '00', 'pub2', 'Book 6', 2001, null, 95),
-       ('7', 'type1', '10', 'pub1', 'Book 7', 2055, null, 93),
-       ('8', 'type2', '11', 'pub1', 'Book 8', 3055, null, 19);
+VALUES ('1', 'type1', '0', 'pub1', 'Book 1', 1950, null, null,0),
+       ('2', 'type1', '1', 'pub2', 'Book 2', 2007, null,null, 9),
+       ('3', 'type2', '01', 'pub2', 'Book 3', 9999, null,null , 7),
+       ('4', 'type1', '001', 'pub2', 'Book 4', 2003, null,null, 15),
+       ('5', 'type1', '000', 'pub1', 'Book 5', 2001, null,null, 94),
+       ('6', 'type1', '00', 'pub2', 'Book 6', 2001, null,null, 95),
+       ('7', 'type1', '10', 'pub1', 'Book 7', 2055, null,null, 93),
+       ('8', 'type2', '11', 'pub1', 'Book 8', 3055, null,null, 19);
 
 CREATE TABLE LANGUAGES
 (

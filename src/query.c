@@ -100,7 +100,7 @@ enum statement_pieces get_stmts() {
     return (enum statement_pieces) r.page;
 }
 
-static const char *rows[STMTS__MAX][10] = {
+static const char *rows[STMTS__MAX][11] = {
     {"publisherName",NULL},
     {"authorName",NULL},
     {"langcode",NULL},
@@ -112,6 +112,7 @@ static const char *rows[STMTS__MAX][10] = {
     {"ACCOUNT.UUID", "displayname", "pwhash", "campus", "role", "perms", "frozen",NULL},
     {
         "BOOK.serialnum", "type", "category", "categoryName", "publisher", "booktitle", "bookreleaseyear", "bookcover",
+        "description",
         "hits",NULL
     },
     {"STOCK.serialnum", "campus", "instock",NULL},
@@ -217,6 +218,7 @@ enum key {
     KEY_SWITCH_SESSIONID,
     KEY_SWITCH_LANG,
     KEY_SWITCH_AUTHOR,
+    KEY_SWITCH_DESCRIPTION,
     KEY_SWITCH_PUBLISHER,
     KEY_SWITCH_TYPE,
     KEY_SWITCH_UPPERYEAR,
@@ -257,6 +259,7 @@ static const struct kvalid keys[KEY__MAX] = {
     {kvalid_stringne, "sessionid"},
     {kvalid_stringne, "lang"},
     {kvalid_stringne, "author"},
+    {kvalid_stringne, "description"},
     {kvalid_stringne, "publisher"},
     {kvalid_stringne, "type"},
     {kvalid_int, "upperyear"},
@@ -283,7 +286,7 @@ static const struct kvalid keys[KEY__MAX] = {
 };
 
 
-static char *pstmts_switches[STMTS__MAX][10] = {
+static char *pstmts_switches[STMTS__MAX][11] = {
     {
         "instr(publisherName,(?)) > 0",
         "serialnum = (?)"
@@ -340,6 +343,7 @@ static char *pstmts_switches[STMTS__MAX][10] = {
         "UUID = (?)",
         "bookreleaseyear >= (?)",
         "bookreleaseyear <= (?)",
+        "instr(description, (?)) > 0"
     },
     {
         "STOCK.serialnum = (?)",
@@ -364,7 +368,7 @@ static char *pstmts_switches[STMTS__MAX][10] = {
     }
 };
 
-static enum key switch_keys[STMTS__MAX][11] = {
+static enum key switch_keys[STMTS__MAX][12] = {
 
     {KEY_SWITCH_NAME, KEY_SWITCH_SERIALNUM, KEY__MAX},
     {KEY_SWITCH_NAME, KEY_SWITCH_SERIALNUM, KEY__MAX},
@@ -381,6 +385,7 @@ static enum key switch_keys[STMTS__MAX][11] = {
     {
         KEY_SWITCH_SERIALNUM, KEY_SWITCH_NAME, KEY_SWITCH_LANG, KEY_SWITCH_AUTHOR, KEY_SWITCH_ROLE,
         KEY_SWITCH_PUBLISHER, KEY_SWITCH_CAMPUS, KEY_SWITCH_UUID, KEY_SWITCH_UPPERYEAR, KEY_SWITCH_LOWERYEAR,
+        KEY_SWITCH_DESCRIPTION,
         KEY__MAX
     },
     {KEY_SWITCH_SERIALNUM, KEY_SWITCH_CAMPUS, KEY_SWITCH_NOTEMPTY, KEY__MAX},

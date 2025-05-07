@@ -44,20 +44,20 @@ static const char *pages[PG__MAX] = {
 };
 
 enum key {
-    KEY_PG_PUBLISHER, //
-    KEY_PG_AUTHOR, //
-    KEY_PG_LANG, //
-    KEY_PG_ACTION, //
-    KEY_PG_DOCTYPE, //
-    KEY_PG_CAMPUS, //
+    KEY_PG_PUBLISHER,
+    KEY_PG_AUTHOR,
+    KEY_PG_LANG,
+    KEY_PG_ACTION,
+    KEY_PG_DOCTYPE,
+    KEY_PG_CAMPUS,
     KEY_PG_ROLE,
-    KEY_PG_CATEGORY, //
+    KEY_PG_CATEGORY,
     KEY_PG_ACCOUNT,
-    KEY_PG_BOOK, //
-    KEY_PG_LANGUAGES, //
-    KEY_PG_AUTHORED, //
-    KEY_PG_STOCK, //
-    KEY_PG_INVENTORY, //
+    KEY_PG_BOOK,
+    KEY_PG_LANGUAGES,
+    KEY_PG_AUTHORED,
+    KEY_PG_STOCK,
+    KEY_PG_INVENTORY,
 };
 
 enum key_cookie {
@@ -85,6 +85,7 @@ enum key_mods {
     KEY_MOD_PUBLISHER,
     KEY_MOD_YEAR,
     KEY_MOD_COVER,
+    KEY_MOD_DESCRIPTION,
     KEY_MOD_HITS,
     KEY_MOD_LANG,
     KEY_MOD_AUTHOR,
@@ -128,6 +129,7 @@ static const struct kvalid keys[KEY__MAX] = {
     {kvalid_stringne, "mod_publisher"},
     {kvalid_int, "mod_year"},
     {kvalid_string, "mod_cover"},
+    {kvalid_string, "mod_description"},
     {kvalid_int, "mod_hits"},
     {kvalid_stringne, "mod_lang"},
     {kvalid_stringne, "mod_author"},
@@ -178,7 +180,7 @@ static struct sqlbox_pstmt pstmts_top[STMTS__MAX] = {
 };
 
 
-static struct sqlbox_pstmt pstmts_switches[STMTS__MAX][8] = {
+static struct sqlbox_pstmt pstmts_switches[STMTS__MAX][9] = {
     {{(char *) "publisherName = (?)"}},
     {{(char *) "authorName = (?)"}},
     {{(char *) "actionName = (?)"}},
@@ -198,7 +200,7 @@ static struct sqlbox_pstmt pstmts_switches[STMTS__MAX][8] = {
         {(char *) "serialnum = (?)"}, {(char *) "type = (?)"}, {(char *) "category = (?)"},
         {(char *) "publisher = (?)"}, {(char *) "booktitle = (?)"},
         {(char *) "bookreleaseyear = (?)"},
-        {(char *) "bookcover = (?)"}, {(char *) "hits = (?)"}
+        {(char *) "bookcover = (?)"}, {(char *) "description = (?)"}, {(char *) "hits = (?)"}
     },
     {{(char *) "serialnum = (?)"}, {(char *) "lang = (?)"}},
     {{(char *) "serialnum = (?)"}, {(char *) "author = (?)"}},
@@ -224,7 +226,7 @@ static enum key_mods switch_keys[STMTS__MAX][9] = {
     },
     {
         KEY_MOD_SERIALNUM, KEY_MOD_TYPE, KEY_MOD_CATEGORY, KEY_MOD_PUBLISHER, KEY_MOD_NAME,
-        KEY_MOD_YEAR, KEY_MOD_COVER,
+        KEY_MOD_YEAR, KEY_MOD_COVER, KEY_MOD_DESCRIPTION,
         KEY_MOD_HITS, KEY__MAX
     },
     {KEY_MOD_SERIALNUM, KEY_MOD_LANG, KEY__MAX},
