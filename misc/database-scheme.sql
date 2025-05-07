@@ -5,8 +5,7 @@ CREATE TABLE PUBLISHER
 );
 
 INSERT INTO PUBLISHER
-VALUES ('Longman Publishing'),
-;
+VALUES ('Longman Publishing');
 CREATE TABLE AUTHOR
 (
     authorName TEXT PRIMARY KEY
