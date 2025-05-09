@@ -221,7 +221,7 @@ enum khttp sanitize() {
     return KHTTP_200;
 }
 
-static const char *rows[] ={
+static const char *rows[] = {
     "BOOK.serialnum", "type", "category", "categoryName", "publisher", "booktitle", "bookreleaseyear", "bookcover",
     "description",
     "hits",NULL
@@ -289,7 +289,8 @@ void process() {
                 case SQLBOX_PARM_STRING:
                     if (i == 0)
                         kjson_putstringp(&req, "serialnum", res->ps[i].sparm);
-                    kjson_putstringp(&req, rows[i], res->ps[i].bparm);
+                    else
+                        kjson_putstringp(&req, rows[i], res->ps[i].bparm);
                     break;
                 case SQLBOX_PARM_FLOAT:
                     kjson_putdoublep(&req, rows[i], res->ps[i].fparm);
