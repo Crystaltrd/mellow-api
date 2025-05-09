@@ -766,7 +766,7 @@ void build_stmt(enum statement_pieces STMT) {
                       pstmts[STMT_DATA].stmt);
         }
     }
-    kasprintf(&pstmts[STMT_COUNT].stmt, "%s SELECT COUNT(DISTINCT COALESCE(", pstmts[STMT_DATA].stmt);
+    kasprintf(&pstmts[STMT_COUNT].stmt, "%s SELECT COUNT(DISTINCT CONCAT(", pstmts[STMT_DATA].stmt);
     kasprintf(&pstmts[STMT_DATA].stmt, "%s SELECT", pstmts[STMT_DATA].stmt);
     for (int i = 0; rows[STMT][i] != NULL; ++i) {
         if (i == 0) {
