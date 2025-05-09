@@ -73,7 +73,7 @@ enum statment {
 static struct sqlbox_pstmt pstmts[STMTS__MAX] = {
     {
         (char *)
-        "SELECT BOOK.serialnum, type, category, categoryName, publisher, bootitle, bookreleaseyear, bookcover, description, hits "
+        "SELECT BOOK.serialnum, type, category, categoryName, publisher, booktitle, bookreleaseyear, bookcover, description, hits "
         "FROM (BOOK LEFT JOIN INVENTORY I ON BOOK.serialnum = I.serialnum),"
         "CATEGORY,"
         "LANGUAGES,"
@@ -88,7 +88,7 @@ static struct sqlbox_pstmt pstmts[STMTS__MAX] = {
     },
     {
         (char *)
-        "SELECT COUNT(DISTINCT CONCAT(BOOK.serialnum, type, category, categoryName, publisher, bootitle, bookreleaseyear, bookcover, description, hits)) "
+        "SELECT COUNT(DISTINCT CONCAT(BOOK.serialnum, type, category, categoryName, publisher, booktitle, bookreleaseyear, bookcover, description, hits)) "
         "FROM (BOOK LEFT JOIN INVENTORY I ON BOOK.serialnum = I.serialnum),"
         "CATEGORY,"
         "LANGUAGES,"
