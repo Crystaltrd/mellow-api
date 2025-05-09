@@ -74,14 +74,14 @@ static struct sqlbox_pstmt pstmts[STMTS__MAX] = {
     {
         (char *)
         "SELECT BOOK.serialnum, type, category, categoryName, publisher, booktitle, bookreleaseyear, bookcover, description, hits "
-        "FROM (BOOK LEFT JOIN INVENTORY I ON BOOK.serialnum = I.serialnum),"
+        "FROM BOOK,"
         "CATEGORY,"
         "LANGUAGES,"
         "AUTHORED "
         "WHERE CATEGORY.categoryClass = BOOK.category "
         "AND AUTHORED.serialnum = BOOK.serialnum "
         "AND LANGUAGES.serialnum = BOOK.serialnum "
-        "AND instr(concat(BOOK.serialnum,booktitle,lang,author,type,publisher,campus,UUID,bookreleaseyear,description,categoryName), (?)) > 0 "
+        "AND instr(concat(BOOK.serialnum,booktitle,lang,author,type,publisher,bookreleaseyear,description,categoryName), (?)) > 0 "
         "GROUP BY BOOK.serialnum, type, category, categoryName, publisher, booktitle, bookreleaseyear, bookcover, hits "
         "ORDER BY BOOK.serialnum "
         "LIMIT(? * ?),(?)"
@@ -89,14 +89,14 @@ static struct sqlbox_pstmt pstmts[STMTS__MAX] = {
     {
         (char *)
         "SELECT COUNT(DISTINCT CONCAT(BOOK.serialnum, type, category, categoryName, publisher, booktitle, bookreleaseyear, bookcover, description, hits)) "
-        "FROM (BOOK LEFT JOIN INVENTORY I ON BOOK.serialnum = I.serialnum),"
+        "FROM BOOK,"
         "CATEGORY,"
         "LANGUAGES,"
         "AUTHORED "
         "WHERE CATEGORY.categoryClass = BOOK.category "
         "AND AUTHORED.serialnum = BOOK.serialnum "
         "AND LANGUAGES.serialnum = BOOK.serialnum "
-        "AND instr(concat(BOOK.serialnum,booktitle,lang,author,type,publisher,campus,UUID,bookreleaseyear,description,categoryName), (?)) > 0 "
+        "AND instr(concat(BOOK.serialnum,booktitle,lang,author,type,publisher,bookreleaseyear,description,categoryName), (?)) > 0 "
         "GROUP BY BOOK.serialnum, type, category, categoryName, publisher, booktitle, bookreleaseyear, bookcover, hits "
         "ORDER BY BOOK.serialnum "
         "LIMIT(? * ?),(?)"
