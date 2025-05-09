@@ -347,7 +347,7 @@ void process() {
     if (!sqlbox_finalise(boxctx, stmtid_data))
         errx(EXIT_FAILURE, "sqlbox_finalise");
     kjson_array_close(&req);
-    if (!(stmtid_data = sqlbox_prepare_bind(boxctx, dbid, STMTS_COUNT, parmsz - 3, parms, SQLBOX_STMT_MULTI)))
+    if (!(stmtid_data = sqlbox_prepare_bind(boxctx, dbid, STMTS_COUNT, parmsz, parms, SQLBOX_STMT_MULTI)))
         errx(EXIT_FAILURE, "sqlbox_prepare_bind");
     if ((res = sqlbox_step(boxctx, stmtid_data)) == NULL)
         errx(EXIT_FAILURE, "sqlbox_step");
