@@ -83,7 +83,7 @@ static struct sqlbox_pstmt pstmts[STMTS__MAX] = {
         "AND CATEGORY.categoryClass = BOOK.category "
         "AND AUTHORED.serialnum = BOOK.serialnum "
         "AND LANGUAGES.serialnum = BOOK.serialnum "
-        "instr(concat(BOOK.serialnum,booktitle,lang,author,type,publisher,campus,UUID,bookreleaseyear,description,categoryName), (?)) > 0 "
+        "AND instr(concat(BOOK.serialnum,booktitle,lang,author,type,publisher,campus,UUID,bookreleaseyear,description,categoryName), (?)) > 0 "
         "GROUP BY BOOK.serialnum, type, category, categoryName, publisher, booktitle, bookreleaseyear, bookcover, hits "
         "ORDER BY BOOK.serialnum "
         "LIMIT(? * ?),(?)"
