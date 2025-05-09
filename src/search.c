@@ -225,7 +225,7 @@ enum khttp sanitize() {
     return KHTTP_200;
 }
 
-static const char *rows[]{
+static const char *rows[] ={
     "BOOK.serialnum", "type", "category", "categoryName", "publisher", "booktitle", "bookreleaseyear", "bookcover",
     "description",
     "hits",NULL
