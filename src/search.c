@@ -247,7 +247,7 @@ void process() {
             .type = SQLBOX_PARM_INT,
             .iparm = r.fieldmap[KEY_LIMIT] ? r.fieldmap[KEY_LIMIT]->parsed.i : 25
         }
-    }; //Array of statement parameters
+    };
     size_t parmsz = 4;
     if (!(stmtid_data = sqlbox_prepare_bind(boxctx, dbid, STMTS_SEARCH, parmsz, parms, SQLBOX_STMT_MULTI)))
         errx(EXIT_FAILURE, "sqlbox_prepare_bind");
@@ -359,6 +359,64 @@ void process() {
     kjson_close(&req);
 }
 
+void save() {
+    struct sqlbox_parm parms[] = {
+        {
+            .type = SQLBOX_PARM_STRING,
+            .sparm = r.fieldmap[KEY_STRING]->parsed.s
+        },
+        {
+            .type = SQLBOX_PARM_INT,
+            .iparm = (r.fieldmap[KEY_PAGE] ? r.fieldmap[KEY_PAGE]->parsed.i : 0)
+        },
+        {
+            .type = SQLBOX_PARM_INT,
+            .iparm = r.fieldmap[KEY_LIMIT] ? r.fieldmap[KEY_LIMIT]->parsed.i : 25
+        },
+        {
+            .type = SQLBOX_PARM_INT,
+            .iparm = r.fieldmap[KEY_LIMIT] ? r.fieldmap[KEY_LIMIT]->parsed.i : 25
+        }
+    };
+    size_t parmsz = 4;
+    char *requestDesc = NULL;
+        kasprintf(&requestDesc, "Stmt:SEARCH,parmsz: %ld, Parms:(", parmsz);
+        for (int i = 0; i < (int) parmsz; ++i) {
+            switch (parms[i].type) {
+                case SQLBOX_PARM_INT:
+                    kasprintf(&requestDesc, "%s\"%"PRId64"\",", requestDesc, parms[i].iparm);
+                    break;
+                case SQLBOX_PARM_STRING:
+                    if (strlen(parms[i].sparm) > 0)
+                        kasprintf(&requestDesc, "%s\"%s\",", requestDesc, parms[i].sparm);
+                    break;
+                case SQLBOX_PARM_FLOAT:
+                    kasprintf(&requestDesc, "%s\"%f\",", requestDesc, parms[i].fparm);
+                    break;
+                default:
+                    break;
+            }
+        }
+        kasprintf(&requestDesc, "%s)", requestDesc);
+    size_t parmsz_save = 3;
+    struct sqlbox_parm parms_save[] = {
+        {
+            .type = (curr_usr.UUID != NULL) ? SQLBOX_PARM_STRING : SQLBOX_PARM_NULL,
+            .sparm = curr_usr.UUID
+        },
+        {
+            .type = SQLBOX_PARM_STRING,
+            .sparm = r.remote
+        },
+        {
+            .type = SQLBOX_PARM_STRING,
+            .sparm = requestDesc
+        },
+    };
+    if (sqlbox_exec(boxctx, dbid, STMTS_SAVE, parmsz_save, parms_save,SQLBOX_STMT_CONSTRAINT) !=
+        SQLBOX_CODE_OK)
+        errx(EXIT_FAILURE, "sqlbox_exec");
+}
 int main() {
     enum khttp er;
     if (khttp_parse(&r, keys, KEY__MAX, 0, 0, 0) != KCGI_OK)
@@ -377,6 +435,7 @@ int main() {
     alloc_ctx_cfg();
     fill_user();
     process();
+    save();
     khttp_free(&r);
     sqlbox_free(boxctx);
     return EXIT_SUCCESS;
