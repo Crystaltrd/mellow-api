@@ -396,7 +396,7 @@ int main() {
     if ((er = sanitize()) != KHTTP_200)goto error;
     alloc_ctx_cfg();
     fill_user();
-    //if ((er = second_pass()) != KHTTP_200)goto error;
+    if ((er = second_pass()) != KHTTP_200)goto error;
     process();
     khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
     khttp_body(&r);
