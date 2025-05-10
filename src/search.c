@@ -67,6 +67,7 @@ enum statment {
     STMTS_SAVE,
     STMTS_AUTHORS,
     STMTS_LANGS,
+    STMTS_STOCKED,
     STMTS__MAX
 };
 
@@ -128,7 +129,13 @@ static struct sqlbox_pstmt pstmts[STMTS__MAX] = {
         "SELECT lang "
         "FROM LANGUAGES "
         "WHERE serialnum = (?)"
-    }
+    },
+{
+    (char *)
+    "SELECT campus,instock "
+    "FROM STOCK "
+    "WHERE serialnum = (?)"
+},
 };
 
 struct sqlbox_src srcs[] = {
@@ -341,7 +348,24 @@ void process() {
 
         if (!sqlbox_finalise(boxctx, stmtid_book_data))
             errx(EXIT_FAILURE, "sqlbox_finalise");
+        if (!(stmtid_book_data =
+                         sqlbox_prepare_bind(boxctx, dbid, STMTS_STOCKED, parmsz_book, parms_book,
+                                             SQLBOX_STMT_MULTI)))
+            errx(EXIT_FAILURE, "sqlbox_prepare_bind");
 
+        kjson_arrayp_open(&req, "stock");
+        while ((res_book = sqlbox_step(boxctx, stmtid_book_data)) != NULL && res_book->code ==
+               SQLBOX_CODE_OK
+               && res_book->psz != 0) {
+            kjson_obj_open(&req);
+            kjson_putstringp(&req, "campus", res_book->ps[0].sparm);
+            kjson_putintp(&req, "stock", res_book->ps[1].iparm);
+            kjson_obj_close(&req);
+               }
+        kjson_array_close(&req);
+
+        if (!sqlbox_finalise(boxctx, stmtid_book_data))
+            errx(EXIT_FAILURE, "sqlbox_finalise");
 
         kjson_obj_close(&req);
     }

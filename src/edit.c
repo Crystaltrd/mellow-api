@@ -383,7 +383,7 @@ void fill_user() {
 }
 
 enum khttp sanitize() {
-    if (r.method != KMETHOD_GET) //TODO: SET TO PUT
+    if (r.method != KMETHOD_PUT)
         return KHTTP_405;
     if (r.page == PG__MAX)
         return KHTTP_404;
@@ -442,8 +442,6 @@ enum khttp forth_pass(enum statement_comp STMT) {
     if (STMT == STMTS_ACCOUNT && !r.fieldmap[KEY_MOD_ROLE] && strcmp(
             r.fieldmap[KEY_SEL_PK]->parsed.s, curr_usr.UUID) == 0)
         return KHTTP_200;
-
-
     return KHTTP_403;
 }
 
