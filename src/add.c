@@ -338,8 +338,8 @@ int main() {
     if ((er = sanitize()) != KHTTP_200)goto error;
     alloc_ctx_cfg();
     fill_user();
+    //if ((er = second_pass()) != KHTTP_200)goto error;
     process();
-
     khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
     khttp_body(&r);
     if (r.mime == KMIME_TEXT_HTML)
@@ -347,7 +347,6 @@ int main() {
     khttp_free(&r);
     sqlbox_free(boxctx);
     return 0;
-    //if ((er = second_pass()) != KHTTP_200)goto error;
 error:
     khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[er]);
     khttp_body(&r);
