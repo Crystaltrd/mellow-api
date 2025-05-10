@@ -323,9 +323,34 @@ void process() {
         }
     }
     if (sqlbox_exec(boxctx, dbid, r.page, parmsz, parms,SQLBOX_STMT_CONSTRAINT) !=
-    SQLBOX_CODE_OK)
+        SQLBOX_CODE_OK)
         errx(EXIT_FAILURE, "sqlbox_exec");
+    if (r.page == PG_BOOK) {
+        struct kpair *temp_field = r.fieldmap[KEY_LANG];
+        while (temp_field) {
+            struct sqlbox_parm temp_parms[] = {
+                {.type = SQLBOX_PARM_STRING, .sparm = r.fieldmap[KEY_SERIALNUM]->parsed.s},
+                {.type = SQLBOX_PARM_STRING, .sparm = temp_field->parsed.s}
+            };
 
+            if (sqlbox_exec(boxctx, dbid, r.page, 2, temp_parms,SQLBOX_STMT_CONSTRAINT) !=
+                SQLBOX_CODE_OK)
+                errx(EXIT_FAILURE, "sqlbox_exec");
+            temp_field = temp_field->next;
+        }
+        temp_field = r.fieldmap[KEY_AUTHOR];
+        while (temp_field) {
+            struct sqlbox_parm temp_parms[] = {
+                {.type = SQLBOX_PARM_STRING, .sparm = r.fieldmap[KEY_SERIALNUM]->parsed.s},
+                {.type = SQLBOX_PARM_STRING, .sparm = temp_field->parsed.s}
+            };
+
+            if (sqlbox_exec(boxctx, dbid, r.page, 2, temp_parms,SQLBOX_STMT_CONSTRAINT) !=
+                SQLBOX_CODE_OK)
+                errx(EXIT_FAILURE, "sqlbox_exec");
+            temp_field = temp_field->next;
+        }
+    }
 }
 
 int main() {
