@@ -326,6 +326,16 @@ void process() {
             parms[parmsz++] = (struct sqlbox_parm){.type = SQLBOX_PARM_NULL};
         }
     }
+    if (r.page == PG_BOOK) {
+        struct sqlbox_parm temp_parms[] = {
+            {.type = SQLBOX_PARM_STRING, .sparm = r.fieldmap[KEY_PUBLISHER]->parsed.s}
+        };
+        enum sqlbox_code err;
+        if ((err = sqlbox_exec(boxctx, dbid, STMTS_ADD_PUBLISHER, 1, temp_parms,SQLBOX_STMT_CONSTRAINT)) !=
+            SQLBOX_CODE_OK)
+            if (err != SQLBOX_CODE_CONSTRAINT)
+                errx(EXIT_FAILURE, "sqlbox_exec");
+    }
     if (sqlbox_exec(boxctx, dbid, r.page, parmsz, parms,SQLBOX_STMT_CONSTRAINT) !=
         SQLBOX_CODE_OK)
         errx(EXIT_FAILURE, "sqlbox_exec");
@@ -336,6 +346,14 @@ void process() {
             errx(EXIT_FAILURE, "sqlbox_exec");
         struct kpair *temp_field = r.fieldmap[KEY_LANG];
         while (temp_field) {
+            struct sqlbox_parm temp_parms2[] = {
+                {.type = SQLBOX_PARM_STRING, .sparm = temp_field->parsed.s}
+            };
+            enum sqlbox_code err;
+            if ((err = sqlbox_exec(boxctx, dbid, STMTS_ADD_LANG, 1, temp_parms2,SQLBOX_STMT_CONSTRAINT)) !=
+                SQLBOX_CODE_OK)
+                if (err != SQLBOX_CODE_CONSTRAINT)
+                    errx(EXIT_FAILURE, "sqlbox_exec");
             struct sqlbox_parm temp_parms[] = {
                 {.type = SQLBOX_PARM_STRING, .sparm = r.fieldmap[KEY_SERIALNUM]->parsed.s},
                 {.type = SQLBOX_PARM_STRING, .sparm = temp_field->parsed.s}
@@ -352,7 +370,14 @@ void process() {
                 {.type = SQLBOX_PARM_STRING, .sparm = r.fieldmap[KEY_SERIALNUM]->parsed.s},
                 {.type = SQLBOX_PARM_STRING, .sparm = temp_field->parsed.s}
             };
-
+            struct sqlbox_parm temp_parms2[] = {
+                {.type = SQLBOX_PARM_STRING, .sparm = temp_field->parsed.s}
+            };
+            enum sqlbox_code err;
+            if ((err = sqlbox_exec(boxctx, dbid, STMTS_ADD_AUTHOR, 1, temp_parms2,SQLBOX_STMT_CONSTRAINT)) !=
+                SQLBOX_CODE_OK)
+                if (err != SQLBOX_CODE_CONSTRAINT)
+                    errx(EXIT_FAILURE, "sqlbox_exec");
             if (sqlbox_exec(boxctx, dbid, STMTS_ADD_AUTHORED, 2, temp_parms,SQLBOX_STMT_CONSTRAINT) !=
                 SQLBOX_CODE_OK)
                 errx(EXIT_FAILURE, "sqlbox_exec");
