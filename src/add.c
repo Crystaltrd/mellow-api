@@ -158,7 +158,7 @@ static struct sqlbox_pstmt pstmts[STMTS__MAX] = {
     {(char *) "INSERT INTO ROLE VALUES (?,?)"},
     {(char *) "INSERT INTO CATEGORY VALUES (?,?,?)"},
     {(char *) "INSERT INTO ACCOUNT VALUES (?,?,?,?,?,?)"},
-    {(char *) "INSERT INTO BOOK VALUES (?,?,?,?,?,?,?,?,?,DEFAULT)"},
+    {(char *) "INSERT INTO BOOK VALUES (?,?,?,?,?,?,?,?,?,0)"},
     {(char *) "INSERT INTO LANGUAGES (?,?)"},
     {(char *) "INSERT INTO AUTHORED (?,?)"},
     {(char *) "INSERT INTO STOCK (?,?,?)"},
