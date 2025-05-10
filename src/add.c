@@ -160,10 +160,10 @@ static struct sqlbox_pstmt pstmts[STMTS__MAX] = {
     {(char *) "INSERT INTO CATEGORY VALUES (?,?,?)"},
     {(char *) "INSERT INTO ACCOUNT VALUES (?,?,?,?,?,?)"},
     {(char *) "INSERT INTO BOOK VALUES (?,?,?,?,?,?,?,?,0)"},
-    {(char *) "INSERT INTO LANGUAGES (?,?)"},
-    {(char *) "INSERT INTO AUTHORED (?,?)"},
-    {(char *) "INSERT INTO STOCK (?,?,?)"},
-    {(char *) "INSERT INTO INVENTORY (?,?,?,?,?)"},
+    {(char *) "INSERT INTO LANGUAGES VALUES(?,?)"},
+    {(char *) "INSERT INTO AUTHORED VALUES(?,?)"},
+    {(char *) "INSERT INTO STOCK VALUES(?,?,?)"},
+    {(char *) "INSERT INTO INVENTORY VALUES(?,?,?,?,?)"},
     {
         (char *)
         "SELECT ACCOUNT.UUID, displayname, pwhash, campus, role, perms, frozen "
