@@ -1,14 +1,14 @@
 pragma foreign_keys= true;
 CREATE TABLE PUBLISHER
 (
-    publisherName TEXT PRIMARY KEY
+    publisherName TEXT PRIMARY KEY NOT NULL
 );
 
 INSERT INTO PUBLISHER
 VALUES ('Longman Publishing');
 CREATE TABLE AUTHOR
 (
-    authorName TEXT PRIMARY KEY
+    authorName TEXT PRIMARY KEY NOT NULL
 );
 
 INSERT INTO AUTHOR
@@ -16,7 +16,7 @@ VALUES ('Brian Wilson Kernighan'),
        ('Dennis M Ritchie');
 CREATE TABLE ACTION
 (
-    actionName TEXT PRIMARY KEY
+    actionName TEXT PRIMARY KEY NOT NULL
 );
 
 INSERT INTO ACTION
@@ -32,7 +32,7 @@ VALUES ('ADD'),
 
 CREATE TABLE LANG
 (
-    langCode TEXT PRIMARY KEY
+    langCode TEXT PRIMARY KEY NOT NULL
 );
 
 INSERT INTO LANG
@@ -43,7 +43,7 @@ VALUES ('kab'),
 
 CREATE TABLE DOCTYPE
 (
-    typeName TEXT PRIMARY KEY
+    typeName TEXT PRIMARY KEY NOT NULL
 );
 
 INSERT INTO DOCTYPE
@@ -54,7 +54,7 @@ VALUES ('Book'),
 
 CREATE TABLE CAMPUS
 (
-    campusName TEXT PRIMARY KEY
+    campusName TEXT PRIMARY KEY NOT NULL
 );
 
 INSERT INTO CAMPUS
@@ -64,7 +64,7 @@ VALUES ('El Kseur'),
 
 CREATE TABLE ROLE
 (
-    roleName TEXT PRIMARY KEY,
+    roleName TEXT PRIMARY KEY NOT NULL,
     perms    INTEGER NOT NULL
 );
 
@@ -78,7 +78,7 @@ VALUES ('ADMIN', 127),
 
 CREATE TABLE CATEGORY
 (
-    categoryClass    TEXT PRIMARY KEY,
+    categoryClass    TEXT PRIMARY KEY NOT NULL,
     categoryName     TEXT UNIQUE NOT NULL,
     parentCategoryID TEXT REFERENCES CATEGORY (categoryClass) ON UPDATE CASCADE ON DELETE CASCADE DEFAULT NULL
 );
