@@ -132,7 +132,7 @@ VALUES ('9780131101630', 'Book', '00', 'Longman Publishing',
         'The C Programming Language', 1978, '9780131101630.jpg',
         'Known as the bible of C, this classic bestseller introduces the C programming language and illustrates ' ||
         'algorithms, data structures, and programming techniques.', 0),
-       ('9999780131101630', 'Book', '00', 'Longman Publishing',
+       ('9', 'Book', '00', 'Longman Publishing',
         'The C Programming Language', 1978, '9780131101630.jpg',
         'Known as the bible of C, this classic bestseller introduces the C programming language and illustrates ' ||
         'algorithms, data structures, and programming techniques.', 0);
@@ -144,7 +144,8 @@ CREATE TABLE LANGUAGES
     UNIQUE (serialnum, lang)
 );
 INSERT INTO LANGUAGES
-VALUES ('9780131101630', 'en');
+VALUES ('9780131101630', 'en'),
+       ('9', 'en');
 CREATE TABLE AUTHORED
 (
     serialnum TEXT NOT NULL REFERENCES BOOK (serialnum) ON UPDATE CASCADE ON DELETE CASCADE,
@@ -154,7 +155,7 @@ CREATE TABLE AUTHORED
 
 INSERT INTO AUTHORED
 VALUES ('9780131101630', 'Brian Wilson Kernighan'),
-       ('9780131101630', 'Dennis M Ritchie');
+       ('9', 'Dennis M Ritchie');
 CREATE TABLE STOCK
 (
     serialnum TEXT NOT NULL,
@@ -167,7 +168,7 @@ CREATE TABLE STOCK
 
 INSERT INTO STOCK
 VALUES ('9780131101630', 'Aboudaou', 1),
-       ('9780131101630', 'El Kseur', 1),
+       ('9', 'El Kseur', 1),
        ('9780131101630', 'Targa Ouzemmour', 1)
 ;
 
