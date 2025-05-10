@@ -145,6 +145,7 @@ enum statement {
     STMTS_ADD_INVENTORY,
     STMTS_LOGIN,
     STMTS_SAVE,
+    STMTS_DEFAULT_STOCK,
     STMTS__MAX
 };
 
@@ -177,6 +178,9 @@ static struct sqlbox_pstmt pstmts[STMTS__MAX] = {
         (char *)
         "INSERT INTO HISTORY (UUID, IP, action, actiondate, details) "
         "VALUES ((?),(?),'EDIT',datetime('now','localtime'),(?))"
+    },
+    {
+        (char *) "INSERT INTO STOCK(serialnum, campus) SELECT(?) AS serialnum ,campusName AS campus FROM CAMPUS"
     }
 };
 
@@ -326,6 +330,10 @@ void process() {
         SQLBOX_CODE_OK)
         errx(EXIT_FAILURE, "sqlbox_exec");
     if (r.page == PG_BOOK) {
+        if (sqlbox_exec(boxctx, dbid, STMTS_DEFAULT_STOCK, 1, parms,SQLBOX_STMT_CONSTRAINT) !=
+            SQLBOX_CODE_OK)
+
+            errx(EXIT_FAILURE, "sqlbox_exec");
         struct kpair *temp_field = r.fieldmap[KEY_LANG];
         while (temp_field) {
             struct sqlbox_parm temp_parms[] = {
@@ -333,7 +341,7 @@ void process() {
                 {.type = SQLBOX_PARM_STRING, .sparm = temp_field->parsed.s}
             };
 
-            if (sqlbox_exec(boxctx, dbid, r.page, 2, temp_parms,SQLBOX_STMT_CONSTRAINT) !=
+            if (sqlbox_exec(boxctx, dbid, STMTS_ADD_LANGUAGES, 2, temp_parms,SQLBOX_STMT_CONSTRAINT) !=
                 SQLBOX_CODE_OK)
                 errx(EXIT_FAILURE, "sqlbox_exec");
             temp_field = temp_field->next;
@@ -345,7 +353,7 @@ void process() {
                 {.type = SQLBOX_PARM_STRING, .sparm = temp_field->parsed.s}
             };
 
-            if (sqlbox_exec(boxctx, dbid, r.page, 2, temp_parms,SQLBOX_STMT_CONSTRAINT) !=
+            if (sqlbox_exec(boxctx, dbid, STMTS_ADD_AUTHORED, 2, temp_parms,SQLBOX_STMT_CONSTRAINT) !=
                 SQLBOX_CODE_OK)
                 errx(EXIT_FAILURE, "sqlbox_exec");
             temp_field = temp_field->next;

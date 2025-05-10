@@ -65,7 +65,7 @@ VALUES ('El Kseur'),
 CREATE TABLE ROLE
 (
     roleName TEXT PRIMARY KEY NOT NULL,
-    perms    INTEGER          NOT NULL
+    perms    INTEGER NOT NULL
 );
 
 INSERT INTO ROLE
@@ -79,7 +79,7 @@ VALUES ('ADMIN', 127),
 CREATE TABLE CATEGORY
 (
     categoryClass    TEXT PRIMARY KEY NOT NULL,
-    categoryName     TEXT UNIQUE      NOT NULL,
+    categoryName     TEXT UNIQUE NOT NULL,
     parentCategoryID TEXT REFERENCES CATEGORY (categoryClass) ON UPDATE CASCADE ON DELETE CASCADE DEFAULT NULL
 );
 INSERT INTO CATEGORY
@@ -131,10 +131,6 @@ Insert INTO BOOK
 VALUES ('9780131101630', 'Book', '00', 'Longman Publishing',
         'The C Programming Language', 1978, '9780131101630.jpg',
         'Known as the bible of C, this classic bestseller introduces the C programming language and illustrates ' ||
-        'algorithms, data structures, and programming techniques.', 0),
-       ('9', 'Book', '00', 'Longman Publishing',
-        'The C Programming Language', 1978, '9780131101630.jpg',
-        'Known as the bible of C, this classic bestseller introduces the C programming language and illustrates ' ||
         'algorithms, data structures, and programming techniques.', 0);
 
 CREATE TABLE LANGUAGES
@@ -144,8 +140,7 @@ CREATE TABLE LANGUAGES
     UNIQUE (serialnum, lang)
 );
 INSERT INTO LANGUAGES
-VALUES ('9780131101630', 'en'),
-       ('9', 'en');
+VALUES ('9780131101630', 'en');
 CREATE TABLE AUTHORED
 (
     serialnum TEXT NOT NULL REFERENCES BOOK (serialnum) ON UPDATE CASCADE ON DELETE CASCADE,
@@ -155,7 +150,7 @@ CREATE TABLE AUTHORED
 
 INSERT INTO AUTHORED
 VALUES ('9780131101630', 'Brian Wilson Kernighan'),
-       ('9', 'Dennis M Ritchie');
+       ('9780131101630', 'Dennis M Ritchie');
 CREATE TABLE STOCK
 (
     serialnum TEXT NOT NULL,
@@ -168,7 +163,7 @@ CREATE TABLE STOCK
 
 INSERT INTO STOCK
 VALUES ('9780131101630', 'Aboudaou', 1),
-       ('9', 'El Kseur', 0),
+       ('9780131101630', 'El Kseur', 1),
        ('9780131101630', 'Targa Ouzemmour', 1)
 ;
 
