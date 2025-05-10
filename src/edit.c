@@ -1,3 +1,4 @@
+#include <argon2.h>
 #include <sys/types.h> /* size_t, ssize_t */
 #include <stdarg.h> /* va_list */
 #include <stddef.h> /* NULL */
@@ -15,6 +16,11 @@
 #include <time.h>
 #include <pwd.h>
 #include <unistd.h>
+#define HASHLEN 32
+#define SALTLEN 16
+#ifndef __BSD_VISIBLE
+#define	_PASSWORD_LEN		128
+#endif
 struct kreq r;
 struct kjsonreq req;
 
@@ -43,25 +49,10 @@ static const char *pages[PG__MAX] = {
     "authored", "stock", "inventory"
 };
 
-enum key {
-    KEY_PG_PUBLISHER,
-    KEY_PG_AUTHOR,
-    KEY_PG_LANG,
-    KEY_PG_ACTION,
-    KEY_PG_DOCTYPE,
-    KEY_PG_CAMPUS,
-    KEY_PG_ROLE,
-    KEY_PG_CATEGORY,
-    KEY_PG_ACCOUNT,
-    KEY_PG_BOOK,
-    KEY_PG_LANGUAGES,
-    KEY_PG_AUTHORED,
-    KEY_PG_STOCK,
-    KEY_PG_INVENTORY,
-};
+
 
 enum key_cookie {
-    COOKIE_SESSIONID = KEY_PG_INVENTORY + 1,
+    COOKIE_SESSIONID,
 };
 
 enum key_sels {
@@ -97,20 +88,6 @@ enum key_mods {
 };
 
 static const struct kvalid keys[KEY__MAX] = {
-    {NULL, "publisher"},
-    {NULL, "author"},
-    {NULL, "lang"},
-    {NULL, "action"},
-    {NULL, "doctype"},
-    {NULL, "campus"},
-    {NULL, "role"},
-    {NULL, "category"},
-    {NULL, "account"},
-    {NULL, "book"},
-    {NULL, "languages"},
-    {NULL, "authored"},
-    {NULL, "stock"},
-    {NULL, "inventory"},
     {kvalid_stringne, "sessionID"},
     {kvalid_stringne, "key1"},
     {kvalid_stringne, "key2"},
@@ -408,13 +385,8 @@ void fill_user() {
 enum khttp sanitize() {
     if (r.method != KMETHOD_GET) //TODO: SET TO PUT
         return KHTTP_405;
-    if (r.page == PG__MAX) {
-        enum key i;
-        for (i = KEY_PG_PUBLISHER; i < COOKIE_SESSIONID && !(r.fieldmap[i]); i++) {
-        }
-        if (i == COOKIE_SESSIONID)
-            return KHTTP_404;
-    }
+    if (r.page == PG__MAX)
+        return KHTTP_404;
     return KHTTP_200;
 }
 
@@ -476,12 +448,7 @@ enum khttp forth_pass(enum statement_comp STMT) {
 }
 
 enum statement_comp get_stmts() {
-    if (r.page != PG__MAX)
-        return (enum statement_comp) r.page;
-    enum key i;
-    for (i = KEY_PG_PUBLISHER; i < COOKIE_SESSIONID && !(r.fieldmap[i]); i++) {
-    }
-    return (enum statement_comp) i;
+    return (enum statement_comp) r.page;
 }
 
 int process(const enum statement_comp STMT, const int parmsz) {
@@ -495,7 +462,20 @@ int process(const enum statement_comp STMT, const int parmsz) {
                     parms[n++] = (struct sqlbox_parm){.type = SQLBOX_PARM_INT, .iparm = field->parsed.i};
                     break;
                 case KPAIR_STRING:
-                    parms[n++] = (struct sqlbox_parm){.type = SQLBOX_PARM_STRING, .sparm = field->parsed.s};
+                    if (switch_keys[STMT][i] == KEY_MOD_PW) {
+                        char hash[_PASSWORD_LEN];
+                        uint8_t salt[SALTLEN];
+                        arc4random_buf(salt,SALTLEN);
+                        uint8_t *pwd = (uint8_t *) kstrdup(r.fieldmap[KEY_MOD_PW]->parsed.s);
+                        uint32_t pwdlen = strlen((char *) pwd);
+                        uint32_t t_cost = 1;
+                        uint32_t m_cost = 47104;
+                        uint32_t parallelism = 1;
+                        argon2id_hash_encoded(t_cost, m_cost, parallelism, pwd, pwdlen, salt, SALTLEN,HASHLEN, hash,
+                                              _PASSWORD_LEN);
+                        parms[n++] = (struct sqlbox_parm){.type = SQLBOX_PARM_STRING, .sparm = hash};
+                    } else
+                        parms[n++] = (struct sqlbox_parm){.type = SQLBOX_PARM_STRING, .sparm = field->parsed.s};
                     break;
                 default:
                     break;
