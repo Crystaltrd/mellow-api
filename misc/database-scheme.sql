@@ -168,6 +168,7 @@ CREATE TABLE STOCK
 
 INSERT INTO STOCK
 VALUES ('9780131101630', 'Aboudaou', 1),
+       ('9', 'El Kseur', 0),
        ('9780131101630', 'Targa Ouzemmour', 1)
 ;
 
