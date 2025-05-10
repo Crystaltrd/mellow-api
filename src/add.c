@@ -1,4 +1,3 @@
-
 #include <argon2.h>
 #include <sys/types.h> /* size_t, ssize_t */
 #include <stdarg.h> /* va_list */
@@ -17,25 +16,37 @@
 #include <time.h>
 #include <pwd.h>
 #include <unistd.h>
+#define HASHLEN 32
+#define SALTLEN 16
+#ifndef __BSD_VISIBLE
+#define	_PASSWORD_LEN		128
+#endif
+struct kreq r;
+struct kjsonreq req;
+
+enum pg {
+    PG_PUBLISHER,
+    PG_AUTHOR,
+    PG_LANG,
+    PG_ACTION,
+    PG_DOCTYPE,
+    PG_CAMPUS,
+    PG_ROLE,
+    PG_CATEGORY,
+    PG_ACCOUNT,
+    PG_BOOK,
+    PG_LANGUAGES,
+    PG_AUTHORED,
+    PG_STOCK,
+    PG_INVENTORY,
+    PG__MAX
+};
 
 static const char *pages[PG__MAX] = {
     "publisher", "author", "lang", "action", "doctype", "campus", "role", "category", "account", "book", "languages",
     "authored", "stock", "inventory"
 };
 
-enum key {
-    KEY_PG_PUBLISHER,
-    KEY_PG_AUTHOR,
-    KEY_PG_LANG,
-    KEY_PG_ACTION,
-    KEY_PG_DOCTYPE,
-    KEY_PG_CAMPUS,
-    KEY_PG_ROLE,
-    KEY_PG_CATEGORY,
-    KEY_PG_ACCOUNT,
-    KEY_PG_BOOK,
-    KEY_PG_LANGUAGES,
-    KEY_PG_AUTHORED,
-    KEY_PG_STOCK,
-    KEY_PG_INVENTORY,
-};
+int main() {
+    return 0;
+}
