@@ -65,7 +65,7 @@ VALUES ('El Kseur'),
 CREATE TABLE ROLE
 (
     roleName TEXT PRIMARY KEY NOT NULL,
-    perms    INTEGER NOT NULL
+    perms    INTEGER          NOT NULL
 );
 
 INSERT INTO ROLE
@@ -79,7 +79,7 @@ VALUES ('ADMIN', 127),
 CREATE TABLE CATEGORY
 (
     categoryClass    TEXT PRIMARY KEY NOT NULL,
-    categoryName     TEXT UNIQUE NOT NULL,
+    categoryName     TEXT UNIQUE      NOT NULL,
     parentCategoryID TEXT REFERENCES CATEGORY (categoryClass) ON UPDATE CASCADE ON DELETE CASCADE DEFAULT NULL
 );
 INSERT INTO CATEGORY
@@ -129,6 +129,10 @@ CREATE TABLE BOOK
 );
 Insert INTO BOOK
 VALUES ('9780131101630', 'Book', '00', 'Longman Publishing',
+        'The C Programming Language', 1978, '9780131101630.jpg',
+        'Known as the bible of C, this classic bestseller introduces the C programming language and illustrates ' ||
+        'algorithms, data structures, and programming techniques.', 0),
+       ('9999780131101630', 'Book', '00', 'Longman Publishing',
         'The C Programming Language', 1978, '9780131101630.jpg',
         'Known as the bible of C, this classic bestseller introduces the C programming language and illustrates ' ||
         'algorithms, data structures, and programming techniques.', 0);
