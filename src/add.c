@@ -317,7 +317,20 @@ void process() {
                     parms[parmsz++] = (struct sqlbox_parm){.type = SQLBOX_PARM_INT, .iparm = field->parsed.i};
                     break;
                 case KPAIR_STRING:
-                    parms[parmsz++] = (struct sqlbox_parm){.type = SQLBOX_PARM_STRING, .sparm = field->parsed.s};
+                    if (switch_keys[r.page][i] == KEY_PW) {
+                        char hash[_PASSWORD_LEN];
+                        uint8_t salt[SALTLEN];
+                        arc4random_buf(salt,SALTLEN);
+                        uint8_t *pwd = (uint8_t *) kstrdup(r.fieldmap[KEY_PW]->parsed.s);
+                        uint32_t pwdlen = strlen((char *) pwd);
+                        uint32_t t_cost = 1;
+                        uint32_t m_cost = 47104;
+                        uint32_t parallelism = 1;
+                        argon2id_hash_encoded(t_cost, m_cost, parallelism, pwd, pwdlen, salt, SALTLEN,HASHLEN, hash,
+                                              _PASSWORD_LEN);
+                        parms[parmsz++] = (struct sqlbox_parm){.type = SQLBOX_PARM_STRING, .sparm = hash};
+                    } else
+                        parms[parmsz++] = (struct sqlbox_parm){.type = SQLBOX_PARM_STRING, .sparm = field->parsed.s};
                     break;
                 default:
                     break;
