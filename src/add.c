@@ -180,7 +180,7 @@ static struct sqlbox_pstmt pstmts[STMTS__MAX] = {
     }
 };
 
-static enum key_mods switch_keys[STMTS__MAX][10] = {
+static enum keys switch_keys[STMTS__MAX][10] = {
     {KEY_NAME, KEY__MAX},
     {KEY_NAME, KEY__MAX},
     {KEY_NAME, KEY__MAX},
