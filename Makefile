@@ -6,7 +6,7 @@ USER=www
 GROUP=www
 
 all: build/add build/edit build/query build/auth build/deauth build/signup build/search build/database.db build/me
-install:install-edit install-add install-auth install-deauth install-query install-signup install-search install-db
+install:install-me install-edit install-add install-auth install-deauth install-query install-signup install-search install-db
 
 build/add.o: src/add.c
 	${CC} ${CFLAGS} -c -o build/add.o src/add.c
