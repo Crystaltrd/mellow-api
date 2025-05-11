@@ -306,9 +306,10 @@ enum khttp second_pass() {
     return KHTTP_200;
 }
 
-void process() {
+enum khttp process() {
     struct sqlbox_parm parms[8];
     size_t parmsz = 0;
+    enum sqlbox_code err;
     struct kpair *field;
     for (int i = 0; switch_keys[r.page][i] != KEY__MAX; ++i) {
         if ((field = r.fieldmap[switch_keys[r.page][i]])) {
@@ -343,26 +344,24 @@ void process() {
         struct sqlbox_parm temp_parms[] = {
             {.type = SQLBOX_PARM_STRING, .sparm = r.fieldmap[KEY_PUBLISHER]->parsed.s}
         };
-        enum sqlbox_code err;
         if ((err = sqlbox_exec(boxctx, dbid, STMTS_ADD_PUBLISHER, 1, temp_parms,SQLBOX_STMT_CONSTRAINT)) !=
             SQLBOX_CODE_OK)
             if (err != SQLBOX_CODE_CONSTRAINT)
                 errx(EXIT_FAILURE, "sqlbox_exec");
     }
-    if (sqlbox_exec(boxctx, dbid, r.page, parmsz, parms,SQLBOX_STMT_CONSTRAINT) !=
+    if ((err = sqlbox_exec(boxctx, dbid, r.page, parmsz, parms,SQLBOX_STMT_CONSTRAINT)) !=
         SQLBOX_CODE_OK)
-        errx(EXIT_FAILURE, "sqlbox_exec");
+        if (err != SQLBOX_CODE_CONSTRAINT)
+            return KHTTP_400;
     if (r.page == PG_BOOK) {
         if (sqlbox_exec(boxctx, dbid, STMTS_DEFAULT_STOCK, 1, parms,SQLBOX_STMT_CONSTRAINT) !=
             SQLBOX_CODE_OK)
-
             errx(EXIT_FAILURE, "sqlbox_exec");
         struct kpair *temp_field = r.fieldmap[KEY_LANG];
         while (temp_field) {
             struct sqlbox_parm temp_parms2[] = {
                 {.type = SQLBOX_PARM_STRING, .sparm = temp_field->parsed.s}
             };
-            enum sqlbox_code err;
             if ((err = sqlbox_exec(boxctx, dbid, STMTS_ADD_LANG, 1, temp_parms2,SQLBOX_STMT_CONSTRAINT)) !=
                 SQLBOX_CODE_OK)
                 if (err != SQLBOX_CODE_CONSTRAINT)
@@ -386,7 +385,6 @@ void process() {
             struct sqlbox_parm temp_parms2[] = {
                 {.type = SQLBOX_PARM_STRING, .sparm = temp_field->parsed.s}
             };
-            enum sqlbox_code err;
             if ((err = sqlbox_exec(boxctx, dbid, STMTS_ADD_AUTHOR, 1, temp_parms2,SQLBOX_STMT_CONSTRAINT)) !=
                 SQLBOX_CODE_OK)
                 if (err != SQLBOX_CODE_CONSTRAINT)
@@ -397,6 +395,7 @@ void process() {
             temp_field = temp_field->next;
         }
     }
+    return KHTTP_200;
 }
 
 int main() {
@@ -409,12 +408,70 @@ int main() {
     if ((er = sanitize()) != KHTTP_200)goto error;
     alloc_ctx_cfg();
     fill_user();
-    if ((er = second_pass()) != KHTTP_200)goto error;
-    process();
+    if ((er = second_pass()) != KHTTP_200)goto access_denied;
+    if ((er = process()) != KHTTP_200) goto access_denied;
     khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
+    khttp_head(&r, kresps[KRESP_CONTENT_TYPE], "%s", kmimetypes[KMIME_APP_JSON]);
     khttp_body(&r);
-    if (r.mime == KMIME_TEXT_HTML)
-        khttp_puts(&r, "Successful");
+    kjson_open(&req, &r);
+    kjson_obj_open(&req);
+    kjson_putstringp(&req, "IP", r.remote);
+    kjson_putboolp(&req, "authenticated", curr_usr.authenticated);
+    if (curr_usr.authenticated) {
+        kjson_putstringp(&req, "UUID", curr_usr.UUID);
+        kjson_putstringp(&req, "disp_name", curr_usr.disp_name);
+        kjson_putstringp(&req, "campus", curr_usr.campus);
+        kjson_putstringp(&req, "role", curr_usr.role);
+        kjson_putboolp(&req, "frozen", curr_usr.frozen);
+
+        kjson_objp_open(&req, "perms");
+        kjson_putintp(&req, "numeric", curr_usr.perms.numeric);
+        kjson_putboolp(&req, "admin", curr_usr.perms.admin);
+        kjson_putboolp(&req, "staff", curr_usr.perms.staff);
+        kjson_putboolp(&req, "manage_stock", curr_usr.perms.manage_stock);
+        kjson_putboolp(&req, "manage_inventories", curr_usr.perms.manage_inventories);
+        kjson_putboolp(&req, "see_accounts", curr_usr.perms.see_accounts);
+        kjson_putboolp(&req, "monitor_history", curr_usr.perms.monitor_history);
+        kjson_putboolp(&req, "has_inventory", curr_usr.perms.has_inventory);
+        kjson_obj_close(&req);
+    }
+
+    kjson_putstringp(&req, "status","Ressource created successfully!");
+    kjson_obj_close(&req);
+    kjson_close(&req);
+    goto cleanup;
+access_denied:
+    khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[er]);
+    khttp_head(&r, kresps[KRESP_CONTENT_TYPE], "%s", kmimetypes[KMIME_APP_JSON]);
+    khttp_body(&r);
+    kjson_open(&req, &r);
+    kjson_obj_open(&req);
+    kjson_putstringp(&req, "IP", r.remote);
+    kjson_putboolp(&req, "authenticated", curr_usr.authenticated);
+    if (curr_usr.authenticated) {
+        kjson_putstringp(&req, "UUID", curr_usr.UUID);
+        kjson_putstringp(&req, "disp_name", curr_usr.disp_name);
+        kjson_putstringp(&req, "campus", curr_usr.campus);
+        kjson_putstringp(&req, "role", curr_usr.role);
+        kjson_putboolp(&req, "frozen", curr_usr.frozen);
+
+        kjson_objp_open(&req, "perms");
+        kjson_putintp(&req, "numeric", curr_usr.perms.numeric);
+        kjson_putboolp(&req, "admin", curr_usr.perms.admin);
+        kjson_putboolp(&req, "staff", curr_usr.perms.staff);
+        kjson_putboolp(&req, "manage_stock", curr_usr.perms.manage_stock);
+        kjson_putboolp(&req, "manage_inventories", curr_usr.perms.manage_inventories);
+        kjson_putboolp(&req, "see_accounts", curr_usr.perms.see_accounts);
+        kjson_putboolp(&req, "monitor_history", curr_usr.perms.monitor_history);
+        kjson_putboolp(&req, "has_inventory", curr_usr.perms.has_inventory);
+        kjson_obj_close(&req);
+    }
+
+    kjson_putstringp(&req, "error",
+                     "You don't have the permissions to edit this ressource Or Ressource already exists");
+    kjson_obj_close(&req);
+    kjson_close(&req);
+cleanup:
     khttp_free(&r);
     sqlbox_free(boxctx);
     return 0;
