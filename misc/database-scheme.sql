@@ -123,7 +123,7 @@ CREATE TABLE BOOK
     publisher       TEXT             NOT NULL REFERENCES PUBLISHER (publisherName) ON UPDATE CASCADE ON DELETE CASCADE,
     booktitle       TEXT             NOT NULL,
     bookreleaseyear INTEGER          NOT NULL,
-    bookcover       TEXT,
+    bookcover       BLOB,
     description     TEXT,
     hits            INTEGER DEFAULT 0 CHECK (hits >= 0)
 );
