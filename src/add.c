@@ -344,36 +344,64 @@ enum khttp process() {
         struct sqlbox_parm temp_parms[] = {
             {.type = SQLBOX_PARM_STRING, .sparm = r.fieldmap[KEY_PUBLISHER]->parsed.s}
         };
-        if ((err = sqlbox_exec(boxctx, dbid, STMTS_ADD_PUBLISHER, 1, temp_parms,SQLBOX_STMT_CONSTRAINT)) !=
-            SQLBOX_CODE_OK)
-            if (err != SQLBOX_CODE_CONSTRAINT)
+        switch (sqlbox_exec(boxctx, dbid, STMTS_ADD_PUBLISHER, 1, temp_parms,SQLBOX_STMT_CONSTRAINT)) {
+            case SQLBOX_CODE_OK:
+            case SQLBOX_CODE_CONSTRAINT:
+                break;
+            default:
                 errx(EXIT_FAILURE, "sqlbox_exec");
+        }
     }
-    if ((err = sqlbox_exec(boxctx, dbid, r.page, parmsz, parms,SQLBOX_STMT_CONSTRAINT)) !=
-        SQLBOX_CODE_OK)
-        if (err != SQLBOX_CODE_CONSTRAINT)
+    switch (sqlbox_exec(boxctx, dbid, r.page, parmsz, parms,SQLBOX_STMT_CONSTRAINT)) {
+        case SQLBOX_CODE_OK:
+            break;
+        case SQLBOX_CODE_CONSTRAINT:
             return KHTTP_400;
-    if (r.page == PG_BOOK) {
-        if (sqlbox_exec(boxctx, dbid, STMTS_DEFAULT_STOCK, 1, parms,SQLBOX_STMT_CONSTRAINT) !=
-            SQLBOX_CODE_OK)
+        default:
             errx(EXIT_FAILURE, "sqlbox_exec");
+    }
+    if (r.page == PG_BOOK) {
+        switch (sqlbox_exec(boxctx, dbid, STMTS_DEFAULT_STOCK, 1, parms,SQLBOX_STMT_CONSTRAINT)) {
+            case SQLBOX_CODE_OK:
+                break;
+            case SQLBOX_CODE_CONSTRAINT:
+                return KHTTP_400;
+            default:
+                errx(EXIT_FAILURE, "sqlbox_exec");
+        }
         struct kpair *temp_field = r.fieldmap[KEY_LANG];
         while (temp_field) {
             struct sqlbox_parm temp_parms2[] = {
                 {.type = SQLBOX_PARM_STRING, .sparm = temp_field->parsed.s}
             };
-            if ((err = sqlbox_exec(boxctx, dbid, STMTS_ADD_LANG, 1, temp_parms2,SQLBOX_STMT_CONSTRAINT)) !=
-                SQLBOX_CODE_OK)
-                if (err != SQLBOX_CODE_CONSTRAINT)
+            switch (sqlbox_exec(boxctx, dbid, STMTS_DEFAULT_STOCK, 1, parms,SQLBOX_STMT_CONSTRAINT)) {
+                case SQLBOX_CODE_OK:
+                    break;
+                case SQLBOX_CODE_CONSTRAINT:
+                    return KHTTP_400;
+                default:
                     errx(EXIT_FAILURE, "sqlbox_exec");
+            }
+            switch (sqlbox_exec(boxctx, dbid, STMTS_ADD_LANG, 1, temp_parms2,SQLBOX_STMT_CONSTRAINT)) {
+                case SQLBOX_CODE_OK:
+                case SQLBOX_CODE_CONSTRAINT:
+                    break;
+                default:
+                    errx(EXIT_FAILURE, "sqlbox_exec");
+            }
             struct sqlbox_parm temp_parms[] = {
                 {.type = SQLBOX_PARM_STRING, .sparm = r.fieldmap[KEY_SERIALNUM]->parsed.s},
                 {.type = SQLBOX_PARM_STRING, .sparm = temp_field->parsed.s}
             };
 
-            if (sqlbox_exec(boxctx, dbid, STMTS_ADD_LANGUAGES, 2, temp_parms,SQLBOX_STMT_CONSTRAINT) !=
-                SQLBOX_CODE_OK)
-                errx(EXIT_FAILURE, "sqlbox_exec");
+            switch (sqlbox_exec(boxctx, dbid, STMTS_ADD_LANGUAGES, 2, temp_parms,SQLBOX_STMT_CONSTRAINT)) {
+                case SQLBOX_CODE_OK:
+                    break;
+                case SQLBOX_CODE_CONSTRAINT:
+                    return KHTTP_400;
+                default:
+                    errx(EXIT_FAILURE, "sqlbox_exec");
+            }
             temp_field = temp_field->next;
         }
         temp_field = r.fieldmap[KEY_AUTHOR];
@@ -385,13 +413,23 @@ enum khttp process() {
             struct sqlbox_parm temp_parms2[] = {
                 {.type = SQLBOX_PARM_STRING, .sparm = temp_field->parsed.s}
             };
-            if ((err = sqlbox_exec(boxctx, dbid, STMTS_ADD_AUTHOR, 1, temp_parms2,SQLBOX_STMT_CONSTRAINT)) !=
-                SQLBOX_CODE_OK)
-                if (err != SQLBOX_CODE_CONSTRAINT)
+
+            switch (sqlbox_exec(boxctx, dbid, STMTS_ADD_AUTHOR, 1, temp_parms2,SQLBOX_STMT_CONSTRAINT)) {
+                case SQLBOX_CODE_OK:
+                case SQLBOX_CODE_CONSTRAINT:
+                    break;
+                default:
                     errx(EXIT_FAILURE, "sqlbox_exec");
-            if (sqlbox_exec(boxctx, dbid, STMTS_ADD_AUTHORED, 2, temp_parms,SQLBOX_STMT_CONSTRAINT) !=
-                SQLBOX_CODE_OK)
-                errx(EXIT_FAILURE, "sqlbox_exec");
+            }
+            switch (sqlbox_exec(boxctx, dbid, STMTS_ADD_AUTHORED, 2, temp_parms,SQLBOX_STMT_CONSTRAINT)) {
+                case SQLBOX_CODE_OK:
+                    break;
+                case SQLBOX_CODE_CONSTRAINT:
+                    return KHTTP_400;
+                default:
+                    errx(EXIT_FAILURE, "sqlbox_exec");
+            }
+
             temp_field = temp_field->next;
         }
     }
@@ -409,7 +447,9 @@ int main() {
     alloc_ctx_cfg();
     fill_user();
     if ((er = second_pass()) != KHTTP_200)goto access_denied;
+    sqlbox_trans_immediate(boxctx,dbid,1);
     if ((er = process()) != KHTTP_200) goto access_denied;
+    sqlbox_trans_commit(boxctx,dbid,1);
     khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
     khttp_head(&r, kresps[KRESP_CONTENT_TYPE], "%s", kmimetypes[KMIME_APP_JSON]);
     khttp_body(&r);
@@ -436,11 +476,13 @@ int main() {
         kjson_obj_close(&req);
     }
 
-    kjson_putstringp(&req, "status","Ressource created successfully!");
+    kjson_putstringp(&req, "status", "Ressource created successfully!");
     kjson_obj_close(&req);
     kjson_close(&req);
     goto cleanup;
 access_denied:
+    sqlbox_trans_rollback(boxctx,dbid,1);
+
     khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[er]);
     khttp_head(&r, kresps[KRESP_CONTENT_TYPE], "%s", kmimetypes[KMIME_APP_JSON]);
     khttp_body(&r);
