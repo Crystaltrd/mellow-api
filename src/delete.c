@@ -319,7 +319,7 @@ enum khttp process() {
         }
     }
 
-    if ((err = sqlbox_exec(boxctx, dbid, r.page, parmsz, parms,SQLBOX_STMT_CONSTRAINT)) !=
+    if ((sqlbox_exec(boxctx, dbid, r.page, parmsz, parms,SQLBOX_STMT_CONSTRAINT)) !=
         SQLBOX_CODE_OK)
         return KHTTP_400;
     size_t stmtid_count;

@@ -64,6 +64,7 @@ enum statement {
     STMTS_INVENTORY,
     STMTS_LOGIN,
     STMTS_SAVE,
+    STMTS_CHANGES,
     STMTS__MAX
 };
 
@@ -89,7 +90,8 @@ static struct sqlbox_pstmt pstmts[STMTS__MAX] = {
         (char *)
         "INSERT INTO HISTORY (UUID,UUID_ISSUER, IP, action, actiondate, details) "
         "VALUES ((?),(?),(?),'RETURN',datetime('now','localtime'),(?))"
-    }
+    },
+    {(char *) "SELECT changes()"}
 
 };
 
@@ -209,15 +211,25 @@ enum khttp process() {
         SQLBOX_CODE_OK) {
         sqlbox_trans_rollback(boxctx, dbid, 1);
         return KHTTP_400;
-        }
+    }
     if (sqlbox_exec(boxctx, dbid, STMTS_STOCK, 2, parms,SQLBOX_STMT_CONSTRAINT) !=
         SQLBOX_CODE_OK) {
         sqlbox_trans_rollback(boxctx, dbid, 1);
         return KHTTP_400;
     }
 
-
-    sqlbox_trans_commit(boxctx, dbid, 1);
+    size_t stmtid_count;
+    const struct sqlbox_parmset *res;
+    if (!(stmtid_count = sqlbox_prepare_bind(boxctx, dbid, STMTS_CHANGES, 0, 0, SQLBOX_STMT_MULTI)))
+        errx(EXIT_FAILURE, "sqlbox_prepare_bind");
+    if ((res = sqlbox_step(boxctx, stmtid_count)) == NULL)
+        errx(EXIT_FAILURE, "sqlbox_step");
+    const int nbr = (int) res->ps[0].iparm;
+    sqlbox_finalise(boxctx, stmtid_count);
+    if (nbr != 0)
+        sqlbox_trans_commit(boxctx, dbid, 1);
+    else
+        sqlbox_trans_rollback(boxctx, dbid, 1);
 
     return KHTTP_200;
 }
