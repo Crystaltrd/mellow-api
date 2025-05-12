@@ -230,7 +230,7 @@ enum khttp process() {
         return KHTTP_400;
     }
 
-
+    sqlbox_trans_commit(boxctx, dbid, 1);
     return KHTTP_200;
 }
 
