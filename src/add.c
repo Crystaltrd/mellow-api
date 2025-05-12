@@ -309,7 +309,6 @@ enum khttp second_pass() {
 enum khttp process() {
     struct sqlbox_parm parms[8];
     size_t parmsz = 0;
-    enum sqlbox_code err;
     struct kpair *field;
     for (int i = 0; switch_keys[r.page][i] != KEY__MAX; ++i) {
         if ((field = r.fieldmap[switch_keys[r.page][i]])) {
@@ -446,10 +445,10 @@ int main() {
     if ((er = sanitize()) != KHTTP_200)goto error;
     alloc_ctx_cfg();
     fill_user();
-    if ((er = second_pass()) != KHTTP_200)goto access_denied;
-    sqlbox_trans_immediate(boxctx,dbid,1);
+    //if ((er = second_pass()) != KHTTP_200)goto access_denied_no_rollback;
+    sqlbox_trans_immediate(boxctx, dbid, 1);
     if ((er = process()) != KHTTP_200) goto access_denied;
-    sqlbox_trans_commit(boxctx,dbid,1);
+    sqlbox_trans_commit(boxctx, dbid, 1);
     khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
     khttp_head(&r, kresps[KRESP_CONTENT_TYPE], "%s", kmimetypes[KMIME_APP_JSON]);
     khttp_body(&r);
@@ -481,8 +480,8 @@ int main() {
     kjson_close(&req);
     goto cleanup;
 access_denied:
-    sqlbox_trans_rollback(boxctx,dbid,1);
-
+    sqlbox_trans_rollback(boxctx, dbid, 1);
+access_denied_no_rollback:
     khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[er]);
     khttp_head(&r, kresps[KRESP_CONTENT_TYPE], "%s", kmimetypes[KMIME_APP_JSON]);
     khttp_body(&r);
