@@ -373,14 +373,6 @@ enum khttp process() {
             struct sqlbox_parm temp_parms2[] = {
                 {.type = SQLBOX_PARM_STRING, .sparm = temp_field->parsed.s}
             };
-            switch (sqlbox_exec(boxctx, dbid, STMTS_DEFAULT_STOCK, 1, parms,SQLBOX_STMT_CONSTRAINT)) {
-                case SQLBOX_CODE_OK:
-                    break;
-                case SQLBOX_CODE_CONSTRAINT:
-                    return KHTTP_400;
-                default:
-                    errx(EXIT_FAILURE, "sqlbox_exec");
-            }
             switch (sqlbox_exec(boxctx, dbid, STMTS_ADD_LANG, 1, temp_parms2,SQLBOX_STMT_CONSTRAINT)) {
                 case SQLBOX_CODE_OK:
                 case SQLBOX_CODE_CONSTRAINT:
