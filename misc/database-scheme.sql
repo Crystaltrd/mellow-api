@@ -27,8 +27,8 @@ VALUES ('ADD'),
        ('LOGIN'),
        ('LOGOUT'),
        ('SIGNUP'),
-       ('REMOVE_ACCOUNT'),
-       ('RENT');
+       ('BORROW'),
+       ('RETURN');
 
 CREATE TABLE LANG
 (
