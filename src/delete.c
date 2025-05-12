@@ -1,4 +1,3 @@
-#include <argon2.h>
 #include <sys/types.h> /* size_t, ssize_t */
 #include <stdarg.h> /* va_list */
 #include <stddef.h> /* NULL */
@@ -16,11 +15,7 @@
 #include <time.h>
 #include <pwd.h>
 #include <unistd.h>
-#define HASHLEN 32
-#define SALTLEN 16
-#ifndef __BSD_VISIBLE
-#define	_PASSWORD_LEN		128
-#endif
+
 struct kreq r;
 struct kjsonreq req;
 
@@ -146,6 +141,7 @@ enum statement {
     STMTS_LOGIN,
     STMTS_SAVE,
     STMTS_DEFAULT_STOCK,
+    STMTS_CHANGES,
     STMTS__MAX
 };
 
@@ -181,7 +177,8 @@ static struct sqlbox_pstmt pstmts[STMTS__MAX] = {
     },
     {
         (char *) "INSERT INTO STOCK(serialnum, campus) SELECT(?) AS serialnum ,campusName AS campus FROM CAMPUS"
-    }
+    },
+    {(char *) "SELECT changes()"}
 };
 
 static enum keys switch_keys[STMTS__MAX][10] = {
@@ -324,9 +321,17 @@ enum khttp process() {
 
     if ((err = sqlbox_exec(boxctx, dbid, r.page, parmsz, parms,SQLBOX_STMT_CONSTRAINT)) !=
         SQLBOX_CODE_OK)
-        if (err != SQLBOX_CODE_CONSTRAINT)
-            return KHTTP_400;
-    return KHTTP_200;
+        return KHTTP_400;
+    size_t stmtid_count;
+    const struct sqlbox_parmset *res;
+    if (!(stmtid_count = sqlbox_prepare_bind(boxctx, dbid, STMTS_CHANGES, 0, 0, SQLBOX_STMT_MULTI)))
+        errx(EXIT_FAILURE, "sqlbox_prepare_bind");
+    if ((res = sqlbox_step(boxctx, stmtid_count)) == NULL)
+        errx(EXIT_FAILURE, "sqlbox_step");
+    const int nbr = (int) res->ps[0].iparm;
+    sqlbox_finalise(boxctx, stmtid_count);
+
+    return (nbr != 0) ? KHTTP_200 : KHTTP_400;
 }
 
 int main() {
