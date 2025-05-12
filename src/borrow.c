@@ -234,7 +234,7 @@ int main() {
     if ((er = sanitize()) != KHTTP_200)goto error;
     alloc_ctx_cfg();
     fill_user();
-    //if ((er = second_pass()) != KHTTP_200)goto access_denied;
+    if ((er = second_pass()) != KHTTP_200)goto access_denied;
     if ((er = process()) != KHTTP_200) goto access_denied;
     khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
     khttp_head(&r, kresps[KRESP_CONTENT_TYPE], "%s", kmimetypes[KMIME_APP_JSON]);
