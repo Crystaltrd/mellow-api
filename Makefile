@@ -6,8 +6,8 @@ USER=www
 GROUP=www
 
 all: build/borrow build/delete build/hit build/add build/edit build/query build/auth build/deauth build/signup build/search build/database.db build/me
-install:install-borrow install-delete install-me install-hit install-edit install-add install-auth install-deauth install-query install-signup install-search install-db
-
+install:install-borrow install-delete install-me install-hit install-edit install-add install-auth install-deauth install-query install-signup install-search
+install-all: install install-db
 build/add.o: src/add.c
 	${CC} ${CFLAGS} -c -o build/add.o src/add.c
 build/add: build/add.o
