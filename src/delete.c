@@ -281,7 +281,7 @@ void fill_user() {
 
 
 enum khttp sanitize() {
-    if (r.method != KMETHOD_GET)
+    if (r.method != KMETHOD_POST)
         return KHTTP_405;
     if (r.page == PG__MAX)
         return KHTTP_404;
