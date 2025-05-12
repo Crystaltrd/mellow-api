@@ -198,7 +198,7 @@ enum khttp second_pass() {
 enum khttp process() {
     struct sqlbox_parm parms[] = {
         {.type = SQLBOX_PARM_STRING, .sparm = r.fieldmap[KEY_SERIALNUM]->parsed.s},
-        {.type = SQLBOX_PARM_STRING, .sparm = "El Kseur"},
+        {.type = SQLBOX_PARM_STRING, .sparm = curr_usr.campus},
     };
 
     struct sqlbox_parm parms2[] = {
