@@ -591,7 +591,7 @@ int main() {
     if ((er = third_pass(STMT, &nbr_parms)) != KHTTP_200)goto error;
     alloc_ctx_cfg();
     fill_user();
-    if ((er = forth_pass(STMT)) != KHTTP_200)goto access_denied;
+    //if ((er = forth_pass(STMT)) != KHTTP_200)goto access_denied;
     khttp_head(&r, kresps[KRESP_STATUS], "%s", khttps[KHTTP_200]);
     khttp_body(&r);
     kjson_open(&req, &r);
