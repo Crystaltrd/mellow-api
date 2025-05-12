@@ -300,7 +300,6 @@ enum khttp second_pass() {
 enum khttp process() {
     struct sqlbox_parm parms[8];
     size_t parmsz = 0;
-    enum sqlbox_code err;
     struct kpair *field;
     for (int i = 0; switch_keys[r.page][i] != KEY__MAX; ++i) {
         if ((field = r.fieldmap[switch_keys[r.page][i]])) {
