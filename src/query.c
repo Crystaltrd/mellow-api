@@ -746,7 +746,7 @@ void build_stmt(enum statement_pieces STMT) {
                       "%s""WITH RECURSIVE CategoryCascade AS (SELECT categoryClass, parentCategoryID "
                       "FROM CATEGORY "
                       "WHERE "
-                      "categoryClass = (?)) "
+                      "categoryClass = (?) "
                       "UNION ALL "
                       "SELECT c.categoryClass, c.parentCategoryID "
                       "FROM CATEGORY c "
