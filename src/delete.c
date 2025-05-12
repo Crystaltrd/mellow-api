@@ -129,20 +129,20 @@ static const struct kvalid keys[KEY__MAX] = {
 };
 
 enum statement {
-    STMTS_ADD_PUBLISHER,
-    STMTS_ADD_AUTHOR,
-    STMTS_ADD_LANG,
-    STMTS_ADD_ACTION,
-    STMTS_ADD_DOCTYPE,
-    STMTS_ADD_CAMPUS,
-    STMTS_ADD_ROLE,
-    STMTS_ADD_CATEGORY,
-    STMTS_ADD_ACCOUNT,
-    STMTS_ADD_BOOK,
-    STMTS_ADD_LANGUAGES,
-    STMTS_ADD_AUTHORED,
-    STMTS_ADD_STOCK,
-    STMTS_ADD_INVENTORY,
+    STMTS_DELETE_PUBLISHER,
+    STMTS_DELETE_AUTHOR,
+    STMTS_DELETE_LANG,
+    STMTS_DELETE_ACTION,
+    STMTS_DELETE_DOCTYPE,
+    STMTS_DELETE_CAMPUS,
+    STMTS_DELETE_ROLE,
+    STMTS_DELETE_CATEGORY,
+    STMTS_DELETE_ACCOUNT,
+    STMTS_DELETE_BOOK,
+    STMTS_DELETE_LANGUAGES,
+    STMTS_DELETE_AUTHORED,
+    STMTS_DELETE_STOCK,
+    STMTS_DELETE_INVENTORY,
     STMTS_LOGIN,
     STMTS_SAVE,
     STMTS_DEFAULT_STOCK,
@@ -150,20 +150,20 @@ enum statement {
 };
 
 static struct sqlbox_pstmt pstmts[STMTS__MAX] = {
-    {(char *) "INSERT INTO PUBLISHER VALUES (?)"},
-    {(char *) "INSERT INTO AUTHOR VALUES (?)"},
-    {(char *) "INSERT INTO LANG VALUES (?)"},
-    {(char *) "INSERT INTO ACTION VALUES (?)"},
-    {(char *) "INSERT INTO DOCTYPE VALUES (?)"},
-    {(char *) "INSERT INTO CAMPUS VALUES (?)"},
-    {(char *) "INSERT INTO ROLE VALUES (?,?)"},
-    {(char *) "INSERT INTO CATEGORY VALUES (?,?,?)"},
-    {(char *) "INSERT INTO ACCOUNT VALUES (?,?,?,?,?,?)"},
-    {(char *) "INSERT INTO BOOK VALUES (?,?,?,?,?,?,?,?,0)"},
-    {(char *) "INSERT INTO LANGUAGES VALUES(?,?)"},
-    {(char *) "INSERT INTO AUTHORED VALUES(?,?)"},
-    {(char *) "INSERT INTO STOCK VALUES(?,?,?)"},
-    {(char *) "INSERT INTO INVENTORY VALUES(?,?,?,?,?)"},
+    {(char *) "DELETE FROM PUBLISHER WHERE publisherName = (?)"},
+    {(char *) "DELETE FROM AUTHOR WHERE authorName = (?)"},
+    {(char *) "DELETE FROM LANG WHERE langCode = (?)"},
+    {(char *) "DELETE FROM ACTION WHERE actionName = (?)"},
+    {(char *) "DELETE FROM DOCTYPE WHERE typeName = (?)"},
+    {(char *) "DELETE FROM CAMPUS WHERE campusName = (?)"},
+    {(char *) "DELETE FROM ROLE WHERE roleName = (?)"},
+    {(char *) "DELETE FROM CATEGORY WHERE categoryClass = (?)"},
+    {(char *) "DELETE FROM ACCOUNT WHERE UUID = (?)"},
+    {(char *) "DELETE FROM BOOK WHERE serialnum = (?)"},
+    {(char *) "DELETE FROM LANGUAGES WHERE (serialnum,lang) = (?,?)"},
+    {(char *) "DELETE FROM AUTHORED WHERE (serialnum,author) = (?,?)"},
+    {(char *) "DELETE FROM STOCK WHERE (serialnum,campus) = (?,?)"},
+    {(char *) "DELETE FROM INVENTORY WHERE (UUID,serialnum) =(?,?)"},
     {
         (char *)
         "SELECT ACCOUNT.UUID, displayname, pwhash, campus, role, perms, frozen "
@@ -177,7 +177,7 @@ static struct sqlbox_pstmt pstmts[STMTS__MAX] = {
     {
         (char *)
         "INSERT INTO HISTORY (UUID, IP, action, actiondate, details) "
-        "VALUES ((?),(?),'ADD',datetime('now','localtime'),(?))"
+        "VALUES ((?),(?),'EDIT',datetime('now','localtime'),(?))"
     },
     {
         (char *) "INSERT INTO STOCK(serialnum, campus) SELECT(?) AS serialnum ,campusName AS campus FROM CAMPUS"
@@ -191,20 +191,14 @@ static enum keys switch_keys[STMTS__MAX][10] = {
     {KEY_NAME, KEY__MAX},
     {KEY_NAME, KEY__MAX},
     {KEY_NAME, KEY__MAX},
-    {KEY_NAME, KEY_PERMS, KEY__MAX},
-    {KEY_CLASS, KEY_NAME, KEY_PARENT, KEY__MAX},
-    {
-        KEY_UUID, KEY_NAME, KEY_PW, KEY_CAMPUS, KEY_ROLE, KEY_FROZEN,
-        KEY__MAX
-    },
-    {
-        KEY_SERIALNUM, KEY_TYPE, KEY_CATEGORY, KEY_PUBLISHER, KEY_NAME,
-        KEY_RELEASEYEAR, KEY_COVER, KEY_DESCRIPTION, KEY__MAX
-    },
+    {KEY_NAME, KEY__MAX},
+    {KEY_CLASS, KEY__MAX},
+    {KEY_UUID, KEY__MAX},
+    {KEY_SERIALNUM, KEY__MAX},
     {KEY_SERIALNUM, KEY_LANG, KEY__MAX},
     {KEY_SERIALNUM, KEY_AUTHOR, KEY__MAX},
-    {KEY_SERIALNUM, KEY_CAMPUS, KEY_INSTOCK, KEY__MAX},
-    {KEY_UUID, KEY_SERIALNUM, KEY_DURATION, KEY_DATE, KEY_EXTENDED, KEY__MAX}
+    {KEY_SERIALNUM, KEY_CAMPUS, KEY__MAX},
+    {KEY_UUID, KEY_SERIALNUM, KEY__MAX}
 };
 struct sqlbox_src srcs[] = {
     {
@@ -318,20 +312,7 @@ enum khttp process() {
                     parms[parmsz++] = (struct sqlbox_parm){.type = SQLBOX_PARM_INT, .iparm = field->parsed.i};
                     break;
                 case KPAIR_STRING:
-                    if (switch_keys[r.page][i] == KEY_PW) {
-                        char hash[_PASSWORD_LEN];
-                        uint8_t salt[SALTLEN];
-                        arc4random_buf(salt,SALTLEN);
-                        uint8_t *pwd = (uint8_t *) kstrdup(r.fieldmap[KEY_PW]->parsed.s);
-                        uint32_t pwdlen = strlen((char *) pwd);
-                        uint32_t t_cost = 1;
-                        uint32_t m_cost = 47104;
-                        uint32_t parallelism = 1;
-                        argon2id_hash_encoded(t_cost, m_cost, parallelism, pwd, pwdlen, salt, SALTLEN,HASHLEN, hash,
-                                              _PASSWORD_LEN);
-                        parms[parmsz++] = (struct sqlbox_parm){.type = SQLBOX_PARM_STRING, .sparm = hash};
-                    } else
-                        parms[parmsz++] = (struct sqlbox_parm){.type = SQLBOX_PARM_STRING, .sparm = field->parsed.s};
+                    parms[parmsz++] = (struct sqlbox_parm){.type = SQLBOX_PARM_STRING, .sparm = field->parsed.s};
                     break;
                 default:
                     break;
@@ -340,61 +321,11 @@ enum khttp process() {
             parms[parmsz++] = (struct sqlbox_parm){.type = SQLBOX_PARM_NULL};
         }
     }
-    if (r.page == PG_BOOK) {
-        struct sqlbox_parm temp_parms[] = {
-            {.type = SQLBOX_PARM_STRING, .sparm = r.fieldmap[KEY_PUBLISHER]->parsed.s}
-        };
-        if ((err = sqlbox_exec(boxctx, dbid, STMTS_ADD_PUBLISHER, 1, temp_parms,SQLBOX_STMT_CONSTRAINT)) !=
-            SQLBOX_CODE_OK)
-            if (err != SQLBOX_CODE_CONSTRAINT)
-                errx(EXIT_FAILURE, "sqlbox_exec");
-    }
+
     if ((err = sqlbox_exec(boxctx, dbid, r.page, parmsz, parms,SQLBOX_STMT_CONSTRAINT)) !=
         SQLBOX_CODE_OK)
         if (err != SQLBOX_CODE_CONSTRAINT)
             return KHTTP_400;
-    if (r.page == PG_BOOK) {
-        if (sqlbox_exec(boxctx, dbid, STMTS_DEFAULT_STOCK, 1, parms,SQLBOX_STMT_CONSTRAINT) !=
-            SQLBOX_CODE_OK)
-            errx(EXIT_FAILURE, "sqlbox_exec");
-        struct kpair *temp_field = r.fieldmap[KEY_LANG];
-        while (temp_field) {
-            struct sqlbox_parm temp_parms2[] = {
-                {.type = SQLBOX_PARM_STRING, .sparm = temp_field->parsed.s}
-            };
-            if ((err = sqlbox_exec(boxctx, dbid, STMTS_ADD_LANG, 1, temp_parms2,SQLBOX_STMT_CONSTRAINT)) !=
-                SQLBOX_CODE_OK)
-                if (err != SQLBOX_CODE_CONSTRAINT)
-                    errx(EXIT_FAILURE, "sqlbox_exec");
-            struct sqlbox_parm temp_parms[] = {
-                {.type = SQLBOX_PARM_STRING, .sparm = r.fieldmap[KEY_SERIALNUM]->parsed.s},
-                {.type = SQLBOX_PARM_STRING, .sparm = temp_field->parsed.s}
-            };
-
-            if (sqlbox_exec(boxctx, dbid, STMTS_ADD_LANGUAGES, 2, temp_parms,SQLBOX_STMT_CONSTRAINT) !=
-                SQLBOX_CODE_OK)
-                errx(EXIT_FAILURE, "sqlbox_exec");
-            temp_field = temp_field->next;
-        }
-        temp_field = r.fieldmap[KEY_AUTHOR];
-        while (temp_field) {
-            struct sqlbox_parm temp_parms[] = {
-                {.type = SQLBOX_PARM_STRING, .sparm = r.fieldmap[KEY_SERIALNUM]->parsed.s},
-                {.type = SQLBOX_PARM_STRING, .sparm = temp_field->parsed.s}
-            };
-            struct sqlbox_parm temp_parms2[] = {
-                {.type = SQLBOX_PARM_STRING, .sparm = temp_field->parsed.s}
-            };
-            if ((err = sqlbox_exec(boxctx, dbid, STMTS_ADD_AUTHOR, 1, temp_parms2,SQLBOX_STMT_CONSTRAINT)) !=
-                SQLBOX_CODE_OK)
-                if (err != SQLBOX_CODE_CONSTRAINT)
-                    errx(EXIT_FAILURE, "sqlbox_exec");
-            if (sqlbox_exec(boxctx, dbid, STMTS_ADD_AUTHORED, 2, temp_parms,SQLBOX_STMT_CONSTRAINT) !=
-                SQLBOX_CODE_OK)
-                errx(EXIT_FAILURE, "sqlbox_exec");
-            temp_field = temp_field->next;
-        }
-    }
     return KHTTP_200;
 }
 
@@ -436,7 +367,7 @@ int main() {
         kjson_obj_close(&req);
     }
 
-    kjson_putstringp(&req, "status","Ressource created successfully!");
+    kjson_putstringp(&req, "status", "Ressource deleted successfully!");
     kjson_obj_close(&req);
     kjson_close(&req);
     goto cleanup;
@@ -467,8 +398,7 @@ access_denied:
         kjson_obj_close(&req);
     }
 
-    kjson_putstringp(&req, "error",
-                     "You don't have the permissions to edit this ressource Or Ressource already exists");
+    kjson_putstringp(&req, "error", "You don't have the permissions to edit this ressource or ressource non-existant");
     kjson_obj_close(&req);
     kjson_close(&req);
 cleanup:
