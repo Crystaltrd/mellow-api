@@ -1025,6 +1025,8 @@ void process(const enum statement_pieces STATEMENT) {
                 case SQLBOX_PARM_STRING:
                     if ((STATEMENT == STMTS_BOOK || STATEMENT == STMTS_STOCK) && i == 0)
                         kjson_putstringp(&req, "serialnum", res->ps[i].sparm);
+                    else if (STATEMENT == STMTS_ACCOUNT && i == 0)
+                        kjson_putstringp(&req, "UUID", res->ps[i].sparm);
                     else
                         kjson_putstringp(&req, rows[STATEMENT][i], res->ps[i].bparm);
                     break;
