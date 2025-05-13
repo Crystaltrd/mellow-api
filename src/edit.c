@@ -405,11 +405,11 @@ enum khttp third_pass(enum statement_comp STMT, int *nbr) {
     for (int i = 0; switch_keys[STMT][i] != KEY__MAX; ++i) {
         if (r.fieldmap[switch_keys[STMT][i]]) {
             if (!found) {
-                kasprintf(&pstmts[STMT_EDIT].stmt, "%s,%s", pstmts[STMT_EDIT].stmt, pstmts_switches[STMT][i].stmt);
+                kasprintf(&pstmts[STMT_EDIT].stmt, "%s%s", pstmts[STMT_EDIT].stmt, pstmts_switches[STMT][i].stmt);
                 found = true;
             }
             else {
-                kasprintf(&pstmts[STMT_EDIT].stmt, "%s%s", pstmts[STMT_EDIT].stmt, pstmts_switches[STMT][i].stmt);
+                kasprintf(&pstmts[STMT_EDIT].stmt, "%s,%s", pstmts[STMT_EDIT].stmt, pstmts_switches[STMT][i].stmt);
             }
             (*nbr)++;
         }
