@@ -835,7 +835,6 @@ void build_stmt(enum statement_pieces STMT) {
             kasprintf(&pstmts[STMT_DATA].stmt, "%s%s", pstmts[STMT_DATA].stmt, pstmts_bottom[STMT][i]);
         } else {
             if (r.fieldmap[bottom_keys[STMT][i]]) {
-                parmsz++;
                 if (!flag) {
                     kasprintf(&pstmts[STMT_DATA].stmt, "%s"" ORDER BY ", pstmts[STMT_DATA].stmt);
                     flag = true;
