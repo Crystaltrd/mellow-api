@@ -402,14 +402,15 @@ enum khttp second_pass(enum statement_comp STMT, int *nbr) {
 enum khttp third_pass(enum statement_comp STMT, int *nbr) {
     kasprintf(&pstmts[STMT_EDIT].stmt, "%s", pstmts_top[STMT].stmt);
     bool found = false;
-    if ((found = (r.fieldmap[switch_keys[STMT][0]]))) {
-        kasprintf(&pstmts[STMT_EDIT].stmt, "%s%s", pstmts[STMT_EDIT].stmt, pstmts_switches[STMT][0].stmt);
-        (*nbr)++;
-    }
-    for (int i = 1; switch_keys[STMT][i] != KEY__MAX; ++i) {
+    for (int i = 0; switch_keys[STMT][i] != KEY__MAX; ++i) {
         if (r.fieldmap[switch_keys[STMT][i]]) {
-            found = true;
-            kasprintf(&pstmts[STMT_EDIT].stmt, "%s,%s", pstmts[STMT_EDIT].stmt, pstmts_switches[STMT][i].stmt);
+            if (!found) {
+                kasprintf(&pstmts[STMT_EDIT].stmt, "%s%s", pstmts[STMT_EDIT].stmt, pstmts_switches[STMT][i].stmt);
+                found = true;
+            }
+            else {
+                kasprintf(&pstmts[STMT_EDIT].stmt, "%s,%s", pstmts[STMT_EDIT].stmt, pstmts_switches[STMT][i].stmt);
+            }
             (*nbr)++;
         }
     }
