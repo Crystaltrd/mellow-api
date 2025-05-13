@@ -497,7 +497,7 @@ int process(const enum statement_comp STMT, const int parmsz) {
     }
     if (sqlbox_exec(boxctx_data, dbid_data, STMT_EDIT, parmsz, parms,SQLBOX_STMT_CONSTRAINT) !=
         SQLBOX_CODE_OK)
-        errx(EXIT_FAILURE, "sqlbox_exec");
+        errx(EXIT_FAILURE, "sqlbox_exec %s",pstmts[STMT_EDIT].stmt);
     free(parms);
 
     size_t stmtid_count;
