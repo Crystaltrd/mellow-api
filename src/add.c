@@ -116,7 +116,7 @@ static const struct kvalid keys[KEY__MAX] = {
     {kvalid_stringne, "category"},
     {kvalid_stringne, "publisher"},
     {kvalid_int, "year"},
-    {NULL, "cover"},
+    {kvalid_stringne, "cover"},
     {kvalid_string, "description"},
     {kvalid_stringne, "lang"},
     {kvalid_stringne, "author"},
