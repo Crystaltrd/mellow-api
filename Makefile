@@ -3,7 +3,7 @@ LDFLAGS=--static `pkg-config --static --libs libargon2 kcgi-html kcgi-json sqlbo
 LDFLAGS_LINUX= `pkg-config --static --libs libmd libbsd`
 DESTDIR=/var/www/cgi-bin
 USER=www
-GROUP=wwww
+GROUP=www
 
 all: build/return build/borrow build/delete build/hit build/add build/edit build/query build/auth build/deauth build/signup build/search build/database.db build/me
 install: install-return install-borrow install-delete install-me install-hit install-edit install-add install-auth install-deauth install-query install-signup install-search
