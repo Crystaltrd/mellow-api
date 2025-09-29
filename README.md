@@ -1,8 +1,3 @@
-## TODO:
-- REGEX for uuid
-- header files for usr (D.R.Y)
-- password hashing in edit
-- fix the cookie situation
 
 ## Permissions:
 
