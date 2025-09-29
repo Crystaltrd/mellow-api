@@ -1,13 +1,5 @@
 
-## Permissions:
 
-- Admin: Can manage Staff accounts, can import and export backups.
-- Staff: Can manage non-staff accounts
-- Managing Stock: Can manage books and the stock, can create and delete languages, categories...etc
-- Managing Inventories: Can give and take books from other Inventories
-- See Account details: See other accounts details
-- Monitor the History: Can see the entire history
-- Has an Inventory: Can rent books
 
 ## API endpoints :
 
